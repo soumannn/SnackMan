@@ -26,6 +26,7 @@ Das Spiel ist außerdem vorbei, sobald der Snackman alle seine Leben verloren ha
 ---
 
 #### Requirements:
+
 * Java 17
 
 ### 1. Backend Setup
