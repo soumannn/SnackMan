@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Index from '../views/Index.vue'
 import Lobby from '../views/Lobby.vue'
 import LobbyList from '../views/LobbyList.vue'
+import Playground from "../views/Playground.vue"
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -9,7 +10,7 @@ const router = createRouter({
     {
       path: "/",
       redirect: "/index"
-    }, // Hier wird direkt zur Hauptseite weitergeleitet 
+    }, // Hier wird direkt zur Hauptseite weitergeleitet
     {
       path: '/index',
       name: 'index',
@@ -25,6 +26,11 @@ const router = createRouter({
       name: 'lobbyList',
       component: LobbyList
     }, // Hier wird die Lobby Liste angezeigt
+    {
+      path: '/playground',
+      name: 'playground',
+      component: Playground
+    }
   ],
 })
 
