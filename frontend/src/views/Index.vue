@@ -31,7 +31,7 @@
   
   function createNewGame(){
 
-    // neues json objekt "newGame" erstellt, mit hilfsmethode "generateRandomGameId()" eine id generiert
+    // neues Java-Script objekt "newGame" erstellt, mit hilfsmethode "generateRandomGameId()" eine id generiert
     const newGame = {
       "id" : generateRandomGameId(),
       "players" : ["host"]
@@ -57,7 +57,7 @@
       return;
     }
 
-    // Neues Json Objekt erstellt
+    // Neues Java-Script Objekt erstellt
     const joinGame = {
       "id" :  gameId.value ,
       "players" : ["host", "newPlayer"]
