@@ -3,13 +3,15 @@ package de.hs_rm.backend.gamelogic.map;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.hs_rm.backend.gamelogic.characters.players.Chicken;
+
 public class Tile {
-    // TODO: vielleicht erwetiern mit zb boolean hasSnackman, hasGhost, hasItemx ...
     int x,y;
     TileType type;
 
 //    List<Item> itemList;
     List<Character> characterList;
+    List<Chicken> chickenList;
 
     public Tile(TileType type, int x, int y){
         this.type = type;
@@ -17,6 +19,7 @@ public class Tile {
         this.y = y;
         // itemList = new ArrayList<>();
         characterList = new ArrayList<>();
+        chickenList = new ArrayList<>();
     }
 
     public boolean moveTo(Character character, Tile targetTile){
@@ -33,7 +36,7 @@ public class Tile {
     }
 
     public boolean addCharacter(Character character){
-        this.addCharacter(character);
+        this.characterList.add(character);
         // if(!itemList.isEmpty()){
             // TODO: Item hier nehmen
         // }
@@ -44,6 +47,11 @@ public class Tile {
     //     this.itemList.add(item);
     //     return true;
     // }
+
+    public boolean addChicken(Chicken chicken){
+        this.chickenList.add(chicken);
+        return true;
+    }
 
 
     public int getX() {
@@ -85,6 +93,13 @@ public class Tile {
     public void setCharacterList(List<Character> characterList) {
         this.characterList = characterList;
     }
-    
+
+    public List<Chicken> getChickenList() {
+        return chickenList;
+    }
+
+    public void setChickenList(List<Chicken> chickenList) {
+        this.chickenList = chickenList;
+    }
     
 }

@@ -1,6 +1,7 @@
 package de.hs_rm.backend.gamelogic;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
@@ -106,9 +107,11 @@ public class Game {
         if (players.isEmpty()) {
             return null; 
         }
-        Random random = new Random();
-        int index = random.nextInt(players.size()); // zwischen 0 und players.size() - 1
-        return players.get(index); 
+        // Mischt die Liste der Spieler
+        Collections.shuffle(players);
+        // Holt den ersten Spieler aus der gemischten Liste und entferne ihn
+        Player randomPlayer = players.remove(0);
+        return randomPlayer; 
     }
 
 

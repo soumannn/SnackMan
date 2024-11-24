@@ -89,7 +89,7 @@ for(int i = 0; i < tiles.length; i++){
         }else if (tiles[i][j] == 5) {//Hühn
             Tile newTile = new Tile(TileType.SURFACE, i, j);
             // Chicken chicken = new Chicken(new PlayerPosition(i, j));
-            // newTile.addChicken(...);
+            // newTile.addChicken(chicken);
             tilesList.add(newTile);
         }
     }
