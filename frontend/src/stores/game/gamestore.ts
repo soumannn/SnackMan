@@ -41,29 +41,38 @@ export const useGameStore = defineStore("gameStore", () => {
   }
 
   // API methods
-  async function createGame(gamemaster: IPlayerDTD) {
+  async function createGame(gamemaster: IPlayerDTD, password?: string) {
     try {
+      const payload = {
+        gamemaster,
+        settings: {
+          password: password || null, // Optionales Passwort für die Lobby
+        },
+      };
+
       const response: Response = await fetch(`${apiUrl}/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(gamemaster),
+        body: JSON.stringify(payload),
       });
 
       const gameResponse = await handleResponse(response);
-      setGameStateFromResponse(gameResponse)
+      setGameStateFromResponse(gameResponse);
+
     } catch (error) {
-      handleGameStateError()
+      handleGameStateError();
       console.error("Error creating game:", error);
     }
   }
 
+
   function joinLobby(lobbyId: string) {
     stompClient.onConnect = () => {
-      if(gameState.gamedata?.players){
+      if (gameState.gamedata?.players) {
         subscribeToLobby(lobbyId, (message) => { gameState.gamedata.players = message })
-        sendMessage(`/topic/game/${lobbyId}/join`,{
+        sendMessage(`/topic/game/${lobbyId}/join`, {
           name: 'Berhan',
           email: 'Test MAIL',
           userId: 123
