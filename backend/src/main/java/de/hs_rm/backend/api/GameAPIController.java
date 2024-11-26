@@ -161,19 +161,4 @@ public class GameAPIController {
     }
 
 
-    /* @PostMapping("/loadMap/{mapName}")
-    public ResponseEntity<?> loadMap(@PathVariable String mapName) {
-        /*if (game == null) {
-            return createErrorResponse("No game found to load a map into.");
-        }
-
-        try {
-            PlayMap newMap = new PlayMap();
-          
-        } catch (Exception e) {
-            return createErrorResponse("Failed to load map: " + e.getMessage());
-        }
-    }*/
-
-
 }

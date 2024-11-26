@@ -6,68 +6,10 @@ import java.util.List;
 import de.hs_rm.backend.gamelogic.characters.players.Chicken;
 
 public class Tile {
-    int x,y;
-    TileType type;
+    private TileType type;
 
-//    List<Item> itemList;
-    List<Character> characterList;
-    List<Chicken> chickenList;
-
-    public Tile(TileType type, int x, int y){
+    public Tile(TileType type) {
         this.type = type;
-        this.x = x;
-        this.y = y;
-        // itemList = new ArrayList<>();
-        characterList = new ArrayList<>();
-        chickenList = new ArrayList<>();
-    }
-
-    public boolean moveTo(Character character, Tile targetTile){
-        if(targetTile.getType()==TileType.WALL){
-            return false;
-        }
-        if (!characterList.contains(character)) {
-            return false;
-        }
-
-        targetTile.addCharacter(character);
-        this.characterList.remove(character);
-        return true;
-    }
-
-    public boolean addCharacter(Character character){
-        this.characterList.add(character);
-        // if(!itemList.isEmpty()){
-            // TODO: Item hier nehmen
-        // }
-        return true;
-    }
-
-    // public boolean addItem(Item item){
-    //     this.itemList.add(item);
-    //     return true;
-    // }
-
-    public boolean addChicken(Chicken chicken){
-        this.chickenList.add(chicken);
-        return true;
-    }
-
-
-    public int getX() {
-        return x;
-    }
-
-    public void setX(int x) {
-        this.x = x;
-    }
-
-    public int getY() {
-        return y;
-    }
-
-    public void setY(int y) {
-        this.y = y;
     }
 
     public TileType getType() {
@@ -77,29 +19,4 @@ public class Tile {
     public void setType(TileType type) {
         this.type = type;
     }
-
-    // public List<Item> getItemList() {
-    //     return itemList;
-    // }
-
-    // public void setItemList(List<Item> itemList) {
-    //     this.itemList = itemList;
-    // }
-
-    public List<Character> getCharacterList() {
-        return characterList;
-    }
-
-    public void setCharacterList(List<Character> characterList) {
-        this.characterList = characterList;
-    }
-
-    public List<Chicken> getChickenList() {
-        return chickenList;
-    }
-
-    public void setChickenList(List<Chicken> chickenList) {
-        this.chickenList = chickenList;
-    }
-    
 }

@@ -65,7 +65,7 @@ public class Game {
         LOGGER.info("started: {}", this.started);
 
         // TODO: hier sollte random name als param übergeben werden
-        playmap = new PlayMap("map1",this);
+        playmap = new PlayMap("map1");
 
         return started;
     }
