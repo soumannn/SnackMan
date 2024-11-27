@@ -55,23 +55,8 @@ public class GameAPIController {
 
     // Method to create a new game
     @PostMapping("/create")
-    public ResponseEntity<?> createGame(@RequestBody Player gamemasterFromFrontend) {
-        // warte noch auf ticket #28
-        if (gamemasterFromFrontend == null || gamemasterFromFrontend.getName() == null) {
-            return ResponseEntity.badRequest().body("Invalid gamemaster data");
-        }
-
-        Player gamemaster = new Player(gamemasterFromFrontend.getName());
-        // #63 NEW: gameservice now creates game
-        Game newGame = gameService.createGame(gamemaster);
-
-        return createOkResponse(newGame);
-    }
-
-    // Method to create a new game
-    @PostMapping("/create")
     public ResponseEntity<?> createGame(@RequestBody Map<String, Object> payload) {
-        String gamemasterName = (String) payload.get("gamemasterName");
+        String gamemasterName = (String) payload.get("gamemaster");
         boolean privateLobby = (boolean) payload.getOrDefault("privateLobby", false);
         String password = (String) payload.getOrDefault("password", null);
 
@@ -181,7 +166,7 @@ public class GameAPIController {
             return createErrorResponse("No game found.");
         }
 
-        // Extrahiere username und role aus der Anfrage
+        // Extrahiere username und Role aus der Anfrage
         String username = payload.get("username");
         String role = payload.get("role");
 

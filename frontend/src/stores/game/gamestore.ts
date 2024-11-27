@@ -43,11 +43,13 @@ export const useGameStore = defineStore("gameStore", () => {
   // API methods
   async function createGame(gamemaster: IPlayerDTD, password?: string) {
     try {
+
+      const isPrivate = !!password; // true, wenn ein Passwort übergeben wurde
+
       const payload = {
-        gamemaster,
-        settings: {
-          password: password || null, // Optionales Passwort für die Lobby
-        },
+        gamemaster: gamemaster.name,
+        privateLobby: isPrivate,
+        password: password || null, // Optionales Passwort für die Lobby
       };
 
       const response: Response = await fetch(`${apiUrl}/create`, {
