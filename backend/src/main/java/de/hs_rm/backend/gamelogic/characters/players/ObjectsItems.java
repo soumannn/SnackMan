@@ -1,32 +1,29 @@
 package de.hs_rm.backend.gamelogic.characters.players;
 
-public class ObjectsItems implements Item {
-    private String name;
-    private PlayerPosition playerPosition;
+public class ObjectsItems extends  Item {
 
-    
-    public ObjectsItems(String name, PlayerPosition playerPosition) {
-        this.name = name;
-        this.playerPosition = playerPosition;
+    private String effectDescription;
+
+    // Konstruktor
+    public ObjectsItems(String name, int x, int y, String effectDescription) {
+        super(name, x, y);
+        this.effectDescription = effectDescription;
     }
 
-    @Override
-    public String getName() {
-        return name;
+    // Getter und Setter
+    public String getEffectDescription() {
+        return effectDescription;
     }
 
-    // Getter für die Position
-    @Override
-    public PlayerPosition getPlayerPosition() {
-        return playerPosition;
+    public void setEffectDescription(String effectDescription) {
+        this.effectDescription = effectDescription;
     }
 
-    //TODO: applyeffekte müssen noch gemach werden
-    // Anwenden des Effekts (z. B. Fähigkeit aktivieren)
+    //TODO: muss noch gemacht werden
     @Override
     public void applyEffect(Player player) {
-        //System.out.println(player.getName() + " nutzt " + name + ": " + effectDescription);
-        // Hier könntest du weitere logische Auswirkungen hinzufügen, z. B. Energiegewinn, Fähigkeiten aktivieren etc.
+        //System.out.println("Effect applied from object: " + getName() + " - " + effectDescription);
+        // Zusätzliche Logik für spezifische Effekte könnte hier implementiert werden.
     }
 
 

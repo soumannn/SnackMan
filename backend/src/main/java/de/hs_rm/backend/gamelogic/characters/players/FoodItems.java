@@ -1,33 +1,13 @@
 package de.hs_rm.backend.gamelogic.characters.players;
 
-public class FoodItems implements Item {
+public class FoodItems extends  Item {
 
-    private String name;
-    private PlayerPosition playerPosition;
-    //private int calories;
+
     private NutriScore nutriScore;
-    
-    public FoodItems(String name, PlayerPosition playerPosition, NutriScore nutriScore ) {
-        this.name = name;
-        this.playerPosition = playerPosition;
-        //this.calories = calories;
+
+    public FoodItems(String name, int x, int y, int calories, NutriScore nutriScore) {
+        super(name, x, y);
         this.nutriScore = nutriScore;
-    }
-
-    @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public PlayerPosition getPlayerPosition() {
-        return playerPosition;
-    }
-
-    //TODO: applyEffekte müssen noch gemach werden
-    @Override
-    public void applyEffect(Player player) {
-        throw new UnsupportedOperationException("Unimplemented method 'applyEffect'");
     }
 
     public NutriScore getNutriScore() {
@@ -38,5 +18,9 @@ public class FoodItems implements Item {
         this.nutriScore = nutriScore;
     }
 
-
+    //TODO: muss noch gemacht werden
+    @Override
+    public void applyEffect(Player player) {
+    //System.out.println("Effect applied from object: " + getName() + " - " + effectDescription);
+    }
 }

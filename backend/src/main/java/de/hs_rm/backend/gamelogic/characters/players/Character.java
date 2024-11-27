@@ -1,9 +1,4 @@
 package de.hs_rm.backend.gamelogic.characters.players;
-
-import java.util.ArrayList;
-import java.util.List;
-
-// Bauplan der Characters --> hierbei handelt es sich um eine abstrakte Klasse!
 public abstract class Character{
     //Initialisierung 
     //Der Spieler bekommt später eine spring boot entity id 
@@ -14,7 +9,7 @@ public abstract class Character{
     PlayerPosition playerposition;
     private int currentcalorie;
     private int life; 
-    private List<Item> items;
+    private Item item;
 
 
 
@@ -26,7 +21,7 @@ public abstract class Character{
         this.playerposition=playerposition; 
         this.life = life; 
         this.currentcalorie= 0;
-        this.items = new ArrayList<>(); 
+        this.item = item; 
 
     }
     //Getter udn Setter 
@@ -68,16 +63,16 @@ public abstract class Character{
         this.life = life;
     }
 
-    public List<Item> getItems() {
-        return items;
+    public Item getItems() {
+        return item;
     }
-    public void setItems(List<Item> items) {
-        this.items = items;
+    public void setItem(Item item) {
+        this.item=item; 
     }
 
     //Methode: addieren der Kalorien
     public void mycurrentItem(){
-        Item currentItem= items.remove(0);
+        Item currentItem= item;
 
         if (currentItem instanceof FoodItems foodItem) {
             currentcalorie += foodItem.getNutriScore().getCalorieBonus();
@@ -92,7 +87,7 @@ public abstract class Character{
 
     // Methode: Sammeln von Items
     public void pickUpItemLogic(Item item) {
-        items.add(item);
+        setItem(item);
         System.out.println(item.getName() + "is picked up");
     }
 
