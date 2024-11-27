@@ -19,6 +19,8 @@ public class Game {
     private List<Chicken> chickens;
     private Player gamemaster;
     private boolean started;
+    private boolean privateLobby;
+    private String password;
     // Map map;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Game.class);
@@ -32,6 +34,26 @@ public class Game {
         this.players.add(this.gamemaster);             
         this.started = false;                     
         // TODO: Random map generieren                        
+    }
+
+    //Neu, erstellen private Lobby
+    public Game(Player gamemaster, boolean privateLobby, String password){
+        this.id = generateId(5);
+        this.players = new ArrayList<>();         
+        this.chickens = new ArrayList<>();   
+        this.gamemaster = gamemaster;      
+        this.players.add(this.gamemaster);             
+        this.started = false;
+        this.privateLobby = privateLobby;
+
+        // TODO: Random map generieren    
+
+        //Setze PW wenn Lobby privat
+        if (privateLobby && password != null && !password.isEmpty()){
+            this.password = password;
+        }else{
+            this.password = null;
+        }
     }
 
     // Generiert eindeutige ID
@@ -90,8 +112,30 @@ public class Game {
         return false;
     }
 
+    //?
     public void joinGame(Player player){
         players.add(player);
+    }
+
+    //neu privatem Spiel betreten
+    public boolean joinGame(Player player, String password){
+        if(this.privateLobby){
+            if(this.password == null || !this.password.equals(password)){
+                return false;
+            }
+        }        
+
+        //prüft ob Spieler schon im Spiel
+        for(Player playerOnline : players){
+            if(playerOnline.getName().equals(player.getName())){
+                return false;
+            }
+        }
+
+        players.add(player);
+        return true;
+
+
     }
 
     public boolean addPlayer(Player newPlayer) {

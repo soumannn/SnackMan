@@ -67,6 +67,24 @@ public class GameAPIController {
 
         return createOkResponse(newGame);
     }
+
+    // Method to create a new game
+    @PostMapping("/create")
+    public ResponseEntity<?> createGame(@RequestBody Map<String, Object> payload) {
+        String gamemasterName = (String) payload.get("gamemasterName");
+        boolean privateLobby = (boolean) payload.getOrDefault("privateLobby", false);
+        String password = (String) payload.getOrDefault("password", null);
+
+        if (gamemasterName == null || gamemasterName.isEmpty()) {
+            return createErrorResponse("Invalid gamemaster data");
+        }
+
+        Player gamemaster = new Player(gamemasterName);
+        Game newGame = gameService.createGame(gamemaster, privateLobby, password);
+
+        return createOkResponse(newGame);
+    }
+
     // Method to join an existing game
     // @PostMapping("/join/{gameId}")
     // public ResponseEntity<?> joinGame(@PathVariable String gameId) {
@@ -92,9 +110,9 @@ public class GameAPIController {
 
     @MessageMapping("/topic/game/{lobbyid}/join")
     @SendTo("/topic/game/{lobbyid}")
-    public void joinLobby(Player player, @DestinationVariable String lobbyid) {
+    public void joinLobby(Player player, @DestinationVariable String lobbyid, String password) {
         // #63 NEW: gameService now handles Player join
-        Game existingGame = gameService.joinGame(lobbyid, player);
+        Game existingGame = gameService.joinGame(lobbyid, player, password);
 
         logger.info("Player: {}, joined game: {}", player.getName(), lobbyid);
 
@@ -224,4 +242,7 @@ public class GameAPIController {
 
         return ResponseEntity.status(HttpStatus.OK).body(feedbackData);
     }
+
+
+
 }

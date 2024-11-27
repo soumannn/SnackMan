@@ -28,6 +28,13 @@ public class GameService {
         return newGame;
     }
 
+    public Game createGame(Player gamemaster, boolean privateLobby, String password){
+        Game newGame = new Game(gamemaster, privateLobby, password);
+        gameList.put(newGame.getId(), newGame);
+
+        return newGame;
+    }
+
     public Game startGame(String gameId) {
         Game game = gameList.get(gameId);
         
@@ -53,6 +60,8 @@ public class GameService {
     
     }
 
+    /*alt #53
+
     public Game joinGame(String gameId, Player player){
         Game game = gameList.get(gameId);
 
@@ -63,6 +72,20 @@ public class GameService {
         game.joinGame(player);
 
         return game;
+    }
+    */
+
+    public Game joinGame(String gameId, Player player, String password){
+        Game game = gameList.get(gameId);
+
+        if(game == null){
+            return null;
+        }
+
+        //wenn Spiel beigetreten werden kann ja sonst nein und kein game
+        boolean joined = game.joinGame(player, password);
+        return joined ? game : null;
+
     }
 
     public Game setChicken(String gameId, int number){
