@@ -1,24 +1,33 @@
 package de.hs_rm.backend.gamelogic;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.hs_rm.backend.gamelogic.characters.players.Chicken;
+import de.hs_rm.backend.gamelogic.characters.players.Ghost;
 import de.hs_rm.backend.gamelogic.characters.players.Player;
+import de.hs_rm.backend.gamelogic.characters.players.Snackman;
+import de.hs_rm.backend.gamelogic.characters.players.Character;
+import de.hs_rm.backend.gamelogic.map.PlayMap;
+import de.hs_rm.backend.gamelogic.map.Tile;
+import de.hs_rm.backend.gamelogic.map.TileType;
+import main.java.de.hs_rm.backend.gamelogic.characters.players.PlayerRole;
 
 public class Game {
     private static Set<String> existingIds = new HashSet<>(); // set --> verhindert Duplikate und static --> diese liste wird für alle Instanzen der Klasse geteilt
     private String id;
-    private List<Player> players;
+    private List<Player> players; //for lobby
     private List<Chicken> chickens;
     private Player gamemaster;
     private boolean started;
+    private PlayMap playmap;
+    private int chickenNum;
+
+
+    private Map<String, Character> characters; // for game (after game start), strinng for username
+
     private boolean privateLobby;
     private String password;
     // Map map;
@@ -32,21 +41,21 @@ public class Game {
         this.chickens = new ArrayList<>();   
         this.gamemaster = gamemaster;      
         this.players.add(this.gamemaster);             
-        this.started = false;                     
-        // TODO: Random map generieren                        
+        this.started = false;
+        this.characters = new HashMap<>();
     }
 
     //Neu, erstellen private Lobby
     public Game(Player gamemaster, boolean privateLobby, String password){
         this.id = generateId(5);
-        this.players = new ArrayList<>();         
-        this.chickens = new ArrayList<>();   
-        this.gamemaster = gamemaster;      
-        this.players.add(this.gamemaster);             
+        this.players = new ArrayList<>();
+        this.chickens = new ArrayList<>();
+        this.gamemaster = gamemaster;
+        this.players.add(this.gamemaster);
         this.started = false;
         this.privateLobby = privateLobby;
 
-        // TODO: Random map generieren    
+        // TODO: Random map generieren
 
         //Setze PW wenn Lobby privat
         if (privateLobby && password != null && !password.isEmpty()){
@@ -73,7 +82,7 @@ public class Game {
         Random random = new Random();
 
         for (int i = 0; i < length; i++) {
-            int index = random.nextInt(alphaNumericString.length()); 
+            int index = random.nextInt(alphaNumericString.length()); // zwischen 0 und alphaNumericString.length() - 1
             sb.append(alphaNumericString.charAt(index));
         }
         return sb.toString();
@@ -82,6 +91,56 @@ public class Game {
     public boolean start(){
         this.started = true;
         LOGGER.info("started: {} gameid: {}", this.started, this.id);
+
+        // TODO: hier sollte random name als param übergeben werden
+        this.playmap = new PlayMap("map1",this);
+
+        Random random = new Random();
+
+
+        // DONE: hier sollte Charakter liste erstellen und player zu jedem charater zuweisen
+        for (Player player : players) {
+            Tile randomTile = null;
+            // Wiederholen, bis ein Surface-Tile gefunden wird
+            int index =-1;
+            do {
+                index = random.nextInt(playmap.getTilesList().size());
+                randomTile = playmap.getTilesList().get(index);
+            } while (randomTile.getType() != TileType.SURFACE || randomTile.hasCharacter());
+
+            switch(player.getPlayerrole()){
+                // DONE: random position von Charakter
+                case GHOST -> {
+
+                     characters.put(player.getName(), new Ghost(1.0, index%playmap.getWidth(),index/playmap.getWidth()));
+                     randomTile.addCharacter(characters.get(player.getName()));
+                }
+                case SNACKMAN -> {
+
+                     characters.put(player.getName(), new Snackman(1.0, index%playmap.getWidth(),index/playmap.getWidth(), 3));
+                     randomTile.addCharacter(characters.get(player.getName()));
+                }
+                default ->{
+                    LOGGER.warn("Unknown player role for player: {}", player.getName());
+                }
+            }
+
+        }
+        // DONE: random position von hühnchen
+        for (int i = 0; i < this.chickenNum; i++) {
+            Tile randomTile;
+            int index = -1;
+            do {
+                index = random.nextInt(playmap.getTilesList().size());
+                randomTile = playmap.getTilesList().get(index);
+            } while (randomTile.getType() != TileType.SURFACE || randomTile.hasChicken());
+
+            Chicken chicken = new Chicken(index%playmap.getWidth(),index/playmap.getWidth());
+            chickens.add(chicken);
+            //DONE: chicken zu random tile hinzufügen
+            randomTile.addChicken(chicken);
+        }
+
         return started;
     }
 
@@ -123,7 +182,7 @@ public class Game {
             if(this.password == null || !this.password.equals(password)){
                 return false;
             }
-        }        
+        }
 
         //prüft ob Spieler schon im Spiel
         for(Player playerOnline : players){
@@ -156,7 +215,8 @@ public class Game {
 
     public void setChicken(int total){
        LOGGER.info("Chicken: {}, Game: {}", total, this.id);
-        // TODO: Implementierung für hinzufügen von Hühnern
+        this.chickenNum=total;
+
     }
 
     public Player findPlayerByUsername(String username) {
@@ -186,6 +246,17 @@ public class Game {
         return players;
     }
 
+    // zufällig einen Spieler aus der Liste auszuwählen
+    public Player getRandomPlayer() {
+        if (players.isEmpty()) {
+            return null;
+        }
+        Random random = new Random();
+        int index = random.nextInt(players.size()); // zwischen 0 und players.size() - 1
+        return players.get(index);
+    }
+
+
     public void setPlayers(List<Player> players) {
         this.players = players;
     }
@@ -213,4 +284,22 @@ public class Game {
     public void setStarted(boolean started) {
         this.started = started;
     }
+
+    public static Set<String> getExistingIds() {
+        return existingIds;
+    }
+
+    public static void setExistingIds(Set<String> existingIds) {
+        Game.existingIds = existingIds;
+    }
+
+    public PlayMap getPlaymap() {
+        return playmap;
+    }
+
+    public void setPlaymap(PlayMap playmap) {
+        this.playmap = playmap;
+    }
+
+
 }

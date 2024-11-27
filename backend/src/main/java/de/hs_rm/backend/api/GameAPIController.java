@@ -10,7 +10,9 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import de.hs_rm.backend.gamelogic.Game;
 import de.hs_rm.backend.gamelogic.GameService;
 import de.hs_rm.backend.gamelogic.characters.players.Player;
+import de.hs_rm.backend.gamelogic.map.PlayMap;
 import de.hs_rm.backend.messaging.GameMessagingService;
+import main.java.de.hs_rm.backend.gamelogic.characters.players.PlayerRole;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -64,8 +66,10 @@ public class GameAPIController {
             return createErrorResponse("Invalid gamemaster data");
         }
 
-        Player gamemaster = new Player(gamemasterName);
-        Game newGame = gameService.createGame(gamemaster, privateLobby, password);
+        Player gamemaster = new Player(gamemasterFromFrontend.getName());
+        gamemaster.setPlayerrole(PlayerRole.SNACKMAN);
+        // #63 NEW: gameservice now creates game
+        Game newGame = gameService.createGame(gamemaster);
 
         return createOkResponse(newGame);
     }
@@ -123,7 +127,7 @@ public class GameAPIController {
     @PostMapping("/kick/{gameId}/{usernameKicker}/{usernameKicked}") // soll username
     public ResponseEntity<?> kickUser(@PathVariable String gameId ,@PathVariable String usernameKicker, @PathVariable String usernameKicked) {
         Game existingGame = gameService.getGameById(gameId);
-        
+
         if (existingGame == null) {
             return createErrorResponse("No game found.");
         }
@@ -139,11 +143,11 @@ public class GameAPIController {
     public ResponseEntity<?> setNumberOfChicken(@PathVariable String gameId ,@PathVariable int number) {
         // #63 NEW: gameService now sets the number of Chickens
         Game existingGame = gameService.setChicken(gameId, number);
-        
+
         if (existingGame == null) {
             return createErrorResponse("No game found.");
         }
-    
+
         return createOkResponse(existingGame);
     }
 
@@ -161,7 +165,7 @@ public class GameAPIController {
     @PostMapping("/setRole/{gameId}")
     public ResponseEntity<?> setPlayerRole(@RequestBody Map<String, String> payload, @PathVariable String gameId) {
         Game existingGame = gameService.getGameById(gameId);
-        
+
         if (existingGame == null) {
             return createErrorResponse("No game found.");
         }
@@ -174,16 +178,20 @@ public class GameAPIController {
             return createErrorResponse("Invalid payload: 'username' or 'role' is missing.");
         }
 
-        // Fehlende Hilfsinstanz für findPlayerByName
-        Player player = existingGame.getPlayers().get(0);
+        Player player = existingGame.findPlayerByUsername(username);
         if (player == null) {
             return createErrorResponse("Player with username '" + username + "' not found.");
         }
-        player.setPlayerrole(role);
+        try {
+            player.setPlayerrole(PlayerRole.valueOf(role.toUpperCase()));
+        } catch (IllegalArgumentException e) {
+            logger.error("Invalid player role: {}", role);
+
+        }
         return createOkResponse(existingGame);
     }
 
-    @PostMapping("/addPlayer/{gameId}") 
+    @PostMapping("/addPlayer/{gameId}")
     public ResponseEntity<?> kickUser(@RequestBody Player playerFromFrontend, @PathVariable String gameId) {
         Game existingGame = gameService.getGameById(gameId);
         if (existingGame == null) {
