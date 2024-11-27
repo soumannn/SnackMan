@@ -62,6 +62,7 @@ const newPlayer: IPlayerDTD = reactive({
   name: "",
   email: "",
   password: "",
+  playerrole: "",
   playertype: PlayerType.GUEST
 
 })
