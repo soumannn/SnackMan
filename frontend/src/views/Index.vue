@@ -2,22 +2,17 @@
 
   <Modal v-if="modal.isModalOpen">
     <template #titel>
-      <h2 class="font-bold text-3xl text-center">Titel</h2>
+      <h2 class="ueberschrift-small">Titel</h2>
     </template>
     <template #content>
       <input v-model="newPlayer.name" type="text" name="name" id="name"
-        class="block w-full rounded-md border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm/6"
-        placeholder="Username eingeben" />
+        class="input-form" placeholder="Username eingeben" />
       <div v-if="inputErrorMessage" class="input-error-message">{{ inputErrorMessage }}</div>
-      <!-- TODO: überprüfen ob name eingeben worden ist -->
        <div class="flex space-x-4">
-        <button class="rounded-lg bg-gray-300 hover:bg-gray-400 p-3" @click="newGame()">Weiter</button>
-        <button class="rounded-lg bg-gray-300 hover:bg-gray-400 p-3" @click="modal.closeModal()">Schließen</button>
+        <button class="button-small" @click="newGame()">Weiter</button>
+        <button class="button-small" @click="modal.closeModal()">Schließen</button>
        </div>
-      
     </template>
-
-
   </Modal>
 
 
@@ -62,6 +57,7 @@ const newPlayer: IPlayerDTD = reactive({
   name: "",
   email: "",
   password: "",
+  playerrole: "",
   playertype: PlayerType.GUEST
 
 })
