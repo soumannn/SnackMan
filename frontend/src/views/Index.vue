@@ -16,17 +16,20 @@
   </Modal>
 
 
-  <div class="homeMenue" :style="{ backgroundImage: `url('/src/assets/TestBackground1.jpg')` }">
-    <h1>Snackman</h1>
-    <div class="form-container">
-      <button class="buttons-top-bottom" @click="modal.openModal()">New Game</button>
-      <div>
-        <input type="text" v-model="gameId" placeholder="Game Id eingeben" class="gameid-input-field">
+  <div class="bg-gray-500 min-h-screen flex flex-col items-center justify-center" 
+              :style="{ backgroundImage: `url('/src/assets/TestBackground1.jpg')` }">
+    <h1 class="ueberschrift-big">Snackman</h1>
+    <div class="flex flex-col gap-4 lg:gap-[15px]">
+      <button class="button-big" @click="modal.openModal()">New Game</button>
+
+      <div class="input-with-button">
+        <input type="text" v-model="gameId" placeholder="Game Id eingeben" class="flex-1 h-[44px] rounded-l-lg text-center border border-gray-300">
         <!-- @click="game.joinGame()"-->
-        <button class="button-middle">Join</button>
+        <button class="bg-bisque hover:bg-hover-bisgue rounded-r-lg p-2">Join</button>
       </div>
+
       <!-- @click="game.findLobbies()"-->
-      <button class="buttons-top-bottom">Find Lobbies/Games</button>
+      <button class="button-big">Find Lobbies/Games</button>
     </div>
   </div>
 
@@ -88,52 +91,5 @@ async function newGame() {
 
 
 <style>
-@media (min-width: 1024px) {
-  h1 {
-    font-size: 50px;
-    margin-bottom: 80px;
-  }
 
-  .homeMenue {
-    background-color: grey;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .form-container {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-  }
-
-  .buttons-top-bottom {
-    background-color: bisque;
-    border-radius: 10px;
-    padding: 10px;
-  }
-
-  .button-middle {
-    background-color: bisque;
-    border-radius: 0 10px 10px 0;
-    padding: 10px;
-  }
-
-  .button-middle:hover,
-  .buttons-top-bottom:hover {
-    background-color: rgb(247, 194, 130);
-  }
-
-  .gameid-input-field {
-    height: 44px;
-    border-radius: 10px 0 0 10px;
-    text-align: center;
-  }
-
-
-
-
-}
 </style>
