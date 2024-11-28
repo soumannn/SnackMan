@@ -11,24 +11,46 @@
     @apply rounded-lg bg-bisque hover:bg-hover-bisgue p-3 ;
 }
 
-.input-form{
-    @apply block w-full rounded-md border-0 py-3 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm/6;
+.standart-input-form{
+    @apply w-full h-input-height border-2  text-center rounded-lg;
+}
+
+.input-form-with-button{
+    @apply flex-1 h-input-height rounded-l-lg text-center border-none;
+    /* @apply block w-full rounded-md border-0 py-3 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm/6; */
 }
 
 .input-with-button-container{
-    @apply flex h-[44px] rounded-l-lg text-center bg-bisque rounded-r-lg p-2  w-64;
+    @apply flex w-full h-input-height;
+}
+
+.button-next-to-form{
+    @apply bg-bisque hover:bg-hover-bisgue rounded-r-lg p-2 ;
 }
 
 .ueberschrift-small{
-    @apply font-bold text-3xl text-center;
+    @apply font-bold text-3xl text-center ;
 }
 
 .ueberschrift-big{
-    @apply text-[50px] mb-20 lg:text-[50px] lg:mb-20;
+    @apply font-heading-font text-heading m-bottom-heading-marging;
+}
+
+.fullscreen-layout{
+    @apply bg-custom-bg bg-cover min-h-screen flex flex-col items-center justify-center;
+}
+
+.vertikal-stack{
+    @apply flex flex-col gap-4;
+}
+
+.horizontal-button-stack{
+    @apply flex space-x-4;
+}
+
+.background{
+    @apply bg-custom-bg bg-cover bg-center h-screen w-full;
 }
 
 
 
-
-
-/* hover:bg-[rgb(247,194,130) */

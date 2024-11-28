@@ -6,9 +6,9 @@
     </template>
     <template #content>
       <input v-model="newPlayer.name" type="text" name="name" id="name"
-        class="input-form" placeholder="Username eingeben" />
+        class="standart-input-form" placeholder="Username eingeben" />
       <div v-if="inputErrorMessage" class="input-error-message">{{ inputErrorMessage }}</div>
-       <div class="flex space-x-4">
+       <div class="horizontal-button-stack">
         <button class="button-small" @click="newGame()">Weiter</button>
         <button class="button-small" @click="modal.closeModal()">Schließen</button>
        </div>
@@ -16,16 +16,16 @@
   </Modal>
 
 
-  <div class="bg-gray-500 min-h-screen flex flex-col items-center justify-center" 
-              :style="{ backgroundImage: `url('/src/assets/TestBackground1.jpg')` }">
+  <div class="fullscreen-layout">
     <h1 class="ueberschrift-big">Snackman</h1>
-    <div class="flex flex-col gap-4 lg:gap-[15px]">
+
+    <div class="vertikal-stack">
       <button class="button-big" @click="modal.openModal()">New Game</button>
 
-      <div class="input-with-button">
-        <input type="text" v-model="gameId" placeholder="Game Id eingeben" class="flex-1 h-[44px] rounded-l-lg text-center border border-gray-300">
+      <div class="input-with-button-container">
+        <input type="text" v-model="gameId" placeholder="Game Id eingeben" class="input-form-with-button">
         <!-- @click="game.joinGame()"-->
-        <button class="bg-bisque hover:bg-hover-bisgue rounded-r-lg p-2">Join</button>
+        <button class="button-next-to-form">Join</button>
       </div>
 
       <!-- @click="game.findLobbies()"-->
