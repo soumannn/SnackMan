@@ -61,9 +61,9 @@ export const useGameStore = defineStore("gameStore", () => {
 
   function joinLobby(lobbyId: string) {
     stompClient.onConnect = () => {
-      if(gameState.gamedata?.players){
+      if (gameState.gamedata?.players) {
         subscribeToLobby(lobbyId, (message) => { gameState.gamedata.players = message })
-        sendMessage(`/topic/game/${lobbyId}/join`,{
+        sendMessage(`/topic/game/${lobbyId}/join`, {
           name: 'Berhan',
           email: 'Test MAIL',
           userId: 123
@@ -95,6 +95,35 @@ export const useGameStore = defineStore("gameStore", () => {
     } catch (error) {
       handleGameStateError()
       console.error("Error ending game:", error);
+    }
+  }
+
+  function leaveGame(lobbyId: string) {
+    try {
+      sendMessage(`/topic/game/${lobbyId}/leave`, {
+        name: 'Berhan',
+        email: 'Test MAIL',
+        userId: 123
+      });
+      stompClient.unsubscribe(`/topic/game/${gameState.gamedata.id}`);
+      stompClient.deactivate();
+      subscribeToLobby(lobbyId, (message) => { gameState.gamedata.players = message })
+
+      console.log("Ich bin geleaved")
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+
+  async function closeTab() {
+    stompClient.onDisconnect = () => {
+      if (window.closed) {
+        if (stompClient.connected) {
+          console.log("ich wurde gelöscht");
+          stompClient.deactivate;
+        }
+      }
     }
   }
 
@@ -158,6 +187,7 @@ export const useGameStore = defineStore("gameStore", () => {
     createGame,
     startGame,
     endGame,
+    leaveGame,
     kickUser,
     joinLobby,
     setChickenCount,
