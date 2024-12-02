@@ -45,12 +45,12 @@ export const useGameStore = defineStore('gameStore', () => {
   async function createGame(gamemaster: IPlayerDTD, password?: string) {
     try {
 
-      const isPrivate = !!password; // true, wenn ein Passwort übergeben wurde
+      const isPrivate = Boolean(password);
 
       const payload = {
         gamemaster: gamemaster.name,
         privateLobby: isPrivate,
-        password: password || null, // Optionales Passwort für die Lobby
+        password: password || null, 
       };
 
       const response: Response = await fetch(`${apiUrl}/create`, {
@@ -67,6 +67,8 @@ export const useGameStore = defineStore('gameStore', () => {
       handleGameStateError()
       console.error('Error creating game:', error)
     }
+
+
   }
 
   function joinLobby(lobbyId: string) {

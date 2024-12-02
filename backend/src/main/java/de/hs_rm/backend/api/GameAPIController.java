@@ -12,7 +12,7 @@ import de.hs_rm.backend.gamelogic.GameService;
 import de.hs_rm.backend.gamelogic.characters.players.Player;
 import de.hs_rm.backend.gamelogic.map.PlayMap;
 import de.hs_rm.backend.messaging.GameMessagingService;
-import main.java.de.hs_rm.backend.gamelogic.characters.players.PlayerRole;
+import de.hs_rm.backend.gamelogic.characters.players.PlayerRole;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -66,23 +66,16 @@ public class GameAPIController {
             return createErrorResponse("Invalid gamemaster data");
         }
 
-        Player gamemaster = new Player(gamemasterFromFrontend.getName());
+        Player gamemaster = new Player(gamemasterName);
         gamemaster.setPlayerrole(PlayerRole.SNACKMAN);
         // #63 NEW: gameservice now creates game
-        Game newGame = gameService.createGame(gamemaster);
+        Game newGame = gameService.createGame(gamemaster, privateLobby, password);
+
+        //hinzufügen das gamemaster immer snackman ist und alle die joinen dann ghost
 
         return createOkResponse(newGame);
     }
 
-    // Method to join an existing game
-    // @PostMapping("/join/{gameId}")
-    // public ResponseEntity<?> joinGame(@PathVariable String gameId) {
-    // if (game == null || !game.getId().equals(gameId)) {
-    // return createErrorResponse("Game ID is invalid!");
-    // }
-    // // Logik zum Beitreten des Spiels
-    // return ResponseEntity.ok(game);
-    // }
 
     // Method to start the game
     @PostMapping("/start/{gameId}")

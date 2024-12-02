@@ -9,15 +9,26 @@
         class="block w-full rounded-md border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm/6"
         placeholder="Username eingeben" />
       <div v-if="inputErrorMessage" class="input-error-message">{{ inputErrorMessage }}</div>
+
+      <div>
+        <label class="mt-4 mb-4 mflex itmes-center space-x-2">
+          <input type="checkbox" v-model="requirePassword"
+            class="form-checkbox rounded shadow-sm hover:shadow-md transition-shadow duration-300" />
+          <span>Privates Spiel</span>
+        </label>
+        <input v-if="requirePassword" v-model="password" type="password"
+          class="block w-full rounded-md mt-2 border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm/6"
+          placeholder="Passwort eingeben" />
+      </div>
+
       <!-- TODO: überprüfen ob name eingeben worden ist -->
-       <div class="flex space-x-4">
-        <button class="rounded-lg bg-gray-300 hover:bg-gray-400 p-3" @click="newGame()">Weiter</button>
+      <div class="flex space-x-4">
+        <button class="rounded-lg bg-gray-300 hover:bg-gray-400 p-3" @click="newGame()"
+          :disabled="requirePassword && !password"> Weiter</button>
         <button class="rounded-lg bg-gray-300 hover:bg-gray-400 p-3" @click="modal.closeModal()">Schließen</button>
-       </div>
+      </div>
 
     </template>
-
-
   </Modal>
 
 
@@ -58,13 +69,16 @@ const gameId = ref('');
 
 const inputErrorMessage = ref('');
 
+const requirePassword = ref(false);
+const password = ref('');
+
 
 const newPlayer: IPlayerDTD = reactive({
   name: "",
   email: "",
   password: "",
-  playertype: PlayerType.GUEST
-
+  playertype: PlayerType.GUEST,
+  playerrole: "Ghost"
 })
 
 function toMapCreator() {
@@ -75,21 +89,23 @@ async function newGame() {
 
   if (!newPlayer.name) {
     inputErrorMessage.value = "Bitte einen Usernamen eingeben";
-  } else {
-    await game.createGame(newPlayer)
-
-    const id = useGameStore().gameState.gamedata?.id
-
-    router.push({
-      name: 'lobbyWithId',
-      params: { id }
-    })
+    return;
   }
 
+  if (requirePassword.value && !password.value) {
+    inputErrorMessage.value = "Bitte Passwort eingeben";
+    return;
+  }
 
+  await game.createGame(newPlayer, requirePassword.value ? password.value : "");
+
+  const id = useGameStore().gameState.gamedata?.id;
+
+  router.push({
+    name: 'lobbyWithId',
+    params: { id },
+  });
 }
-
-
 
 </script>
 
