@@ -66,10 +66,14 @@ public class GameAPIController {
             return createErrorResponse("Invalid gamemaster data");
         }
 
+        logger.info("Creating game with gamemaster: {}, privateLobby: {}, password: {}", gamemasterName, privateLobby, password);
+
         Player gamemaster = new Player(gamemasterName);
         gamemaster.setPlayerrole(PlayerRole.SNACKMAN);
         // #63 NEW: gameservice now creates game
         Game newGame = gameService.createGame(gamemaster, privateLobby, password);
+
+        logger.info("Game created with ID: {}. Password: {}", newGame.getId(), newGame.getPassword());
 
         //hinzufügen das gamemaster immer snackman ist und alle die joinen dann ghost
 

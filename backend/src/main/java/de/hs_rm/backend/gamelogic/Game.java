@@ -25,7 +25,6 @@ public class Game {
     private PlayMap playmap;
     private int chickenNum;
 
-
     private Map<String, Character> characters; // for game (after game start), strinng for username
 
     private boolean privateLobby;
@@ -301,5 +300,8 @@ public class Game {
         this.playmap = playmap;
     }
 
+    public String getPassword(){
+        return password;
+    }
 
 }

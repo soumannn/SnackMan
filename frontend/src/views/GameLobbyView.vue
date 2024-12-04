@@ -106,6 +106,7 @@ const players = computed(() => gamestore.gameState.gamedata?.players || []);
 // Hole Passwort aus gamestore
 const gamePassword = computed(() => gamestore.gameState.gamedata?.password || null);
 
+
 // Anzahl der Platzhalter
 const placeholderCount = computed(() => maxPlayers - players.value.length);
 
@@ -169,7 +170,9 @@ onMounted(async () => {
         await gamestore.fetchGameStatus();
         //Log zum testen
         gamestore.joinLobby(lobbyId);
-
+        console.log("Fetched Game State:", gamestore.gameState.gamedata);
+        console.log("Password from Game State:", gamestore.gameState.gamedata?.password);
+        
     } catch (error) {
         console.error("Error fetching game status:", error);
     }

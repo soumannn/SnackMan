@@ -16,7 +16,7 @@
             class="form-checkbox rounded shadow-sm hover:shadow-md transition-shadow duration-300" />
           <span>Privates Spiel</span>
         </label>
-        <input v-if="requirePassword" v-model="password" type="password"
+        <input v-if="requirePassword" v-model="password" type="text" id="password" 
           class="block w-full rounded-md mt-2 border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm/6"
           placeholder="Passwort eingeben" />
       </div>
