@@ -10,6 +10,8 @@ import { useModalStore } from '../modalstore'
 import { Playerrole } from './dtd/EPlayerrole'
 import type { Result } from '@/stores/game/responses/Result'
 
+import { useMapStore } from "@/stores/map/MapStore";
+
 export const useGameStore = defineStore('gameStore', () => {
   // Base URL for API calls
   const apiUrl: string = '/api/game'
