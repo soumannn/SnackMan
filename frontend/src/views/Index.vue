@@ -16,17 +16,14 @@
           @click=" modal.modalType === ModalType.NEW_GAME ? modal.newGame(newPlayer) : modal.joinGame(newPlayer)">Weiter</button>
         <button class="button-small" @click="modal.closeModal()">Schließen</button>
       </div>
-
     </template>
-
-
   </Modal>
 
 
   <div class="min-h-screen flex flex-col items-center justify-center">
     <!-- :style="{ backgroundImage: `url('/src/assets/TestBackground1.jpg')` }" -->
     
-    <video autoplay loop muted class="absolute blur-sm top-0 left-0 w-full object-cover -z-10">
+    <video autoplay loop muted class="absolute blur-sm top-0 left-0 w-full h-full object-cover -z-10">
       <source src="@/assets/BackgroundVideo.mp4" type="video/webm">
       <source src="@/assets/BackgroundVideo.mp4" type="video/mp4">
     </video>

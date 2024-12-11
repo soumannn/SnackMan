@@ -1,5 +1,9 @@
 <template>
-  <div class="h-screen bg-zinc-900">
+  <div class="min-h-screen flex flex-col items-center justify-center">
+    <video autoplay loop muted class="absolute blur-sm top-0 left-0 w-full h-full object-cover -z-10">
+      <source src="@/assets/BackgroundVideo.mp4" type="video/webm">
+      <source src="@/assets/BackgroundVideo.mp4" type="video/mp4">
+    </video>
     <div class="max-w-lg mx-auto mt-0">
       <h1 class="text-2xl font-semibold text-center text-zinc-200 mb-10">Game Lobby</h1>
       <div class="mb-4">
