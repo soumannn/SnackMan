@@ -2,7 +2,7 @@
 
   <Modal v-if="modal.isModalOpen">
     <template #titel>
-      <h2 class="header-modal">{{ modal.modalType === ModalType.JOIN_GAME ? "Join Game" : "New Game"
+      <h2 class="header-modal-neumorphism">{{ modal.modalType === ModalType.JOIN_GAME ? "Join Game" : "New Game"
         }}</h2>
     </template>
     <template #content>
