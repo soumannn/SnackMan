@@ -54,8 +54,18 @@ jacocoTestReport {
 	}
 }
 
-def isWindows = System.getProperty("os.name").toLowerCase().contains("win")
-def npmCommand = isWindows ? "C:\\Program Files\\nodejs\\npm.cmd" : "npm"
+def findNpmExecutable() {
+	def isWindows = System.getProperty("os.name").toLowerCase().contains("win")
+	def command = isWindows ? ["where", "npm"] : ["which", "npm"]
+	def result = new ByteArrayOutputStream()
+	exec {
+		commandLine command
+		standardOutput = result
+	}
+	return result.toString().trim()
+}
+
+def npmCommand = findNpmExecutable()
 
 //Von Weitz Projekt SpringVueVerknotung
 task build_frontend {
