@@ -4,14 +4,22 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import de.hs_rm.backend.exception.SetRoleException;
+import de.hs_rm.backend.gamelogic.characters.players.PlayerRole;
+import de.hs_rm.backend.gamelogic.map.PlayMap;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import de.hs_rm.backend.exception.GameJoinException;
 import de.hs_rm.backend.gamelogic.characters.players.Player;
 
 @Service
 public class GameService {
 
     private Map<String,Game> gameList = new HashMap<String,Game>();
+    Logger logger = LoggerFactory.getLogger(GameService.class);
 
     public Collection<Game> getGameList(){
         return gameList.values();
@@ -35,14 +43,14 @@ public class GameService {
         return newGame;
     }
 
-    public Game startGame(String gameId) {
+    public Game startGame(String gameId, PlayMap playMap) {
         Game game = gameList.get(gameId);
         
         if(game == null){
             return null;
         }
 
-        game.start();
+        game.start(playMap);
 
         return game;
     }
@@ -60,7 +68,17 @@ public class GameService {
     
     }
 
-    /*alt #53
+    public Game leaveGame(String gameId,Player player){
+        Game game = gameList.get(gameId);
+
+        if(game == null){
+            return null;
+        }
+
+        game.leaveGame(player);
+
+        return game;
+    }
 
     public Game joinGame(String gameId, Player player){
         Game game = gameList.get(gameId);
@@ -69,7 +87,39 @@ public class GameService {
             return null;
         }
 
-        game.joinGame(player);
+        boolean containsName = game.getPlayers().stream().anyMatch(existingPlayer -> existingPlayer.getName().equals(player.getName()));
+
+        logger.info("Game: {}, Player {}, ContainsName: {}", gameId, player.getName(),containsName);
+
+        if(!containsName){
+            game.joinGame(player);
+        }else{
+            throw new GameJoinException("Name already in Lobby!");
+        }
+
+        return game;
+    }
+
+    public Game setRole(String gameId, String nameOfPlayerToSetRole, String role) {
+        PlayerRole playerRoleToSet;
+
+        try {
+            playerRoleToSet = PlayerRole.valueOf(role);
+        } catch (IllegalArgumentException e) {
+            throw new SetRoleException("Role " + role + " not found!");
+        }
+
+        Game game = gameList.get(gameId);
+        if (game == null) {
+            throw new SetRoleException("Game not found!");
+        }
+
+        Player playerToSetRole = game.findPlayerByUsername(nameOfPlayerToSetRole);
+        if (playerToSetRole == null) {
+            throw new SetRoleException("Player to set role not found!");
+        }
+
+        playerToSetRole.setPlayerrole(playerRoleToSet);
 
         return game;
     }
@@ -100,5 +150,24 @@ public class GameService {
         return game;
     }
 
-    
+    public boolean move(String username, int targetX, int targetY) {
+        if (username == null || username.isEmpty()) {
+            throw new IllegalArgumentException("Username and direction must not be empty.");
+        }
+
+        // Iteriert über alle Games, um den Spieler zu finden
+        for (Game game : gameList.values()) {
+            Player player = game.findPlayerByUsername(username);
+            if (player != null) {
+                return game.move(username, targetX, targetY);
+            }
+        }
+        throw new IllegalArgumentException("Player not found in any game.");
+    }
+
+    public void setGameList(Map<String, Game> gameList) {
+        this.gameList = gameList;
+    }
+
+
 }

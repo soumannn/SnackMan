@@ -2,7 +2,7 @@
 
   <Modal v-if="modal.isModalOpen">
     <template #titel>
-      <h2 class="font-bold text-3xl text-center">Titel</h2>
+      <h2 class="font-bold text-3xl text-center">{{ modal.modalType === ModalType.JOIN_GAME ? "Join Game" : "New Game" }}</h2>
     </template>
     <template #content>
       <input v-model="newPlayer.name" type="text" name="name" id="name"
@@ -16,33 +16,34 @@
             class="form-checkbox rounded shadow-sm hover:shadow-md transition-shadow duration-300" />
           <span>Privates Spiel</span>
         </label>
-        <input v-if="requirePassword" v-model="password" type="text" id="password" 
+        <input v-if="requirePassword" v-model="password" type="text" id="password"
           class="block w-full rounded-md mt-2 border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm/6"
           placeholder="Passwort eingeben" />
       </div>
 
       <!-- TODO: überprüfen ob name eingeben worden ist -->
-      <div class="flex space-x-4">
-        <button class="rounded-lg bg-gray-300 hover:bg-gray-400 p-3" @click="newGame()"
-          :disabled="requirePassword && !password"> Weiter</button>
+       <div class="flex space-x-4">
+        <button class="rounded-lg bg-gray-300 hover:bg-gray-400 p-3" @click=" modal.modalType === ModalType.NEW_GAME ? modal.newGame(newPlayer) : modal.joinGame(newPlayer)">Weiter</button>
         <button class="rounded-lg bg-gray-300 hover:bg-gray-400 p-3" @click="modal.closeModal()">Schließen</button>
-      </div>
+       </div>
 
     </template>
+
+
   </Modal>
 
 
   <div class="homeMenue" :style="{ backgroundImage: `url('/src/assets/TestBackground1.jpg')` }">
     <h1>Snackman</h1>
     <div class="form-container">
-      <button class="buttons-top-bottom" @click="modal.openModal()">New Game</button>
+      <button class="buttons-top-bottom" @click="modal.openModal(ModalType.NEW_GAME,'')">New Game</button>
       <div>
         <input type="text" v-model="gameId" placeholder="Game Id eingeben" class="gameid-input-field">
         <!-- @click="game.joinGame()"-->
-        <button class="button-middle">Join</button>
+        <button class="button-middle" @click="modal.openModal(ModalType.JOIN_GAME,gameId)">Join</button>
       </div>
       <!-- @click="game.findLobbies()"-->
-      <button class="buttons-top-bottom">Find Lobbies/Games</button>
+      <button class="buttons-top-bottom" @click="router.push('/lobby')">Find Lobbies/Games</button>
       <button class="buttons-top-bottom" v-on:click="toMapCreator">Map Creator</button>
     </div>
   </div>
@@ -60,6 +61,8 @@ import { useGameStore } from '@/stores/game/gamestore';
 import type { IPlayerDTD } from '@/stores/game/dtd/IPlayerDTD';
 import { PlayerType } from '@/stores/game/dtd/PlayerType';
 import router from '@/router';
+import { ModalType } from '@/stores/game/dtd/EModalType';
+import { Playerrole } from '@/stores/game/dtd/EPlayerrole';
 
 
 const modal = useModalStore()
@@ -78,7 +81,7 @@ const newPlayer: IPlayerDTD = reactive({
   email: "",
   password: "",
   playertype: PlayerType.GUEST,
-  playerrole: "Ghost"
+  playerrole: Playerrole.GHOST,
 })
 
 function toMapCreator() {

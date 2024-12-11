@@ -13,7 +13,6 @@ import de.hs_rm.backend.gamelogic.characters.players.Character;
 import de.hs_rm.backend.gamelogic.map.PlayMap;
 import de.hs_rm.backend.gamelogic.map.Tile;
 import de.hs_rm.backend.gamelogic.map.TileType;
-import de.hs_rm.backend.gamelogic.characters.players.PlayerRole;
 
 public class Game {
     private static Set<String> existingIds = new HashSet<>(); // set --> verhindert Duplikate und static --> diese liste wird für alle Instanzen der Klasse geteilt
@@ -24,7 +23,9 @@ public class Game {
     private boolean started;
     private PlayMap playmap;
     private int chickenNum;
+    private String selectedMap;
 
+    
     private Map<String, Character> characters; // for game (after game start), strinng for username
 
     private boolean privateLobby;
@@ -36,12 +37,21 @@ public class Game {
 
     public Game(Player gamemaster) {
         this.id = generateId(5);
-        this.players = new ArrayList<>();         
-        this.chickens = new ArrayList<>();   
-        this.gamemaster = gamemaster;      
-        this.players.add(this.gamemaster);             
+        this.players = new ArrayList<>();
+        this.chickens = new ArrayList<>();
+        this.gamemaster = gamemaster;
+        this.players.add(this.gamemaster);
         this.started = false;
         this.characters = new HashMap<>();
+        this.selectedMap = selectedMap;
+    }
+
+    public String getSelectedMap() {
+        return selectedMap;
+    }
+
+    public void setSelectedMap(String selectedMap) {
+        this.selectedMap = selectedMap;
     }
 
     //Neu, erstellen private Lobby
@@ -70,10 +80,11 @@ public class Game {
         String newId;
         do {
             newId = generateRandomString(length);
-        } while (existingIds.contains(newId)); 
-        existingIds.add(newId); 
+        } while (existingIds.contains(newId));
+        existingIds.add(newId);
         return newId;
     }
+
     // Generiert einen zufälligen String aus Buchstaben und Zahlen
     private String generateRandomString(int length) {
         String alphaNumericString = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -87,12 +98,21 @@ public class Game {
         return sb.toString();
     }
 
-    public boolean start(){
+    public boolean start() {
+        if (this.playmap == null) {
+            return false;
+        }
+        return start(this.playmap);
+    }
+
+    public boolean start(PlayMap playMap) {
         this.started = true;
         LOGGER.info("started: {} gameid: {}", this.started, this.id);
 
         // TODO: hier sollte random name als param übergeben werden
-        this.playmap = new PlayMap("map1",this);
+        if (this.playmap == null) {
+            this.playmap = playMap;
+        }
 
         Random random = new Random();
 
@@ -101,25 +121,25 @@ public class Game {
         for (Player player : players) {
             Tile randomTile = null;
             // Wiederholen, bis ein Surface-Tile gefunden wird
-            int index =-1;
+            int index = -1;
             do {
                 index = random.nextInt(playmap.getTilesList().size());
                 randomTile = playmap.getTilesList().get(index);
             } while (randomTile.getType() != TileType.SURFACE || randomTile.hasCharacter());
 
-            switch(player.getPlayerrole()){
+            switch (player.getPlayerrole()) {
                 // DONE: random position von Charakter
                 case GHOST -> {
 
-                     characters.put(player.getName(), new Ghost(1.0, index%playmap.getWidth(),index/playmap.getWidth()));
-                     randomTile.addCharacter(characters.get(player.getName()));
+                    characters.put(player.getName(), new Ghost(1.0, index % playmap.getWidth(), index / playmap.getWidth()));
+                    randomTile.addCharacter(characters.get(player.getName()));
                 }
                 case SNACKMAN -> {
 
-                     characters.put(player.getName(), new Snackman(1.0, index%playmap.getWidth(),index/playmap.getWidth(), 3));
-                     randomTile.addCharacter(characters.get(player.getName()));
+                    characters.put(player.getName(), new Snackman(1.0, index % playmap.getWidth(), index / playmap.getWidth(), 3, 3));
+                    randomTile.addCharacter(characters.get(player.getName()));
                 }
-                default ->{
+                default -> {
                     LOGGER.warn("Unknown player role for player: {}", player.getName());
                 }
             }
@@ -134,7 +154,7 @@ public class Game {
                 randomTile = playmap.getTilesList().get(index);
             } while (randomTile.getType() != TileType.SURFACE || randomTile.hasChicken());
 
-            Chicken chicken = new Chicken(index%playmap.getWidth(),index/playmap.getWidth());
+            Chicken chicken = new Chicken(index % playmap.getWidth(), index / playmap.getWidth());
             chickens.add(chicken);
             //DONE: chicken zu random tile hinzufügen
             randomTile.addChicken(chicken);
@@ -143,25 +163,23 @@ public class Game {
         return started;
     }
 
-    public boolean end(){
+    public boolean end() {
         this.started = false;
         LOGGER.info("started: {}", this.started);
         return started;
     }
 
     // Entfernt einen Spieler aus der Liste, wenn sein uniqueName übereinstimmt
-    // TODO: man kann aber doch mit kick gamemaster zu kicken
-    public boolean kick(String usernameKicker,String usernameKicked){
-        if(usernameKicked.contentEquals(gamemaster.getName())){
+    public boolean kick(String usernameKicker, String usernameKicked) {
+        if (usernameKicked.contentEquals(gamemaster.getName())) {
             return false;
         }
-        if(!usernameKicker.contentEquals(gamemaster.getName())){
+        if (!usernameKicker.contentEquals(gamemaster.getName())) {
             return false;
         }
         for (int i = 0; i < players.size(); i++) {
             if (players.get(i).getName().equals(usernameKicked)) {
-                players.remove(i); 
-                System.err.println();
+                players.remove(i);
                 LOGGER.info("Player with unique name {} has been kicked.", usernameKicked);
                 return true;
             }
@@ -170,30 +188,24 @@ public class Game {
         return false;
     }
 
-    //?
-    public void joinGame(Player player){
+    public void joinGame(Player player) {
         players.add(player);
     }
 
-    //neu privatem Spiel betreten
-    public boolean joinGame(Player player, String password){
-        if(this.privateLobby){
-            if(this.password == null || !this.password.equals(password)){
-                return false;
+    public void leaveGame(Player player) {
+        LOGGER.info(String.valueOf(players.size()));
+        if (player.getName().contentEquals(gamemaster.getName())) {
+            throw new IllegalStateException("Gamemaster cannot leave the game.");
+        }
+        for (int i = 0; i < players.size(); i++) {
+            if (players.get(i).getName().equals(player.getName())) {
+                LOGGER.info("Hier der kickende Spieler " + player.getName());
+                players.remove(i);
+                break;
             }
         }
-
-        //prüft ob Spieler schon im Spiel
-        for(Player playerOnline : players){
-            if(playerOnline.getName().equals(player.getName())){
-                return false;
-            }
-        }
-
-        players.add(player);
-        return true;
-
-
+        LOGGER.info(players.toString());
+        LOGGER.info(String.valueOf(players.size()));
     }
 
     public boolean addPlayer(Player newPlayer) {
@@ -211,15 +223,35 @@ public class Game {
         return true;
     }
 
-
-    public void setChicken(int total){
-       LOGGER.info("Chicken: {}, Game: {}", total, this.id);
-        this.chickenNum=total;
+    public void setChicken(int total) {
+        LOGGER.info("Chicken: {}, Game: {}", total, this.id);
+        this.chickenNum = total;
 
     }
 
+    public boolean move(String username, int posX, int posY) {
+        // DONE: Tile obj von x und y überprüfen
+        int targetIndex = posY * playmap.getWidth() + posX;
+        Tile targetTile = playmap.getTilesList().get(targetIndex);
+        Character curCharacter = characters.get(username);
+
+        int curIndex = curCharacter.getPosY() * playmap.getWidth() + curCharacter.getPosX();
+        Tile curTile = playmap.getTilesList().get(curIndex);
+
+        if (targetTile.getType() == TileType.WALL) {
+            return false;
+        }
+        // DONE: position von character aktualisieren für frontend
+        curCharacter.move(posX, posY);
+        // TODO: hier fehlt noch Kollision in addCharacter
+        curTile.removeCharacter(curCharacter);
+        targetTile.addCharacter(curCharacter);
+
+        return true;
+    }
+
     public Player findPlayerByUsername(String username) {
-        if(players==null || players.isEmpty()){
+        if (players == null || players.isEmpty()) {
             return null;
         }
         for (Player player : players) {
@@ -230,8 +262,6 @@ public class Game {
         LOGGER.info("Player with username {} not found.", username);
         return null;
     }
-
-
 
     public String getId() {
         return id;
@@ -271,7 +301,7 @@ public class Game {
     public Player getGamemaster() {
         return gamemaster;
     }
-    
+
     public void setGamemaster(Player gamemaster) {
         this.gamemaster = gamemaster;
     }
@@ -300,8 +330,20 @@ public class Game {
         this.playmap = playmap;
     }
 
+    public Map<String, Character> getCharacters() {
+        return characters;
+    }
+
+    public void setCharacters(Map<String, Character> characters) {
+        this.characters = characters;
+    }
     public String getPassword(){
         return password;
     }
 
+}
+
+    public void addCharacter(String username, Character character) {
+        this.characters.put(username, character);
+    }
 }
