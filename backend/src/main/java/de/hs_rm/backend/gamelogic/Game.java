@@ -192,6 +192,27 @@ public class Game {
         players.add(player);
     }
 
+    public boolean joinGame(Player player, String password){
+        if(privateLobby){
+            if(this.password == password || !this.password.equals(password)){
+                LOGGER.warn("Das Passwort für die Lobby {} ist falsch.", this.id);
+                return false;
+            }
+        }
+
+        for(Player joinPlayer : players){
+            if(joinPlayer.getName().equals(player.getName()));
+            LOGGER.warn("Spieler {} ist bereits beigetreten", player.getName());
+            return false;
+        }
+
+        players.add(player);
+        LOGGER.info("Spieler {} wurde erfolgreich zu Lobby {} hinzugefuegt!", player.getName(), this.id);
+        return true;
+    }
+
+
+
     public void leaveGame(Player player) {
         LOGGER.info(String.valueOf(players.size()));
         if (player.getName().contentEquals(gamemaster.getName())) {
@@ -338,12 +359,29 @@ public class Game {
         this.characters = characters;
     }
     public String getPassword(){
+        if (!privateLobby) {
+            return null;
+        }
         return password;
     }
 
-}
-
+    public void setPassword(String password) {
+        if (privateLobby) {
+            this.password = password;
+        } else {
+            LOGGER.warn("Kein PW für offene Lobby!");
+        }
+    }
+    
     public void addCharacter(String username, Character character) {
         this.characters.put(username, character);
+    }
+
+    public void setPrivateLobby(boolean privateLobby){
+        this.privateLobby = privateLobby;
+    }
+
+    public boolean getPrivateLobby(){
+        return privateLobby;
     }
 }

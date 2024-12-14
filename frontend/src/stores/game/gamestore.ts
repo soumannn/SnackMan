@@ -10,6 +10,7 @@ import { useModalStore } from "../modalstore";
 import { Playerrole } from "./dtd/EPlayerrole";
 import { useRouter } from 'vue-router';
 import type {Result} from "@/stores/game/responses/Result";
+import { pass } from "three/webgpu";
 
 export const useGameStore = defineStore('gameStore', () => {
   // Base URL for API calls
@@ -50,15 +51,26 @@ export const useGameStore = defineStore('gameStore', () => {
   }
 
   // API methods
-  async function createGame(gamemaster: IPlayerDTD) {
+  async function createGame(gamemaster: IPlayerDTD, isPrivate: boolean, password?: string | null) {
     try {
       gamemaster.playerrole = Playerrole.SNACKMAN
+
+      const payload = {
+        name: gamemaster.name,
+        gamemaster: true,
+        playerrole: Playerrole.SNACKMAN,
+        privateLobby: isPrivate,
+        password: isPrivate ? password : null
+      };
+
+      console.log("Payload an backend", payload)
+
       const response: Response = await fetch(`${apiUrl}/create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(gamemaster),
+        body: JSON.stringify(payload),
       })
 
       const gameResponse = await handleResponse(response)

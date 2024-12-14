@@ -12,7 +12,7 @@
 
       <div>
         <label class="mt-4 mb-4 mflex itmes-center space-x-2">
-          <input type="checkbox" v-model="requirePassword"
+          <input type="checkbox" v-model="requirePassword" id="requirePassword"
             class="form-checkbox rounded shadow-sm hover:shadow-md transition-shadow duration-300" />
           <span>Privates Spiel</span>
         </label>
@@ -23,7 +23,7 @@
 
       <!-- TODO: überprüfen ob name eingeben worden ist -->
        <div class="flex space-x-4">
-        <button class="rounded-lg bg-gray-300 hover:bg-gray-400 p-3" @click=" modal.modalType === ModalType.NEW_GAME ? modal.newGame(newPlayer) : modal.joinGame(newPlayer)">Weiter</button>
+        <button class="rounded-lg bg-gray-300 hover:bg-gray-400 p-3" @click="handleModalAction"> Weiter </button>
         <button class="rounded-lg bg-gray-300 hover:bg-gray-400 p-3" @click="modal.closeModal()">Schließen</button>
        </div>
 
@@ -88,32 +88,22 @@ function toMapCreator() {
   router.push({ name: 'createmap' });
 }
 
-async function newGame() {
+function handleModalAction() {
+  //Fehlersuche
+  console.log("Debug:");
+  console.log("modalType:", modal.modalType);
+  console.log("newPlayer:", newPlayer);
+  console.log("requirePassword:", requirePassword.value);
+  console.log("password:", password.value);
 
-  if (!newPlayer.name) {
-    inputErrorMessage.value = "Bitte einen Usernamen eingeben";
-    return;
+  //Tut tatsächlich was
+  if (modal.modalType === ModalType.NEW_GAME) {
+    modal.newGame(newPlayer, requirePassword.value, password.value);
+  } else {
+    modal.joinGame(newPlayer);
   }
-
-  if (requirePassword.value && !password.value) {
-    inputErrorMessage.value = "Bitte Passwort eingeben";
-    return;
-  }
-
-  await game.createGame(newPlayer, requirePassword.value ? password.value : "");
-
-  const id = useGameStore().gameState.gamedata?.id;
-
-  router.push({
-    name: 'lobbyWithId',
-    params: { id },
-  });
-}
-
+}           
 </script>
-
-
-
 
 <style>
 @media (min-width: 1024px) {

@@ -67,20 +67,27 @@ public class GameAPIController {
 
     // Method to create a new game
     @PostMapping("/create")
-    public ResponseEntity<?> createGame(@RequestBody Player gamemasterFromFrontend) {
-        // warte noch auf ticket #28
-        if (gamemasterFromFrontend == null || gamemasterFromFrontend.getName() == null) {
+    public ResponseEntity<?> createGame(@RequestBody Map<String, Object> dataFromFrontend) {
+        if (!dataFromFrontend.containsKey("name") || dataFromFrontend.get("name") == null) {
             return ResponseEntity.badRequest().body("Invalid gamemaster data");
         }
 
-        Player gamemaster = new Player(gamemasterFromFrontend.getName());
+        String name = (String) dataFromFrontend.get("name");
+        boolean isPrivate = (boolean) dataFromFrontend.getOrDefault("privateLobby", false);
+        String password = (String) dataFromFrontend.getOrDefault("password", null);
+
+
+        Player gamemaster = new Player(name);
         gamemaster.setGamemaster(true);
         gamemaster.setPlayerrole(PlayerRole.SNACKMAN);
+        
         // #63 NEW: gameservice now creates game
-        Game newGame = gameService.createGame(gamemaster);
+        Game newGame = gameService.createGame(gamemaster,isPrivate, password);
 
         return createOkResponse(newGame);
     }
+
+    
     // Method to join an existing game
     // @PostMapping("/join/{gameId}")
     // public ResponseEntity<?> joinGame(@PathVariable String gameId) {
@@ -335,11 +342,18 @@ public class GameAPIController {
         Map<String, Object> feedbackData = new HashMap<>();
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         String gameJSON;
+
         feedbackData.put("status", "ok");
         feedbackData.put("time", LocalDateTime.now().toString());
+        
         try {
             gameJSON = ow.writeValueAsString(game);
             feedbackData.put("feedback", game);
+            
+           if(game.getPrivateLobby()){
+            feedbackData.put("password", game.getPassword());
+           }
+
         } catch (JsonProcessingException e) {
             e.printStackTrace();
             feedbackData.put("feedback", "something in backend went wrong!");

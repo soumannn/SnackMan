@@ -29,6 +29,7 @@ public class GameService {
         return gameList.get(gameId);
     }
 
+    
     public Game createGame(Player gamemaster){
         Game newGame = new Game(gamemaster);
         gameList.put(newGame.getId(), newGame);
@@ -88,7 +89,6 @@ public class GameService {
         }
 
         boolean containsName = game.getPlayers().stream().anyMatch(existingPlayer -> existingPlayer.getName().equals(player.getName()));
-
         logger.info("Game: {}, Player {}, ContainsName: {}", gameId, player.getName(),containsName);
 
         if(!containsName){
@@ -123,13 +123,15 @@ public class GameService {
 
         return game;
     }
-    */
+    
 
+    
     public Game joinGame(String gameId, Player player, String password){
         Game game = gameList.get(gameId);
 
         if(game == null){
-            return null;
+            logger.warn("Das Spiel {} existiert nicht.", gameId);
+            throw new GameJoinException("Spiel nicht vorhanden!");
         }
 
         //wenn Spiel beigetreten werden kann ja sonst nein und kein game
@@ -137,6 +139,7 @@ public class GameService {
         return joined ? game : null;
 
     }
+    
 
     public Game setChicken(String gameId, int number){
         Game game = gameList.get(gameId);
