@@ -48,8 +48,6 @@
 </template>
 
 
-
-
 <script setup lang="ts">
 import Modal from '@/components/Modal.vue';
 import { reactive, ref } from 'vue';
@@ -60,10 +58,13 @@ import { PlayerType } from '@/stores/game/dtd/PlayerType';
 import router from '@/router';
 import { ModalType } from '@/stores/game/dtd/EModalType';
 import { Playerrole } from '@/stores/game/dtd/EPlayerrole';
+import { useToast } from 'vue-toastification';
+
 
 
 const modal = useModalStore()
 const game = useGameStore()
+const toast = useToast()
 
 const gameId = ref('');
 
@@ -79,6 +80,10 @@ const newPlayer: IPlayerDTD = reactive({
 
 function toMapCreator() {
   router.push({ name: 'createmap' });
+}
+
+if(true){
+  toast.error("Test Error");
 }
 
 
