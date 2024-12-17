@@ -9,6 +9,9 @@ import wall from '@/assets/game/realistic/wall.png'
 import type { IPlayerpositionDTD } from '@/stores/game/dtd/IPlayerpositionDTD'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { useGameStore } from '@/stores/game/gamestore'
+import sweetWorldFloor from '@/assets/game/sweetWorld/sweetWorldFloor.jpg';
+import sweetWorldWall from '@/assets/game/sweetWorld/sweetWorldWall.jpg';
+
 
 const gameStore = useGameStore()
 
@@ -192,7 +195,7 @@ function cameraPositionBewegen(delta: number) {
 function renderCharacters(playerPositions: IPlayerpositionDTD[]) {
   const modelLoader = new GLTFLoader()
   playerPositions.forEach((playerPosition) => {
-    modelLoader.load('/src/assets/game/realistic/snackman/snackman.gltf', (objekt) => {
+    modelLoader.load('/src/assets/game/sweetWorld/snackman/scene.gltf', (objekt) => {
       const model = objekt.scene
       model.position.set(playerPosition.x, 1, playerPosition.y)
       model.scale.set(0.5, 0.5, 0.5)
@@ -205,8 +208,8 @@ function renderCharacters(playerPositions: IPlayerpositionDTD[]) {
 function loadMap(map: String[]) {
   const groundGeometry = new THREE.BoxGeometry(1, 1, 1)
   const wallGeometry = new THREE.BoxGeometry(1, 2, 1)
-  const groundTexture = new THREE.TextureLoader().load(ground)
-  const wallTexture = new THREE.TextureLoader().load(wall)
+  const groundTexture = new THREE.TextureLoader().load(sweetWorldFloor)
+  const wallTexture = new THREE.TextureLoader().load(sweetWorldWall)
   const groundMaterial = new THREE.MeshStandardMaterial({ map: groundTexture })
   const wallMaterial = new THREE.MeshStandardMaterial({ map: wallTexture })
 
