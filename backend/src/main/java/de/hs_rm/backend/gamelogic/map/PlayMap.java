@@ -15,14 +15,16 @@ public class PlayMap {
 private char[][] map;
 private List <Tile> tilesList = new ArrayList<>();
 private int countSurface = 0;
+private String folderPath;
+private String fileExtension;
 
 
 private static final Logger LOGGER = LoggerFactory.getLogger(PlayMap.class);
 
 
-public PlayMap(String filePath) {
+public PlayMap(String filePath, String folderPath, String fileExtension ) {
     try {
-        loadMap(filePath);
+        loadMap(filePath, folderPath, fileExtension);
         //createTiles();
     } catch (IllegalArgumentException e) {
         LOGGER.error("Invalid map file: {}", e.getMessage());
@@ -33,7 +35,7 @@ public PlayMap(String filePath) {
     }
 }
 
-public void loadMap(String filePath) throws IOException, IllegalArgumentException {
+public void loadMap(String filePath,String folderPath,String fileExtension) throws IOException, IllegalArgumentException {
     List<String> lines = new ArrayList<>();
     int width = 0;
 

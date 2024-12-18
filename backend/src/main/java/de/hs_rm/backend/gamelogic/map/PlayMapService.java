@@ -6,11 +6,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
 public class PlayMapService {
-    List<String> mapNames;
+    private List<String> mapNames;
+
+    @Value("${map.folderPath}")
+    private String folderPath;
+
+    @Value("${map.fileExtension}")
+    private String fileExtension;
 
 
     public PlayMapService() {
@@ -18,20 +25,20 @@ public class PlayMapService {
     }
 
     public PlayMap createPlayMap(String name){
-        PlayMap playmap = new PlayMap(name);
+        PlayMap playmap = new PlayMap(name, folderPath, fileExtension);
         playmap.createTiles();
         return playmap;
     }
 
     public List<String> getAllMapNames() {
-        File mapFolder = new File("src/main/resources/maps");
+        File mapFolder = new File(folderPath);
         String[] files = mapFolder.list();
 
         List<String> mapNames = new ArrayList<>();
         if (files != null) {
             for (String file : files) {
-                if (file.endsWith(".txt")) {
-                    mapNames.add(file.replace(".txt", ""));
+                if (file.endsWith(fileExtension)) {
+                    mapNames.add(file.replace(fileExtension, ""));
                 }
             }
         }
@@ -43,7 +50,7 @@ public class PlayMapService {
         Map<String, char[][]> allMaps = new HashMap<>();
 
         for (String mapName : mapNames) {
-            PlayMap playMap = new PlayMap(mapName);
+            PlayMap playMap = new PlayMap(mapName, folderPath, fileExtension);
             allMaps.put(mapName, playMap.getMap());
         }
         return allMaps;
