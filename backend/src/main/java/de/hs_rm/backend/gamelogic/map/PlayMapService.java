@@ -19,6 +19,12 @@ public class PlayMapService {
     @Value("${map.fileExtension}")
     private String fileExtension;
 
+    @Value("${map.grid.min}")
+    private int gridMin;
+
+    @Value("${map.grid.max}")
+    private int gridMax;
+
 
     public PlayMapService() {
         this.mapNames = new ArrayList<>();

@@ -37,6 +37,7 @@ public class Game {
     private double snackmanSpeed;
     private double ghostSpeed;
     private int itemsPerSurfaceRatio;
+    private int nutriscore;
 
 
     private Map<String, Character> characters; // for game (after game start), strinng for username
@@ -57,7 +58,7 @@ public class Game {
             new SnackmanObjectItem("Extra Life", -1, -1, "Grants an extra life"));
 
     public Game(Player gamemaster, int snackmanLife, int snackmanMaxLife, double snackmanSpeed, double ghostSpeed,
-            int itemsPerSurfaceRatio) {
+            int itemsPerSurfaceRatio, int nutriscore) {
         this.id = generateId(5);
         this.players = new ArrayList<>();
         this.chickens = new ArrayList<>();
@@ -70,6 +71,7 @@ public class Game {
         this.snackmanSpeed = snackmanSpeed;
         this.ghostSpeed = ghostSpeed;
         this.itemsPerSurfaceRatio = itemsPerSurfaceRatio;
+        this.nutriscore=nutriscore;
     }
 
     public int getSnackmanLife() {
@@ -90,6 +92,14 @@ public class Game {
 
     public int getItemsPerSurfaceRatio() {
         return itemsPerSurfaceRatio;
+    }
+
+    public int getNutriscore() {
+        return nutriscore;
+    }
+
+    public void setNutriscore(int nutriscore) {
+        this.nutriscore = nutriscore;
     }
 
     public String getSelectedMap() {
@@ -164,7 +174,7 @@ public class Game {
                 case SNACKMAN -> {
 
                     characters.put(player.getName(),
-                            new Snackman(snackmanSpeed, index % playmap.getWidth(), index / playmap.getWidth(), snackmanLife, snackmanMaxLife));
+                            new Snackman(snackmanSpeed, index % playmap.getWidth(), index / playmap.getWidth(), snackmanLife, snackmanMaxLife, nutriscore));
                     randomTile.addCharacter(characters.get(player.getName()));
                 }
                 default -> {

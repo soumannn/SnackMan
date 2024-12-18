@@ -13,6 +13,7 @@ import de.hs_rm.backend.gamelogic.map.PlayMap;
 import de.hs_rm.backend.gamelogic.map.PlayMapService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,6 +37,18 @@ public class MapController {
     @Autowired
     PlayMapService playMapService;
 
+    @Value("${map.folderPath}")
+    private String folderPath;
+
+    @Value("${map.fileExtension}")
+    private String fileExtension;
+
+    @Value("${map.grid.min}")
+    private int minGridSize;
+
+    @Value("${map.grid.max}")
+    private int maxGridSize;
+
     @PostMapping
     public ResponseEntity<String> saveMap(@RequestBody Map<String,Object> requestMap) {
         //TODO: process POST request
@@ -53,14 +66,14 @@ public class MapController {
         //Map speichern 
         try{
             // die Map speichert sich in dem gegebenen Ordner verzeichnis
-            File mapFile= new File("src/main/resources/maps");
+            File mapFile= new File(folderPath);
             // wenn dieser nicht existieren sollte wird dieser ertsllt
             if(!mapFile.exists()){
                 mapFile.mkdirs();
             }
 
             //Dieser Part beschäftigt sich mit der txt-Datei, dabei wird eine Json-Datei vom Frontend in einer .txt umgewandetlt
-            File file= new File (mapFile, mapName + ".txt");
+            File file= new File (mapFile, mapName + fileExtension);
             //liest die Daten aus der json datei
             try(BufferedWriter writer = new BufferedWriter(new FileWriter(file))){
                 //geht zeilen weise durch 
@@ -77,6 +90,15 @@ public class MapController {
             return ResponseEntity.status(500).body("Somethink went Wrong :( " + e.getMessage());
         }
     }
+
+    @GetMapping("/grid-limits")
+    public ResponseEntity<Map<String, Integer>> getGridLimits() {
+        Map<String, Integer> limits = new HashMap<>();
+        limits.put("min", minGridSize);
+        limits.put("max", maxGridSize);
+        return ResponseEntity.ok(limits);
+    }
+
 
     @GetMapping// name und array mit symbolen
     public ResponseEntity<Map<String, Object>> getAllMaps() {
