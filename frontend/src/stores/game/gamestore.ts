@@ -96,6 +96,14 @@ export const useGameStore = defineStore('gameStore', () => {
               gameState.gamedata.players = message.feedback as IPlayerDTD[]
               modal.setErrorMessage('')
 
+              const myName = sessionStorage.getItem('myName');
+              const inLobby = gameState.gamedata.players.some(p => p.name == myName);
+
+              if (!inLobby) {
+                sessionStorage.removeItem('myName');
+                router.push({ name: "index" });
+              }
+
               resolve(true)
             } else {
               modal.setErrorMessage(message.feedback as string)
