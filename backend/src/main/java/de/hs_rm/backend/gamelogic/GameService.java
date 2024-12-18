@@ -81,24 +81,35 @@ public class GameService {
         return game;
     }
 
-    public Game joinGame(String gameId, Player player){
+    public Game joinGame(String gameId, Player player, String password) {
         Game game = gameList.get(gameId);
-
-        if(game == null){
-            return null;
+    
+        if (game == null) {
+            logger.warn("Das Spiel {} existiert nicht.", gameId);
+            throw new GameJoinException("Spiel nicht vorhanden!");
         }
-
+    
         boolean containsName = game.getPlayers().stream().anyMatch(existingPlayer -> existingPlayer.getName().equals(player.getName()));
-        logger.info("Game: {}, Player {}, ContainsName: {}", gameId, player.getName(),containsName);
-
-        if(!containsName){
-            game.joinGame(player);
-        }else{
-            throw new GameJoinException("Name already in Lobby!");
+    
+        if (containsName) {
+            throw new GameJoinException("Name bereits in der Lobby!");
         }
-
+    
+        // Überprüfen, ob das Spiel privat ist und ein Passwort erfordert
+        if (game.getPrivateLobby()) {
+            if (password == null || !game.validatePassword(password)) {
+                throw new GameJoinException("Ungültiges Passwort!");
+            }
+        }
+    
+        if(!containsName){
+           game.joinGame(player);
+        }else{
+            throw new GameJoinException("Spieler konnte nicht hinzugefügt werden.");
+        }    
         return game;
     }
+    
 
     public Game setRole(String gameId, String nameOfPlayerToSetRole, String role) {
         PlayerRole playerRoleToSet;
@@ -122,22 +133,6 @@ public class GameService {
         playerToSetRole.setPlayerrole(playerRoleToSet);
 
         return game;
-    }
-    
-
-    
-    public Game joinGame(String gameId, Player player, String password){
-        Game game = gameList.get(gameId);
-
-        if(game == null){
-            logger.warn("Das Spiel {} existiert nicht.", gameId);
-            throw new GameJoinException("Spiel nicht vorhanden!");
-        }
-
-        //wenn Spiel beigetreten werden kann ja sonst nein und kein game
-        boolean joined = game.joinGame(player, password);
-        return joined ? game : null;
-
     }
     
 

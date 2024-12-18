@@ -76,27 +76,17 @@ public class GameAPIController {
         boolean isPrivate = (boolean) dataFromFrontend.getOrDefault("privateLobby", false);
         String password = (String) dataFromFrontend.getOrDefault("password", null);
 
+        logger.info("Erstelle Spiel mit: name {}, privateLobby {}, passwort {} ", name, isPrivate, password);
 
         Player gamemaster = new Player(name);
         gamemaster.setGamemaster(true);
         gamemaster.setPlayerrole(PlayerRole.SNACKMAN);
-        
+
         // #63 NEW: gameservice now creates game
-        Game newGame = gameService.createGame(gamemaster,isPrivate, password);
+        Game newGame = gameService.createGame(gamemaster, isPrivate, password);
 
         return createOkResponse(newGame);
     }
-
-    
-    // Method to join an existing game
-    // @PostMapping("/join/{gameId}")
-    // public ResponseEntity<?> joinGame(@PathVariable String gameId) {
-    // if (game == null || !game.getId().equals(gameId)) {
-    // return createErrorResponse("Game ID is invalid!");
-    // }
-    // // Logik zum Beitreten des Spiels
-    // return ResponseEntity.ok(game);
-    // }
 
     // Method to start the game
     @PostMapping("/start/{gameId}")
@@ -118,31 +108,57 @@ public class GameAPIController {
         return createOkResponse(existingGame);
     }
 
-    @MessageMapping("/topic/game/{lobbyid}/join")
-    @SendTo("/topic/game/{lobbyid}")
-    public void joinLobby(Player player, @DestinationVariable String lobbyid, String password) {
-        // #63 NEW: gameService now handles Player join
-        HashMap<String, Object> response = new HashMap<>();
+    // @MessageMapping("/topic/game/{lobbyid}/join")
+    // @SendTo("/topic/game/{lobbyid}")
+    // public void joinLobby(Player player, @DestinationVariable String lobbyid,
+    // String password) {
+    // // #63 NEW: gameService now handles Player join
+    // HashMap<String, Object> response = new HashMap<>();
 
+    // try {
+    // Game existingGame = gameService.joinGame(lobbyid, player, password);
+    // logger.info("Player: {}, joined game: {}", player.getName(), lobbyid);
+
+    // response.put("feedback", existingGame.getPlayers());
+    // response.put("status", "ok");
+    // response.put("time", LocalDateTime.now().toString());
+
+    // messagingService.sendPlayerList(lobbyid, response);
+
+    // } catch (GameJoinException e) {
+    // response.put("feedback", e.getMessage());
+    // response.put("status", "error");
+    // response.put("time", LocalDateTime.now().toString());
+
+    // messagingService.sendPlayerList(lobbyid, response);
+    // }
+    // }
+
+    @PostMapping("/join/{gameId}")
+    public ResponseEntity<?> joinGame(@PathVariable String gameId, @RequestBody Map<String, Object> dataFromFrontend) {
+        if (!dataFromFrontend.containsKey("name") || dataFromFrontend.get("name") == null) {
+            return ResponseEntity.badRequest().body("Invalid player data");
+        }
+    
+        String playerName = (String) dataFromFrontend.get("name");
+        String password = (String) dataFromFrontend.getOrDefault("password", null);
+    
+        logger.info("Spieler {} versucht, der Lobby {} beizutreten mit Passwort: {}", playerName, gameId, password);
+    
+        Player newPlayer = new Player(playerName);
+    
         try {
-            Game existingGame = gameService.joinGame(lobbyid, player, password);
-            logger.info("Player: {}, joined game: {}", player.getName(), lobbyid);
 
-            response.put("feedback", existingGame.getPlayers());
-            response.put("status", "ok");
-            response.put("time", LocalDateTime.now().toString());
-
-            messagingService.sendPlayerList(lobbyid, response);
-
+            Game updatedGame = gameService.joinGame(gameId, newPlayer, password);
+            return createOkResponse(updatedGame);
         } catch (GameJoinException e) {
-            response.put("feedback", e.getMessage());
-            response.put("status", "error");
-            response.put("time", LocalDateTime.now().toString());
-
-            messagingService.sendPlayerList(lobbyid, response);
+            logger.error("Fehler beim Beitritt zur Lobby {} durch Spieler {}: {}", gameId, playerName, e.getMessage());
+            return createErrorResponse(e.getMessage());
         }
     }
+    
 
+   
     @MessageMapping("/topic/game/{lobbyid}/leave")
     @SendTo("/topic/game/{lobbyid}")
     public void leaveLobby(Player player, @DestinationVariable String lobbyid) {
@@ -256,13 +272,13 @@ public class GameAPIController {
             Player actingPlayer,
             @DestinationVariable String lobbyId,
             @DestinationVariable String nameOfPlayerToSetRole,
-            @DestinationVariable String role
-    ) {
+            @DestinationVariable String role) {
         HashMap<String, Object> response = new HashMap<>();
 
         try {
             Game existingGame = gameService.setRole(lobbyId, nameOfPlayerToSetRole, role);
-            logger.info("Player: {}, sets role: {}, for player: {}", actingPlayer.getName(), role, nameOfPlayerToSetRole);
+            logger.info("Player: {}, sets role: {}, for player: {}", actingPlayer.getName(), role,
+                    nameOfPlayerToSetRole);
 
             response.put("feedback", existingGame.getPlayers());
             response.put("status", "ok");
@@ -285,13 +301,12 @@ public class GameAPIController {
             return createErrorResponse("No game found.");
         }
         Player player = new Player(playerFromFrontend.getName());
-        if(existingGame.addPlayer(player)){
+        if (existingGame.addPlayer(player)) {
             return createOkResponse(existingGame);
         }
 
-        return createErrorResponse("can not add "+ player.getName() +"!");
-        
-                
+        return createErrorResponse("can not add " + player.getName() + "!");
+
     }
 
     @GetMapping("/games")
@@ -307,7 +322,8 @@ public class GameAPIController {
     }
 
     @PostMapping("/move/{gameId}/{username}/{coordinateX}/{coordinateY}")
-    public ResponseEntity<?> movePlayer( @PathVariable String gameId, @PathVariable String username, @PathVariable int coordinateX, @PathVariable int coordinateY) {
+    public ResponseEntity<?> movePlayer(@PathVariable String gameId, @PathVariable String username,
+            @PathVariable int coordinateX, @PathVariable int coordinateY) {
 
         Game existingGame = gameService.getGameById(gameId);
 
@@ -319,7 +335,8 @@ public class GameAPIController {
             if (success) {
                 return createOkResponse(existingGame);
             } else {
-                return ResponseEntity.badRequest().body("Failed to move player --> Tile is Wall, Invalid Coordinates or OutOfBounds");
+                return ResponseEntity.badRequest()
+                        .body("Failed to move player --> Tile is Wall, Invalid Coordinates or OutOfBounds");
             }
         } catch (IllegalArgumentException e) {
             return createErrorResponse(e.getMessage());
@@ -345,14 +362,10 @@ public class GameAPIController {
 
         feedbackData.put("status", "ok");
         feedbackData.put("time", LocalDateTime.now().toString());
-        
+
         try {
             gameJSON = ow.writeValueAsString(game);
             feedbackData.put("feedback", game);
-            
-           if(game.getPrivateLobby()){
-            feedbackData.put("password", game.getPassword());
-           }
 
         } catch (JsonProcessingException e) {
             e.printStackTrace();
@@ -362,6 +375,21 @@ public class GameAPIController {
         return ResponseEntity.status(HttpStatus.OK).body(feedbackData);
     }
 
+    @GetMapping("/{gameId}/isPrivate")
+    public ResponseEntity<Map<String, Object>> isPrivate(@PathVariable String gameId) {
+        Game existingGame = gameService.getGameById(gameId);
 
+        if (existingGame == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of(
+                            "status", "error",
+                            "message", "Lobby nicht gefunden",
+                            "isPrivate", false));
+        }
+
+        return ResponseEntity.ok(Map.of(
+                "status", "ok",
+                "isPrivate", existingGame.getPrivateLobby()));
+    }
 
 }

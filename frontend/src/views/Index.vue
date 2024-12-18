@@ -2,45 +2,57 @@
 
   <Modal v-if="modal.isModalOpen">
     <template #titel>
-      <h2 class="font-bold text-3xl text-center">{{ modal.modalType === ModalType.JOIN_GAME ? "Join Game" : "New Game" }}</h2>
+      <h2 class="font-bold text-3xl text-center">{{ modal.modalType === ModalType.JOIN_GAME ? "Join Game" : "New Game"
+        }}</h2>
     </template>
     <template #content>
-      <input v-model="newPlayer.name" type="text" name="name" id="name"
+      <div v-if="modal.modalType === ModalType.NEW_GAME">
+        <input v-model="newPlayer.name" type="text" name="name" id="name"
         class="block w-full rounded-md border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm/6"
         placeholder="Username eingeben" />
-      <div v-if="inputErrorMessage" class="input-error-message">{{ inputErrorMessage }}</div>
-
-      <div>
-        <label class="mt-4 mb-4 mflex itmes-center space-x-2">
-          <input type="checkbox" v-model="requirePassword" id="requirePassword"
+        <div v-if="inputErrorMessage" class="input-error-message">{{ inputErrorMessage }}</div>
+        
+        <div>
+          <label class="mt-4 mb-4 mflex itmes-center space-x-2">
+            <input type="checkbox" v-model="modal.requirePassword" id="requirePassword"
             class="form-checkbox rounded shadow-sm hover:shadow-md transition-shadow duration-300" />
-          <span>Privates Spiel</span>
-        </label>
-        <input v-if="requirePassword" v-model="password" type="text" id="password"
+            <span>Privates Spiel</span>
+          </label>
+          <input v-if="modal.requirePassword" v-model="newPlayer.password" type="text" id="password"
           class="block w-full rounded-md mt-2 border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm/6"
           placeholder="Passwort eingeben" />
+        </div>
       </div>
-
-      <!-- TODO: überprüfen ob name eingeben worden ist -->
-       <div class="flex space-x-4">
-        <button class="rounded-lg bg-gray-300 hover:bg-gray-400 p-3" @click="handleModalAction"> Weiter </button>
-        <button class="rounded-lg bg-gray-300 hover:bg-gray-400 p-3" @click="modal.closeModal()">Schließen</button>
-       </div>
-
-    </template>
-
-
+        
+        <!-- TODO: überprüfen ob name eingeben worden ist -->
+        
+        <div v-if="modal.modalType === ModalType.JOIN_GAME">
+          <input v-model="newPlayer.name" type="text" name="name" id="name"
+          class="block w-full rounded-md border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm/6"
+          placeholder="Username eingeben" />
+          <div v-if="inputErrorMessage" class="input-error-message">{{ modal.inputErrorMessage }}</div>
+          
+          <input v-if="modal.isGamePrivate" v-model="newPlayer.password" type="text" id="password"
+          class="block w-full rounded-md mt-2 border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm/6"
+          placeholder="Passwort eingeben" />
+        </div>
+        
+        <div class="flex space-x-4">
+          <button class="rounded-lg bg-gray-300 hover:bg-gray-400 p-3" @click="modal.handleModalAction(newPlayer,gameId)"> Weiter </button>
+          <button class="rounded-lg bg-gray-300 hover:bg-gray-400 p-3" @click="modal.closeModal()">Schließen</button>
+        </div>
+        
+      </template>
   </Modal>
 
-
+  
   <div class="homeMenue" :style="{ backgroundImage: `url('/src/assets/TestBackground1.jpg')` }">
     <h1>Snackman</h1>
     <div class="form-container">
-      <button class="buttons-top-bottom" @click="modal.openModal(ModalType.NEW_GAME,'')">New Game</button>
+      <button class="buttons-top-bottom" @click="modal.openModal(ModalType.NEW_GAME,'',false)">New Game</button>
       <div>
         <input type="text" v-model="gameId" placeholder="Game Id eingeben" class="gameid-input-field">
-        <!-- @click="game.joinGame()"-->
-        <button class="button-middle" @click="modal.openModal(ModalType.JOIN_GAME,gameId)">Join</button>
+        <button class="button-middle" @click="modal.checkPrivateGame(gameId)">Join</button>
       </div>
       <!-- @click="game.findLobbies()"-->
       <button class="buttons-top-bottom" @click="router.push('/lobby')">Find Lobbies/Games</button>
@@ -49,8 +61,6 @@
   </div>
 
 </template>
-
-
 
 
 <script setup lang="ts">
@@ -63,6 +73,7 @@ import { PlayerType } from '@/stores/game/dtd/PlayerType';
 import router from '@/router';
 import { ModalType } from '@/stores/game/dtd/EModalType';
 import { Playerrole } from '@/stores/game/dtd/EPlayerrole';
+import { pass } from 'three/webgpu';
 
 
 const modal = useModalStore()
@@ -88,21 +99,6 @@ function toMapCreator() {
   router.push({ name: 'createmap' });
 }
 
-function handleModalAction() {
-  //Fehlersuche
-  console.log("Debug:");
-  console.log("modalType:", modal.modalType);
-  console.log("newPlayer:", newPlayer);
-  console.log("requirePassword:", requirePassword.value);
-  console.log("password:", password.value);
-
-  //Tut tatsächlich was
-  if (modal.modalType === ModalType.NEW_GAME) {
-    modal.newGame(newPlayer, requirePassword.value, password.value);
-  } else {
-    modal.joinGame(newPlayer);
-  }
-}           
 </script>
 
 <style>
@@ -149,9 +145,5 @@ function handleModalAction() {
     border-radius: 10px 0 0 10px;
     text-align: center;
   }
-
-
-
-
 }
 </style>

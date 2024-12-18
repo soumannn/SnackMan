@@ -24,6 +24,7 @@ public class Game {
     private PlayMap playmap;
     private int chickenNum;
     private String selectedMap;
+    private final int MAX_PLAYERS = 20;
 
     
     private Map<String, Character> characters; // for game (after game start), strinng for username
@@ -188,30 +189,17 @@ public class Game {
         return false;
     }
 
-    public void joinGame(Player player) {
-        players.add(player);
-    }
-
-    public boolean joinGame(Player player, String password){
-        if(privateLobby){
-            if(this.password == password || !this.password.equals(password)){
-                LOGGER.warn("Das Passwort für die Lobby {} ist falsch.", this.id);
-                return false;
-            }
-        }
-
-        for(Player joinPlayer : players){
-            if(joinPlayer.getName().equals(player.getName()));
-            LOGGER.warn("Spieler {} ist bereits beigetreten", player.getName());
+    public boolean joinGame(Player player) {
+        if (players.size() >= MAX_PLAYERS) {
             return false;
         }
-
         players.add(player);
-        LOGGER.info("Spieler {} wurde erfolgreich zu Lobby {} hinzugefuegt!", player.getName(), this.id);
         return true;
     }
-
-
+    
+    public boolean validatePassword(String password) {
+        return password != null && this.password != null && this.password.equals(password);
+    }
 
     public void leaveGame(Player player) {
         LOGGER.info(String.valueOf(players.size()));

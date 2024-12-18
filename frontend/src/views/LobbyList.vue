@@ -35,6 +35,8 @@ async function getAllGames(){
       });
       const responseData = await response.json();
 
+      console.log(responseData.feedback);
+
       if(responseData.status == "ok") games.value = responseData.feedback;
       else throw new Error("Something went wrong, while receiving Games!")
     }catch(error){
@@ -58,9 +60,14 @@ async function getAllGames(){
         class="block w-full rounded-md border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm/6"
         placeholder="Username eingeben" />
       <div v-if="modal.inputErrorMessage" class="input-error-message">{{ modal.inputErrorMessage }}</div>
+
+      <input v-if="modal.isGamePrivate" v-model="newPlayer.password" type="text" id="password"
+          class="block w-full rounded-md mt-2 border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm/6"
+          placeholder="Passwort eingeben" />
+
       <!-- TODO: überprüfen ob name eingeben worden ist -->
        <div class="flex space-x-4">
-        <button class="rounded-lg bg-gray-300 hover:bg-gray-400 p-3" @click="modal.joinGame(newPlayer)">Weiter</button>
+        <button class="rounded-lg bg-gray-300 hover:bg-gray-400 p-3" @click="modal.joinGame(newPlayer,newPlayer.password)">Weiter</button>
         <button class="rounded-lg bg-gray-300 hover:bg-gray-400 p-3" @click="modal.closeModal()">Schließen</button>
        </div>
       
@@ -82,7 +89,7 @@ async function getAllGames(){
                 :game="game">
                 <LobbyTabellenZeile 
                     :game="game"
-                    @open-modal="modal.openModal"
+                    @open-modal="modal.openModal(ModalType.JOIN_GAME,game.id,game.password != null)"
                 />
             </tr>
           </tbody>

@@ -141,7 +141,6 @@ const players = computed(() => gameStore.gameState.gamedata?.players || []);
 // Hole Passwort aus gamestore
 const gamePassword = computed(() => gameStore.gameState.gamedata?.password || null);
 
-
 // Anzahl der Platzhalter
 const placeholderCount = computed(() => maxPlayers - players.value.length);
 

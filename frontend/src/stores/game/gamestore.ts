@@ -9,7 +9,7 @@ import type { Message } from "./dtd/IMessageDTD";
 import { useModalStore } from "../modalstore";
 import { Playerrole } from "./dtd/EPlayerrole";
 import { useRouter } from 'vue-router';
-import type {Result} from "@/stores/game/responses/Result";
+import type { Result } from "@/stores/game/responses/Result";
 import { pass } from "three/webgpu";
 
 export const useGameStore = defineStore('gameStore', () => {
@@ -96,35 +96,58 @@ export const useGameStore = defineStore('gameStore', () => {
     }
   }
 
-  function joinLobby(lobbyId: string, newPlayer: IPlayerDTD): Promise<boolean> {
-    return new Promise((resolve) => {
-      stompClient.onConnect = () => {
-        stompClient.unsubscribe(`${topicUrl}/${lobbyId}`)
-
-        if (gameState.gamedata?.players) {
-          subscribeToLobby(lobbyId, (message: Message) => {
-            if (message.status === 'ok') {
-              console.log(message.feedback)
-              gameState.gamedata.players = message.feedback as IPlayerDTD[]
-              modal.setErrorMessage('')
-
-              resolve(true)
-            } else {
-              modal.setErrorMessage(message.feedback as string)
-              stompClient.deactivate()
-              resolve(false)
-            }
-          })
-
-          sendMessage(`${topicUrl}/${lobbyId}/join`, newPlayer)
-          sessionStorage.setItem('myName', newPlayer.name)
-        }
+  async function joinLobby(lobbyId: string, newPlayer: IPlayerDTD, password: string | null): Promise<boolean> {
+    try {
+      const payload = {
+        name: newPlayer.name,
+        Playerrole: newPlayer.playerrole,
+        password: password,
       }
 
-      if (!stompClient.connected) {
-        stompClient.activate()
+      const response: Response = await fetch(`${apiUrl}/join/${lobbyId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      console.log(response);
+
+      const joinResponse = await handleResponse(response);
+      setGameStateFromResponse(joinResponse);
+
+      // WebSocket-Verbindungen initialisieren
+    stompClient.onConnect = () => {
+      if (gameState.gamedata?.players) {
+        subscribeToLobby(lobbyId, (message: Message) => {
+          if (message.status === 'ok') {
+            console.log(message.feedback);
+            gameState.gamedata.players = message.feedback as IPlayerDTD[];
+            modal.setErrorMessage('')
+          } else {
+            modal.setErrorMessage(message.feedback as string)
+          stompClient.deactivate()
+          }
+        });
       }
-    })
+    };
+
+    if (!stompClient.connected) {
+      stompClient.activate();
+    }
+
+    // Session-Daten speichern
+    sessionStorage.setItem('myName', newPlayer.name);
+    sessionStorage.setItem('playerInfo', JSON.stringify(newPlayer));
+
+    return true;
+  } catch (error) {
+    console.error('Error joining lobby:', error);
+    modal.setErrorMessage('Fehler beim Beitritt zur Lobby');
+    return false;
+  }
+
   }
 
   async function startGame(selectedMapName: string) {
@@ -134,11 +157,11 @@ export const useGameStore = defineStore('gameStore', () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({selectedMap: selectedMapName}),
+        body: JSON.stringify({ selectedMap: selectedMapName }),
       })
       const gameResponse = await handleResponse(response)
       setGameStateFromResponse(gameResponse)
-  } catch (error) {
+    } catch (error) {
       handleGameStateError()
       console.error('Error starting game:', error)
     }
@@ -318,6 +341,24 @@ export const useGameStore = defineStore('gameStore', () => {
     })
   }
 
+  async function isGamePrivate(gameId: string): Promise<boolean> {
+    try {
+      const response = await fetch(`${apiUrl}/${gameId}/isPrivate`);
+      const result = await response.json();
+
+      if (result.status === "ok") {
+        return result.isPrivate;
+      } else {
+        throw new Error(result.message);
+      }
+    } catch (error) {
+      console.error("Fehler beim Überprüfen, ob das Spiel privat ist:", error);
+      return false;
+    }
+  }
+
+
+
   return {
     gameState,
     createGame,
@@ -330,6 +371,7 @@ export const useGameStore = defineStore('gameStore', () => {
     fetchGameStatus,
     setPlayerRole,
     setPlayerRoleViaStomp,
-    closeTab
+    closeTab,
+    isGamePrivate
   }
 })
