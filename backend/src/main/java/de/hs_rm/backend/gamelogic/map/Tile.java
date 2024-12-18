@@ -58,6 +58,23 @@ public class Tile {
 
         }
         // TODO: Kollision zwischen Ghost und Snackman
+        for (Character currentCharacter:characterList){
+            if(currentCharacter != character && currentCharacter instanceof Ghost && Snackman){
+                int ghostPosX = currentCharacter.getPosX();
+                int ghostPosY = currentCharacter.getPosY();
+                int snackmanPosX= currentCharacter.getPosX();
+                int snackmanPosY=currentCharacter.getPosY();
+
+                //hier findet das Aufeinandertreffen von Snackman und Ghost statt
+                if(ghostPosX == snackmanPosX && ghostPosY == snackmanPosY){
+                    Ghost ghost = (Ghost) currentCharacter; //casten
+                    Snackman snackman =(Snackman) character;
+
+                    ghost.hit();
+                    snackman.caught();//life--
+                }
+            }
+        }
         return true;
     }
 
