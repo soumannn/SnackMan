@@ -10,7 +10,7 @@ import type { IPlayerpositionDTD } from '@/stores/game/dtd/IPlayerpositionDTD'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { useGameStore } from '@/stores/game/gamestore'
 import sweetWorldFloor from '@/assets/game/sweetWorld/sweetWorldFloor.jpg';
-import sweetWorldWall from '@/assets/game/sweetWorld/sweetWorldWall.jpg';
+import sweetWorldWall from '@/assets/game/sweetWorld/sweetWorldWall.png';
 
 
 const gameStore = useGameStore()
@@ -195,10 +195,10 @@ function cameraPositionBewegen(delta: number) {
 function renderCharacters(playerPositions: IPlayerpositionDTD[]) {
   const modelLoader = new GLTFLoader()
   playerPositions.forEach((playerPosition) => {
-    modelLoader.load('/src/assets/game/sweetWorld/snackman/scene.gltf', (objekt) => {
+    modelLoader.load('/src/assets/game/christmas/snackman/scene.gltf', (objekt) => {
       const model = objekt.scene
       model.position.set(playerPosition.x, 1, playerPosition.y)
-      model.scale.set(0.5, 0.5, 0.5)
+      model.scale.set(0.5,0.5, 0.5)
       model.rotateY(playerPosition.angle)
       scene.add(model)
     })
