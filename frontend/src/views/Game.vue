@@ -195,7 +195,7 @@ function cameraPositionBewegen(delta: number) {
 function renderCharacters(playerPositions: IPlayerpositionDTD[]) {
   const modelLoader = new GLTFLoader()
   playerPositions.forEach((playerPosition) => {
-    modelLoader.load('/src/assets/game/christmas/snackman/scene.gltf', (objekt) => {
+    modelLoader.load('/src/assets/game/chrismas/snackman/snackmanwinter.gltf', (objekt) => {
       const model = objekt.scene
       model.position.set(playerPosition.x, 1, playerPosition.y)
       model.scale.set(0.5,0.5, 0.5)
@@ -221,7 +221,6 @@ function loadMap(map: String[]) {
           const wallCube = new THREE.Mesh(wallGeometry, wallMaterial)
           wallCube.position.set(rowCounter, 1.5, i)
           scene.add(wallCube)
-          break
         case ' ':
           const groundCube = new THREE.Mesh(groundGeometry, groundMaterial)
           groundCube.position.set(rowCounter, 0, i)
