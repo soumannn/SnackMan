@@ -65,6 +65,13 @@
         >
         <p class="text-sm text-gray-400 mt-2">Selected: {{ selectedMap?.name || 'None' }}</p>
         </div>
+        <button
+        v-if="isGamemaster"
+            class="w-50 p-2 bg-blue-800 shadow-lg rounded-lg text-white-600  hover:bg-gray-800"
+            @click="openThemePopup()"
+        >
+        Select Themes 
+        </button>
      </div>
 
       <button
@@ -125,6 +132,34 @@
     </div>
   </div>
 </div>
+<!-- Theme Popup -->
+<div v-if="isThemePopupVisible" class="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50">
+    <div class="bg-zinc-800 p-6 rounded-lg shadow-lg max-w-lg w-full">
+      <h2 class="text-lg font-semibold text-zinc-200 mb-4">Select a Theme</h2>
+      <p class="text-zinc-300">Choose a theme for the game.</p>
+
+      <div class="grid grid-cols-2 gap-4 mt-4">
+        <button
+          v-for="theme in themes"
+          :key="theme.id"
+          class="bg-gray-800 p-4 rounded-lg shadow hover:bg-gray-700 text-zinc-200 font-semibold"
+          @click="selectTheme()"
+        >
+          {{ theme.name }}
+        </button>
+      </div>
+
+      <div class="flex justify-end mt-4">
+        <button
+          class="bg-blue-600 hover:bg-blue-700 text-zinc-200 py-1 px-4 rounded-lg transition"
+          @click="closeThemePopup()"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
 </template>
 
 <script setup lang="ts">
@@ -148,10 +183,15 @@ const mapStore = useMapStore()
 
 // um die Sichtbarkeit des Pop-ups zu steuern
 const isMapPopupVisible = ref(false)
-
+const isThemePopupVisible=ref(false)
 // Die ausgewählte Map
 const selectedMap = ref<MapDTD | null>(null);
-
+  const themes = ref([
+  { id: 1, name: 'Dark Theme' },
+  { id: 2, name: 'Light Theme' },
+  { id: 3, name: 'Retro Theme' },
+  { id: 4, name: 'Fantasy Theme' },
+]);
     // TODO: gamemaster.id mit clientplayer.id vergleichen
     const isHost = ref(true);
 
@@ -385,5 +425,15 @@ function drawMapCanvas(map: MapDTD) {
   }
 
   console.log(`Map ${map.id} drawn successfully.`);
+}
+// Themes 
+function openThemePopup() {
+      isThemePopupVisible.value = true;
+}
+function closeThemePopup() {
+      isThemePopupVisible.value = false;
+}
+function selectTheme() {
+      isThemePopupVisible.value = false;
 }
 </script>

@@ -16,6 +16,9 @@ import type { ICharacterDTD } from '@/stores/game/dtd/ICharacterDTD'
 import sweetWorldFloor from '@/assets/game/sweetWorld/sweetWorldFloor.jpg';
 import sweetWorldWall from '@/assets/game/sweetWorld/sweetWorldWall.png';
 
+//import christmas from '@/assets/game/christmas; 
+
+
 const gameStore = useGameStore()
 
 const route = useRoute()
@@ -32,7 +35,6 @@ let movingForward: boolean,
 const slowMovementSpeed = 2
 const fastMovementSpeed = 4
 let movementSpeed = slowMovementSpeed
-
 //#für HuD
 const life = ref(2) //startlife
 const maxLife = ref(3)
@@ -259,7 +261,7 @@ function renderCharactersTest(playerPositions: IPlayerPositionDTD[]) {
     playerPositions.forEach((playerPosition) => {
     if (!players.has(playerPosition.playerName)) {
       //Modell initial rendern
-      modelLoader.load('/src/assets/game/realistic/snackman/snackman.gltf', (gltf) => {
+      modelLoader.load('/src/assets/game/christmas/snackman/scene.gltf', (gltf) => {
         const model = gltf.scene;
         model.scale.set(0.5, 0.5, 0.5);
         players.set(playerPosition.playerName, model.id);
