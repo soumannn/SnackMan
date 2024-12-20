@@ -13,6 +13,8 @@ import { useRoute } from 'vue-router'
 import type { IPlayerPositionDTD } from '@/stores/game/dtd/IPlayerPositionDTD'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import type { ICharacterDTD } from '@/stores/game/dtd/ICharacterDTD'
+import sweetWorldFloor from '@/assets/game/sweetWorld/sweetWorldFloor.jpg';
+import sweetWorldWall from '@/assets/game/sweetWorld/sweetWorldWall.png';
 
 const gameStore = useGameStore()
 
@@ -286,8 +288,8 @@ function renderCharactersTest(playerPositions: IPlayerPositionDTD[]) {
 function loadMap(map: String[]) {
   const groundGeometry = new THREE.BoxGeometry(1, 1, 1)
   const wallGeometry = new THREE.BoxGeometry(1, 2, 1)
-  const groundTexture = new THREE.TextureLoader().load(ground)
-  const wallTexture = new THREE.TextureLoader().load(wall)
+  const groundTexture = new THREE.TextureLoader().load(sweetWorldFloor)
+  const wallTexture = new THREE.TextureLoader().load(sweetWorldWall)
   const groundMaterial = new THREE.MeshStandardMaterial({ map: groundTexture })
   const wallMaterial = new THREE.MeshStandardMaterial({ map: wallTexture })
 
@@ -299,7 +301,6 @@ function loadMap(map: String[]) {
           const wallCube = new THREE.Mesh(wallGeometry, wallMaterial)
           wallCube.position.set(rowCounter, 1.5, i)
           scene.add(wallCube)
-          break
         case ' ':
           const groundCube = new THREE.Mesh(groundGeometry, groundMaterial)
           groundCube.position.set(rowCounter, 0, i)
