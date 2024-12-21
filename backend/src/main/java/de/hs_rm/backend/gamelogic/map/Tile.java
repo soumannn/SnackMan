@@ -105,5 +105,13 @@ public class Tile {
     public void setCharacterList(List<Character> characterList) {
         this.characterList = characterList;
     }
+
+    public boolean removeChicken(Chicken currentChicken) {
+        if (chickenList != null && chickenList.contains(currentChicken)) {
+            chickenList.remove(currentChicken);
+            return true; 
+        }
+        return false; 
+    }
     
 }

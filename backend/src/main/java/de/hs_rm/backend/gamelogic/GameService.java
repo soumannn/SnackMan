@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import de.hs_rm.backend.exception.GameJoinException;
+import de.hs_rm.backend.gamelogic.characters.players.Chicken;
 import de.hs_rm.backend.gamelogic.characters.players.Player;
 
 @Service
@@ -139,6 +140,20 @@ public class GameService {
             Player player = game.findPlayerByUsername(username);
             if (player != null) {
                 return game.move(username, targetX, targetY);
+            }
+        }
+        throw new IllegalArgumentException("Player not found in any game.");
+    }
+
+    public boolean moveChicken(int chickenID, int targetX, int targetY) {
+        if (chickenID < 0 || targetX < 0 || targetY < 0) {
+            throw new IllegalArgumentException("ChickenID and direction must not be empty.");
+        }
+
+        for (Game game : gameList.values()) {
+            Chicken chicken = game.findChickenById(chickenID);
+            if (chicken != null) {
+                return game.moveChicken(chickenID, targetX, targetY);
             }
         }
         throw new IllegalArgumentException("Player not found in any game.");

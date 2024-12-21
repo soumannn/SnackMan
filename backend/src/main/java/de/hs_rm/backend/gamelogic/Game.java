@@ -261,6 +261,22 @@ public class Game {
         return true;
     }
 
+    public boolean moveChicken(int chickenID, int posX, int posY) {
+
+        int targetIndex = posY * playmap.getWidth() + posX;
+        Tile targetTile = playmap.getTilesList().get(targetIndex);
+
+        Chicken currentChicken = chickens.get(chickenID);
+
+        int currentIndex = currentChicken.getPosY() * playmap.getWidth() + currentChicken.getPosX();
+        Tile currentTile = playmap.getTilesList().get(currentIndex);
+
+        targetTile.addChicken(currentChicken);
+        currentTile.removeChicken(currentChicken);
+
+        return true;
+    }
+
     public Player findPlayerByUsername(String username) {
         if (players == null || players.isEmpty()) {
             return null;
@@ -271,6 +287,19 @@ public class Game {
             }
         }
         LOGGER.info("Player with username {} not found.", username);
+        return null;
+    }
+
+    public Chicken findChickenById(int chickenID) {
+        if(chickens == null || players.isEmpty()) {
+            return null;
+        }
+        for (Chicken chicken : chickens) {
+            if (chicken.getID() == chickenID) {
+                return chicken;
+            }
+        }
+        LOGGER.info("Chicken with id {} not found.", chickenID);
         return null;
     }
 
@@ -352,4 +381,6 @@ public class Game {
     public void addCharacter(String username, Character character) {
         this.characters.put(username, character);
     }
+
+    
 }
