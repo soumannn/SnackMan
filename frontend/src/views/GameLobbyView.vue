@@ -136,16 +136,16 @@
 <div v-if="isThemePopupVisible" class="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50">
     <div class="bg-zinc-800 p-6 rounded-lg shadow-lg max-w-lg w-full">
       <h2 class="text-lg font-semibold text-zinc-200 mb-4">Select a Theme</h2>
-      <p class="text-zinc-300">Choose a theme for the game.</p>
+      <p class="text-zinc-300">Choose a Theme for the game.</p>
 
       <div class="grid grid-cols-2 gap-4 mt-4">
         <button
-          v-for="theme in themes"
-          :key="theme.id"
+          v-for="(theme,key )in themes"
+          :key="key"
           class="bg-gray-800 p-4 rounded-lg shadow hover:bg-gray-700 text-zinc-200 font-semibold"
-          @click="selectTheme()"
+          @click="selectTheme(key)"
         >
-          {{ theme.name }}
+          {{ key }}
         </button>
       </div>
 

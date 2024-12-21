@@ -15,8 +15,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import type { ICharacterDTD } from '@/stores/game/dtd/ICharacterDTD'
 import sweetWorldFloor from '@/assets/game/sweetWorld/sweetWorldFloor.jpg';
 import sweetWorldWall from '@/assets/game/sweetWorld/sweetWorldWall.png';
-
-//import christmas from '@/assets/game/christmas; 
+import { PeppersGhostEffect } from 'three/examples/jsm/Addons.js'
 
 
 const gameStore = useGameStore()
@@ -39,6 +38,40 @@ let movementSpeed = slowMovementSpeed
 const life = ref(2) //startlife
 const maxLife = ref(3)
 const collectedItems = ref<string[]>([]) //Gesammelte Items
+const themes={
+  christmas:{
+    ground:'@/assets/game/christmas/ChristmasGround.png',
+    wall: '@/assets/game/christmas/ChristmasWall.png',
+    character:{
+      snackman:'@/assets/game/christmas/snackman/scene.png',
+      ghost: '@/assets/game/christmas/ghost/scene.png',
+    }
+  },
+  realistic:{
+    ground:'@/assets/game/realistic/ground.png',
+    wall: '@/assets/game/realistic/wall.png',
+    character:{
+      snackman:'@/assets/game/realistic/snackman/scene.png',
+      ghost: '@/assets/game/realistic/ghost/scene.png',
+    }
+  }, 
+  retro:{
+    ground:'@/assets/game/retro/cobblestone_2.png',
+    wall: '@/assets/game/retro/dirty_1.png',
+    character:{
+      snackman:'@/assets/game/retro/scene.png',
+      ghost: '@/assets/game/retro/scene.png',
+    }
+  },
+  sweetWorld:{
+    ground:'@/assets/game/sweetWorld/sweetWorldFloor.jpg',
+    wall: '@/assets/game/sweetWorld/sweetWorldWall.png',
+    character:{
+      snackman:'@/assets/game/sweetWorld/scene.png',
+      ghost: '@/assets/game/sweetWorld/scene.png',
+    }
+  }
+}
 
 function addItem(itemName: string) {
   collectedItems.value.push(itemName)
@@ -287,11 +320,11 @@ function renderCharactersTest(playerPositions: IPlayerPositionDTD[]) {
     }
   });
 }
-function loadMap(map: String[]) {
+function loadMap(map: String[], selectedTheme :{ground: string; wall:string}) {
   const groundGeometry = new THREE.BoxGeometry(1, 1, 1)
   const wallGeometry = new THREE.BoxGeometry(1, 2, 1)
-  const groundTexture = new THREE.TextureLoader().load(sweetWorldFloor)
-  const wallTexture = new THREE.TextureLoader().load(sweetWorldWall)
+  const groundTexture = new THREE.TextureLoader().load(selectedTheme.ground)
+  const wallTexture = new THREE.TextureLoader().load(selectedTheme.wall)
   const groundMaterial = new THREE.MeshStandardMaterial({ map: groundTexture })
   const wallMaterial = new THREE.MeshStandardMaterial({ map: wallTexture })
 
