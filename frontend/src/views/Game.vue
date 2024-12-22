@@ -16,10 +16,10 @@ import type { ICharacterDTD } from '@/stores/game/dtd/ICharacterDTD'
 import sweetWorldFloor from '@/assets/game/sweetWorld/sweetWorldFloor.jpg';
 import sweetWorldWall from '@/assets/game/sweetWorld/sweetWorldWall.png';
 import { PeppersGhostEffect } from 'three/examples/jsm/Addons.js'
-
+import { useThemeStore } from "@/stores/themes/themeStore";
 
 const gameStore = useGameStore()
-
+const themeStore= useThemeStore()
 const route = useRoute()
 const lobbyId = route.params.id.toString()
 
@@ -38,40 +38,6 @@ let movementSpeed = slowMovementSpeed
 const life = ref(2) //startlife
 const maxLife = ref(3)
 const collectedItems = ref<string[]>([]) //Gesammelte Items
-const themes={
-  christmas:{
-    ground:'@/assets/game/christmas/ChristmasGround.png',
-    wall: '@/assets/game/christmas/ChristmasWall.png',
-    character:{
-      snackman:'@/assets/game/christmas/snackman/scene.png',
-      ghost: '@/assets/game/christmas/ghost/scene.png',
-    }
-  },
-  realistic:{
-    ground:'@/assets/game/realistic/ground.png',
-    wall: '@/assets/game/realistic/wall.png',
-    character:{
-      snackman:'@/assets/game/realistic/snackman/scene.png',
-      ghost: '@/assets/game/realistic/ghost/scene.png',
-    }
-  }, 
-  retro:{
-    ground:'@/assets/game/retro/cobblestone_2.png',
-    wall: '@/assets/game/retro/dirty_1.png',
-    character:{
-      snackman:'@/assets/game/retro/scene.png',
-      ghost: '@/assets/game/retro/scene.png',
-    }
-  },
-  sweetWorld:{
-    ground:'@/assets/game/sweetWorld/sweetWorldFloor.jpg',
-    wall: '@/assets/game/sweetWorld/sweetWorldWall.png',
-    character:{
-      snackman:'@/assets/game/sweetWorld/scene.png',
-      ghost: '@/assets/game/sweetWorld/scene.png',
-    }
-  }
-}
 
 function addItem(itemName: string) {
   collectedItems.value.push(itemName)
@@ -279,7 +245,8 @@ function renderCharactersTest(playerPositions: IPlayerPositionDTD[]) {
   const adjustAngle = Math.PI;
   const fehlerndeSpieler = Array.from(players.keys()).filter((playerName) =>
     !playerPositions.map((position)=>position.playerName).includes(playerName))
-
+  const snackmanModel= themeStore.currentTheme?.character.snackman; 
+  const ghostModel= themeStore.currentTheme?.character.ghost; 
   fehlerndeSpieler.forEach((player)=>{
     const index: number | undefined = players.get(player)
     if(index){
@@ -294,15 +261,25 @@ function renderCharactersTest(playerPositions: IPlayerPositionDTD[]) {
     playerPositions.forEach((playerPosition) => {
     if (!players.has(playerPosition.playerName)) {
       //Modell initial rendern
-      modelLoader.load('/src/assets/game/christmas/snackman/scene.gltf', (gltf) => {
-        const model = gltf.scene;
-        model.scale.set(0.5, 0.5, 0.5);
-        players.set(playerPosition.playerName, model.id);
-        scene.add(model);
+      let modelPath;
+      if (playerPosition.playerName.includes("Snackman")) {
+          modelPath = snackmanModel;
+      } else {
+          modelPath = ghostModel;
+      }
+      if (modelPath){
+          modelLoader.load(modelPath, (gltf) => {
+          const model = gltf.scene;
+          model.scale.set(0.5, 0.5, 0.5);
+          players.set(playerPosition.playerName, model.id);
+          scene.add(model);
 
-        model.position.set(playerPosition.x, 1, playerPosition.y);
-        model.rotation.y = playerPosition.angle + adjustAngle;
-      });
+          model.position.set(playerPosition.x, 1, playerPosition.y);
+          model.rotation.y = playerPosition.angle + adjustAngle;
+        });
+      } else {
+        console.error("Kein Modell gefunden für", playerPosition.playerName);
+      }
     } else {
       //Modell updaten
       const index: number | undefined = players.get(playerPosition.playerName)
@@ -323,7 +300,8 @@ function renderCharactersTest(playerPositions: IPlayerPositionDTD[]) {
 function loadMap(map: String[], selectedTheme :{ground: string; wall:string}) {
   const groundGeometry = new THREE.BoxGeometry(1, 1, 1)
   const wallGeometry = new THREE.BoxGeometry(1, 2, 1)
-  const groundTexture = new THREE.TextureLoader().load(selectedTheme.ground)
+  const groundTexture = new THREE.TextureLoader().load(selectedTheme.ground, () => console.log("Ground texture loaded successfully."),
+  undefined,(err) => console.error("Error loading ground texture:", err));
   const wallTexture = new THREE.TextureLoader().load(selectedTheme.wall)
   const groundMaterial = new THREE.MeshStandardMaterial({ map: groundTexture })
   const wallMaterial = new THREE.MeshStandardMaterial({ map: wallTexture })
@@ -395,6 +373,12 @@ onMounted(async () => {
   if (threeContainer.value) {
     threeContainer.value.appendChild(renderer.domElement)
   }
+
+  // für den Zurgriff auf die Themes 
+  const selectedTheme= themeStore.currentTheme;
+  if (selectedTheme){
+    console.log("Das ausgewählte Theme: ", selectedTheme);
+  }
   const map: string[] | undefined = gameStore.gameState.gamedata.playmap?.map
   // const map = [
   //   '********************',
@@ -418,8 +402,11 @@ onMounted(async () => {
   //   '****************** *',
   //   '********************',
   // ]
-  if (map) {
-    loadMap(map)
+  if (map && selectedTheme) {
+    loadMap(map, {
+          ground: "@/assets/game/realistic/ground.png" ,//selectedTheme.ground,
+          wall: "@/assets/game/realistic/wall.png",
+    });
   } else {
     console.error('No map found')
   }
