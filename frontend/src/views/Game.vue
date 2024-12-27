@@ -17,11 +17,14 @@ import sweetWorldFloor from '@/assets/game/sweetWorld/sweetWorldFloor.jpg';
 import sweetWorldWall from '@/assets/game/sweetWorld/sweetWorldWall.png';
 import { PeppersGhostEffect } from 'three/examples/jsm/Addons.js'
 import { useThemeStore } from "@/stores/themes/themeStore";
+import { watch } from 'vue';
+
 
 const gameStore = useGameStore()
 const themeStore= useThemeStore()
 const route = useRoute()
 const lobbyId = route.params.id.toString()
+const map = ref<string[] | undefined>(undefined);
 
 let nextPosition: THREE.Vector3
 let lastSend: number = 0
@@ -300,9 +303,19 @@ function renderCharactersTest(playerPositions: IPlayerPositionDTD[]) {
 function loadMap(map: String[], selectedTheme :{ground: string; wall:string}) {
   const groundGeometry = new THREE.BoxGeometry(1, 1, 1)
   const wallGeometry = new THREE.BoxGeometry(1, 2, 1)
-  const groundTexture = new THREE.TextureLoader().load(selectedTheme.ground, () => console.log("Ground texture loaded successfully."),
-  undefined,(err) => console.error("Error loading ground texture:", err));
-  const wallTexture = new THREE.TextureLoader().load(selectedTheme.wall)
+  const groundTexture = new THREE.TextureLoader().load(
+    selectedTheme.ground,
+    () => console.log("Ground texture loaded successfully."),
+    undefined,
+    (error) => console.error("Error loading ground texture:", error)
+  );
+
+  const wallTexture = new THREE.TextureLoader().load(
+    selectedTheme.wall,
+    () => console.log("Wall texture loaded successfully."),
+    undefined,
+    (error) => console.error("Error loading wall texture:", error)
+  );
   const groundMaterial = new THREE.MeshStandardMaterial({ map: groundTexture })
   const wallMaterial = new THREE.MeshStandardMaterial({ map: wallTexture })
 
@@ -323,6 +336,11 @@ function loadMap(map: String[], selectedTheme :{ground: string; wall:string}) {
     }
     rowCounter++
   })
+  console.log("Ground material:", groundMaterial);
+  console.log("Wall material:", wallMaterial);
+  console.log("Calling loadMap with map:", map);
+console.log("Selected theme:", selectedTheme);
+
 }
 
 async function handleCharacters(data: ICharacterDTD[]) {
@@ -373,13 +391,8 @@ onMounted(async () => {
   if (threeContainer.value) {
     threeContainer.value.appendChild(renderer.domElement)
   }
-
-  // für den Zurgriff auf die Themes 
-  const selectedTheme= themeStore.currentTheme;
-  if (selectedTheme){
-    console.log("Das ausgewählte Theme: ", selectedTheme);
-  }
-  const map: string[] | undefined = gameStore.gameState.gamedata.playmap?.map
+  map.value= gameStore.gameState.gamedata.playmap?.map;
+  //const map: string[] | undefined = gameStore.gameState.gamedata.playmap?.map
   // const map = [
   //   '********************',
   //   '*    *     *       *',
@@ -402,10 +415,11 @@ onMounted(async () => {
   //   '****************** *',
   //   '********************',
   // ]
-  if (map && selectedTheme) {
-    loadMap(map, {
-          ground: "@/assets/game/realistic/ground.png" ,//selectedTheme.ground,
-          wall: "@/assets/game/realistic/wall.png",
+   // für den Zurgriff auf die Themes 
+  if (map.value && themeStore.currentTheme) {
+    loadMap(map.value, {
+          ground: themeStore.currentTheme.ground,
+          wall: themeStore.currentTheme.wall,
     });
   } else {
     console.error('No map found')
@@ -426,7 +440,29 @@ onMounted(async () => {
     },
   ]
   animate()
+  console.log(ground)
+  console.log (wall)
 })
+
+watch(
+  () => themeStore.selectedTheme,
+  (newTheme) => {
+    if (newTheme) {
+      console.log(`Theme geändert zu: ${newTheme}`);
+      const currentTheme = themeStore.currentTheme;
+
+      // Map neu laden, falls vorhanden
+      if (map.value && currentTheme) {
+        loadMap(map.value, {
+          ground: currentTheme.ground,
+          wall: currentTheme.wall,
+        });
+      } else {
+        console.error('Keine Map oder kein aktuelles Theme gefunden');
+      }
+    }
+  }
+);
 </script>
 
 <template>
