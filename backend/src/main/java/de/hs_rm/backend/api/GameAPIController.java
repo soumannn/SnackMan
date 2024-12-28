@@ -88,22 +88,22 @@ public class GameAPIController {
         gamemaster.setPlayerrole(PlayerRole.SNACKMAN);
 
         // Nur zu Testzwecken hier
-        PythonInterpreter interpreter = new PythonInterpreter();
-        try {
-            String scriptPath = "ChickenBotMovement.py";
+        // PythonInterpreter interpreter = new PythonInterpreter();
+        // try {
+        //     String scriptPath = "ChickenBotMovement.py";
             
-            File scriptFile = new File(scriptsDirectory, scriptPath);
+        //     File scriptFile = new File(scriptsDirectory, scriptPath);
 
-            if (scriptFile.exists()) {
-                LOGGER.info("Starte Python Skript...");
-                interpreter.execfile(scriptsDirectory + "/" + scriptPath);
-                LOGGER.info("Python Skript erfolgreich gestartet");
-            } else {
-                LOGGER.error("Python Skript konnte nicht gestartet werden: " + scriptFile.getAbsolutePath());
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        //     if (scriptFile.exists()) {
+        //         LOGGER.info("Starte Python Skript...");
+        //         interpreter.execfile(scriptsDirectory + "/" + scriptPath);
+        //         LOGGER.info("Python Skript erfolgreich gestartet");
+        //     } else {
+        //         LOGGER.error("Python Skript konnte nicht gestartet werden: " + scriptFile.getAbsolutePath());
+        //     }
+        // } catch (Exception e) {
+        //     e.printStackTrace();
+        // }
         // #63 NEW: gameservice now creates game
         Game newGame = gameService.createGame(gamemaster);
 
