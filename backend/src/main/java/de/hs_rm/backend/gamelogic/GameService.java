@@ -11,15 +11,22 @@ import de.hs_rm.backend.gamelogic.map.PlayMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import de.hs_rm.backend.exception.GameJoinException;
 import de.hs_rm.backend.gamelogic.characters.players.Character;
+import de.hs_rm.backend.gamelogic.characters.players.ChickenLogic;
 import de.hs_rm.backend.gamelogic.characters.players.Player;
 
 @Service
 public class GameService {
+    private ChickenLogic chickenLogic;
+
+    public GameService(ChickenLogic chickenLogic) {
+        this.chickenLogic = chickenLogic;
+    }
 
     @Value("${snackman.life}")
     private int snackmanLife;
@@ -51,7 +58,7 @@ public class GameService {
     }
 
     public Game createGame(Player gamemaster){
-        Game newGame = new Game(gamemaster, snackmanLife, snackmanMaxLife, snackmanSpeed, ghostSpeed, itemsPerSurfaceRatio, nutriscore);
+        Game newGame = new Game(gamemaster, snackmanLife, snackmanMaxLife, snackmanSpeed, ghostSpeed, itemsPerSurfaceRatio, nutriscore, chickenLogic);
         gameList.put(newGame.getId(), newGame);
 
         return newGame;

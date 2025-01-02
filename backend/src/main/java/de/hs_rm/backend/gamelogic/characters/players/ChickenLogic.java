@@ -1,6 +1,7 @@
 package de.hs_rm.backend.gamelogic.characters.players;
 
 import java.io.File;
+import java.util.Arrays;
 
 import org.python.util.PythonInterpreter;
 import org.slf4j.Logger;
@@ -9,34 +10,46 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import de.hs_rm.backend.gamelogic.map.PlayMap;
+import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
 @Service
-public class ChickenMovementService {
+public class ChickenLogic {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(PlayMap.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ChickenLogic.class);
 
 
     @Value("${scripts.dir}")
     private String scriptsDirectory;
 
+    // @PostConstruct
+    // public void logScriptsDirectory() {
+    //     LOGGER.info("ScriptsDirectory: {}", scriptsDirectory);
+    // }
+    
+
     private PythonInterpreter interpreter;
 
 
 
-    public ChickenMovementService() {
+    public ChickenLogic() {
+        // System.out.println("ChickenLogic initialisiert");
+        LOGGER.info("ChickenServbice Klasse initialisiert");
         interpreter = new PythonInterpreter();
 
         try{
         String scriptPath = "bot_movement.py";
             
-            File scriptFile = new File(scriptsDirectory, scriptPath);
+        LOGGER.info("Path scriptsDirectory: {}", scriptsDirectory );
+            // File scriptFile = new File(scriptsDirectory, scriptPath);
+            File scriptFile = new File("/Users/judithschlegel/Desktop/Uni/WS2024/SoftwareTechnikProjektNeu/2024swtpro02/backend/base/skripte/bot_movement.py");
 
             if (scriptFile.exists()) {
                 LOGGER.info("Starte Python Skript...");
                 interpreter.execfile(scriptsDirectory + "/" + scriptPath);
                 LOGGER.info("Python Skript erfolgreich gestartet");
             } else {
+                
                 LOGGER.error("Python Skript konnte nicht gestartet werden: " + scriptFile.getAbsolutePath());
             }
         } catch (Exception e) {
@@ -48,15 +61,21 @@ public class ChickenMovementService {
 
 
     public Object executePythonFunction(String functionName, Object... args) {
+        LOGGER.info("FunctionName: {}, Args: {}", functionName, args != null ? Arrays.toString(args) : "null");
 
             try{
                 StringBuilder pythonCall = new StringBuilder(functionName + "(");
-                for( int i = 0; i < args.length; i++) {
-                    pythonCall.append(args[i]);
-                    if( i < args.length - 1) {
-                        pythonCall.append(",");
+                if(args == null) {
+                    args = new Object[0];
+                } else {
+                    for( int i = 0; i < args.length; i++) {
+                        pythonCall.append(args[i]);
+                        if( i < args.length - 1) {
+                            pythonCall.append(",");
+                        }
                     }
                 }
+                
                 pythonCall.append(")");
                 interpreter.exec("result =" + pythonCall.toString());
                 // Was wird zurückgegeben?

@@ -2,10 +2,15 @@ package de.hs_rm.backend.gamelogic;
 
 import java.util.*;
 
+import org.python.core.PyObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import de.hs_rm.backend.gamelogic.characters.players.Chicken;
+import de.hs_rm.backend.gamelogic.characters.players.ChickenLogic;
 import de.hs_rm.backend.gamelogic.characters.players.FoodItems;
 import de.hs_rm.backend.gamelogic.characters.players.Ghost;
 import de.hs_rm.backend.gamelogic.characters.players.GhostObjectItem;
@@ -19,7 +24,13 @@ import de.hs_rm.backend.gamelogic.map.PlayMap;
 import de.hs_rm.backend.gamelogic.map.Tile;
 import de.hs_rm.backend.gamelogic.map.TileType;
 
+
+
+
+// @Service
 public class Game {
+
+    
     private static Set<String> existingIds = new HashSet<>(); // set --> verhindert Duplikate und static --> diese liste
                                                               // wird für alle Instanzen der Klasse geteilt
     private String id;
@@ -38,6 +49,13 @@ public class Game {
     private double ghostSpeed;
     private int itemsPerSurfaceRatio;
     private int nutriscore;
+
+
+    // @Autowired
+    private ChickenLogic chickenLogic;
+    private double chickenSpeed;
+
+
 
 
     private Map<String, Character> characters; // for game (after game start), strinng for username
@@ -88,7 +106,7 @@ public class Game {
             new SnackmanObjectItem("Extra Life", -1, -1, "Grants an extra life"));
 
     public Game(Player gamemaster, int snackmanLife, int snackmanMaxLife, double snackmanSpeed, double ghostSpeed,
-            int itemsPerSurfaceRatio, int nutriscore) {
+            int itemsPerSurfaceRatio, int nutriscore, ChickenLogic chickenLogic) {
         this.id = generateId(5);
         this.players = new ArrayList<>();
         this.chickens = new ArrayList<>();
@@ -102,6 +120,7 @@ public class Game {
         this.ghostSpeed = ghostSpeed;
         this.itemsPerSurfaceRatio = itemsPerSurfaceRatio;
         this.nutriscore=nutriscore;
+        this.chickenLogic = chickenLogic;
     }
 
     public int getSnackmanLife() {
@@ -139,6 +158,10 @@ public class Game {
     public void setSelectedMap(String selectedMap) {
         this.selectedMap = selectedMap;
     }
+
+    
+
+    
 
     // Generiert eindeutige ID
     // Synchronisieren --> verhindert, dass mehrere Threads gleichzeitig doppelte
@@ -217,12 +240,20 @@ public class Game {
         for (int i = 0; i < this.chickenNum; i++) {
             Tile randomTile;
             int index = -1;
+            double chickenSpeed = 0;
             do {
                 index = random.nextInt(playmap.getTilesList().size());
                 randomTile = playmap.getTilesList().get(index);
             } while (randomTile.getType() != TileType.SURFACE || randomTile.hasChicken());
 
-            Chicken chicken = new Chicken(index % playmap.getWidth(), index / playmap.getWidth());
+            Object result = chickenLogic.executePythonFunction("get_speed", new Object[]{});
+
+            if(result instanceof PyObject) {
+                PyObject pyObject = (PyObject) result;
+                chickenSpeed = pyObject.asDouble();
+                LOGGER.info("Chicken Speed: {}", result);
+            }
+            Chicken chicken = new Chicken(index % playmap.getWidth(), index / playmap.getWidth(), chickenSpeed);
             chickens.add(chicken);
             // DONE: chicken zu random tile hinzufügen
             randomTile.addChicken(chicken);

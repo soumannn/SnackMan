@@ -1,5 +1,7 @@
 import random
 
+SPEED = 1.0
+
 def move_chicken(xPosition, yPosition, umgebungsdaten = None):
     """
 
@@ -19,6 +21,7 @@ def move_chicken(xPosition, yPosition, umgebungsdaten = None):
 
     move = random.choice(moves)
 
+    
     if move == "up":
         newY += 1
     elif move == "down":
@@ -31,6 +34,9 @@ def move_chicken(xPosition, yPosition, umgebungsdaten = None):
     # Validierung auf umgebungsdaten hier ? ToDo Aron
 
     return (newX, newY)
+
+def get_speed():
+    return SPEED
 
 
 
