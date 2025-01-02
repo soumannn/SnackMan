@@ -36,17 +36,20 @@ public class ChickenLogic {
         // System.out.println("ChickenLogic initialisiert");
         LOGGER.info("ChickenServbice Klasse initialisiert");
         interpreter = new PythonInterpreter();
+    }
 
+    @PostConstruct
+    public void initialize() {
+        LOGGER.info("ScriptsDirectory: {}", scriptsDirectory);
         try{
         String scriptPath = "bot_movement.py";
             
-        LOGGER.info("Path scriptsDirectory: {}", scriptsDirectory );
             // File scriptFile = new File(scriptsDirectory, scriptPath);
-            File scriptFile = new File("/Users/judithschlegel/Desktop/Uni/WS2024/SoftwareTechnikProjektNeu/2024swtpro02/backend/base/skripte/bot_movement.py");
+            File scriptFile = new File(scriptsDirectory, scriptPath);
 
             if (scriptFile.exists()) {
                 LOGGER.info("Starte Python Skript...");
-                interpreter.execfile(scriptsDirectory + "/" + scriptPath);
+                interpreter.execfile(scriptFile.getAbsolutePath());
                 LOGGER.info("Python Skript erfolgreich gestartet");
             } else {
                 

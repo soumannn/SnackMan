@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import random
 
 SPEED = 1.0
