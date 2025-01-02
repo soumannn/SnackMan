@@ -46,7 +46,8 @@ public class ChickenLogic {
 
             if (scriptFile.exists()) {
                 LOGGER.info("Starte Python Skript...");
-                interpreter.execfile(scriptsDirectory + "/" + scriptPath);
+                // interpreter.execfile(scriptsDirectory + "/" + scriptPath);
+                interpreter.execfile(scriptFile.getAbsolutePath());
                 LOGGER.info("Python Skript erfolgreich gestartet");
             } else {
                 
