@@ -63,7 +63,7 @@
         <div
         class="w-50 p-2 bg-gray-800 shadow-lg rounded-lg text-blue-600"
         >
-        <p class="text-sm text-gray-400 mt-2">Selected: {{ selectedMap?.name || 'None' }}</p>
+        <p class="text-sm text-gray-400 mt-2">Selected: {{ mapStore.mapsDTD.selectedMap?.name || 'None' }}</p>
         </div>
         <button
         v-if="isGamemaster"
@@ -329,6 +329,9 @@ onMounted(async () => {
       selectedMap.value = mapStore.mapsDTD.selectedMap;
       console.log("Default:", selectedMap.value.name);
     }
+    await mapStore.subscribeToMapUpdates(lobbyId).then(() => {
+      console.log("Successfully subscribed to map updates.");
+    });
   } catch (error) {
     console.error("Error during setup:", error);
   }
@@ -402,6 +405,7 @@ function selectRandomMap() {
 function selectMap(map: MapDTD) {
  selectedMap.value = map;
  mapStore.mapsDTD.selectedMap = map;
+ mapStore.sendMapUpdateToBackend(map.name, lobbyId); 
 }
 
 function drawMapCanvas(map: MapDTD) {

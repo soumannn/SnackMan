@@ -11,6 +11,7 @@ import { Playerrole } from "./dtd/EPlayerrole";
 import { useRouter } from 'vue-router';
 import type {Result} from "@/stores/game/responses/Result";
 import { useThemeStore } from '@/stores/themes/themeStore';
+import { useMapStore } from "../map/MapStore";
 
 
 export const useGameStore = defineStore('gameStore', () => {
@@ -346,6 +347,17 @@ export const useGameStore = defineStore('gameStore', () => {
               console.error('Received invalid theme:', newTheme)
             }
             break
+          case'mapUpdate':
+            const mapStore = useMapStore();
+            const newMapName = message.feedback;
+            const updatedMap = mapStore.mapsDTD.maps.find(map => map.name === newMapName);
+            if (updatedMap) {
+              mapStore.mapsDTD.selectedMap = updatedMap;
+              console.log(`Map updated to: ${updatedMap.name}`);
+            } else {
+              console.error('Received invalid map:', newMapName);
+            }
+            break;
           default:
             console.error('Unknown message type:', message.type)
         }

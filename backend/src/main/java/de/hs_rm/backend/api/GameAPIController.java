@@ -210,6 +210,18 @@ public class GameAPIController {
         );
     }
 
+    @MessageMapping("/topic/game/{lobbyId}/setMap")
+    @SendTo("/topic/game/{lobbyId}")
+    public Map<String, Object> setMap(
+            @DestinationVariable String lobbyId,
+            @RequestBody Map<String, String> map) {
+        messagingService.sendMapUpdate(lobbyId, map.get("mapName"));
+        return Map.of(
+            "type", "mapUpdate",
+            "status", "ok",
+            "feedback", map.get("mapName")
+        );
+    }
 
     @MessageMapping("/topic/ingame/{lobbyid}/playerPosition")
     public void moveCharacter(PlayerPosition position, @DestinationVariable String lobbyid) {
