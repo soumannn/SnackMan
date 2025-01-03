@@ -72,6 +72,9 @@
         >
         Select Themes 
         </button>
+        <div class="w-50 p-2 bg-gray-800 shadow-lg rounded-lg text-blue-600">
+          <p class="text-sm text-gray-400 mt-2">Selected Theme: {{ themeStore.selectedTheme || 'None' }}</p>
+        </div>
      </div>
 
       <button
@@ -148,7 +151,7 @@
             ? 'bg-blue-700 text-white border-blue-400' 
             : 'bg-gray-800 text-zinc-200 hover:bg-gray-700'
         ]"
-        @click="themeStore.setSelectedTheme(themeName)"
+        @click="themeStore.setSelectedTheme(themeName, lobbyId)"
       >
         {{ themeName }}
       </button>
@@ -163,11 +166,6 @@
       </button>
     </div>
   </div>
-</div>
-<div class="w-50 p-2 bg-gray-800 shadow-lg rounded-lg text-blue-600">
-    <p class="text-sm text-gray-400 mt-2">
-      Selected: {{ themeStore.selectedTheme || 'None' }}
-    </p>
 </div>
 </template>
 
@@ -443,11 +441,14 @@ function openThemePopup() {
       isThemePopupVisible.value = true;
 }
 function closeThemePopup() {
-    const selectedTheme= themeStore.currentTheme; 
+  const selectedTheme = themeStore.selectedTheme; 
     if(selectedTheme){
-      console.log("Ausgewähltes Theme:", themeStore.selectedTheme);
+      console.log("Selected theme:", selectedTheme);
+      themeStore.subscribeToThemeUpdates(lobbyId).then(() => {
+      console.log("Successfully subscribed to theme updates.")
+      });
     } else {
-      console.error("Kein Theme ausgewählt!");
+      console.error("no theme selected!");
     }
 
       isThemePopupVisible.value = false;

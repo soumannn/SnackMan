@@ -199,6 +199,18 @@ public class GameAPIController {
         }
     }
 
+    @MessageMapping("/topic/game/{lobbyId}/setTheme")
+    @SendTo("/topic/game/{lobbyId}")
+    public Map<String, Object> setTheme(@DestinationVariable String lobbyId, @RequestBody Map<String, String> theme) {
+        messagingService.sendThemeUpdate(lobbyId, theme.get("themeName"));
+        return Map.of(
+            "type", "themeUpdate",
+            "status", "ok",
+            "feedback", theme.get("themeName")
+        );
+    }
+
+
     @MessageMapping("/topic/ingame/{lobbyid}/playerPosition")
     public void moveCharacter(PlayerPosition position, @DestinationVariable String lobbyid) {
 

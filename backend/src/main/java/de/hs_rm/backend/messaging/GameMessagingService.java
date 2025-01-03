@@ -34,4 +34,9 @@ public class GameMessagingService {
     public void sendGameStart(String lobbyid, Object gameState){
         template.convertAndSend("/topic/game/" + lobbyid, gameState);
     }
+
+    public void sendThemeUpdate(String lobbyid, Object themeData) {
+        logger.info("Sending theme update");
+        template.convertAndSend("/topic/game/" + lobbyid + "/theme", themeData);
+    }
 }
