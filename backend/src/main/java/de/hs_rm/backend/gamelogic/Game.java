@@ -50,14 +50,8 @@ public class Game {
     private int itemsPerSurfaceRatio;
     private int nutriscore;
 
-
-    // @Autowired
     private ChickenLogic chickenLogic;
-    private double chickenSpeed;
-
-
-
-
+  
     private Map<String, Character> characters; // for game (after game start), strinng for username
 
 
@@ -246,12 +240,13 @@ public class Game {
                 randomTile = playmap.getTilesList().get(index);
             } while (randomTile.getType() != TileType.SURFACE || randomTile.hasChicken());
 
+            // ToDo Aron: ChickenSpeed als Umgebeungsvariable oder können alle Hühner unterschiedliche Geschwindigkeiten haben?
             Object result = chickenLogic.executePythonFunction("get_speed", new Object[]{});
 
             if(result instanceof PyObject) {
                 PyObject pyObject = (PyObject) result;
                 chickenSpeed = pyObject.asDouble();
-                LOGGER.info("Chicken Speed: {}", result);
+                LOGGER.info("Chicken Speed: {}", chickenSpeed);
             }
             Chicken chicken = new Chicken(index % playmap.getWidth(), index / playmap.getWidth(), chickenSpeed);
             chickens.add(chicken);
@@ -422,6 +417,19 @@ public class Game {
         targetTile.addCharacter(curCharacter);
 
         return true;
+    }
+
+    public void moveChicken(String id, double newX, double newY) {
+        for(Chicken chicken : chickens){
+            if (chicken.getId().equals(id)) {
+                chicken.setPosX(newX);
+                chicken.setPosY(newY);
+                LOGGER.info("Chicken {} moved to {} | {}", chicken.getId(), chicken.getPosX(), chicken.getPosY());
+                break;
+            }
+
+        }
+        LOGGER.info("Chicken {} not found.", id);
     }
 
     public Player findPlayerByUsername(String username) {
