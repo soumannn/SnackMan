@@ -354,6 +354,7 @@ onMounted(async () => {
     console.error('Error fetching game status:', error)
   }
 
+  // ToDo Aron: Evtl nicht mehr notwendig?
   if (gameStore.gameState.gamedata.chickens == null) {
     chickenPositions.value = []
     console.log("Keine Positionsdaten weil Chicken Array leer")
@@ -365,7 +366,7 @@ onMounted(async () => {
  
 
   const chickenList = gameStore.gameState.gamedata.chickens
-  console
+
 
   subscribeTo(`/ingame/playerPositions/${lobbyId}`, async (message: any) => {
     switch (message.type) {
@@ -387,6 +388,18 @@ onMounted(async () => {
           moveCamera()
         }
 
+        break;
+    }
+  })
+
+  subscribeTo(`/ingame/${lobbyId}/chickenPositions`, async (message: any) => {
+    switch (message.type) {
+      case 'chickenPositions':
+        console.log("CHICKENPOSITIONS -> MESSAGE.FEEDBACK: ", message.feedback)
+        chickenPositions.value = message.feedback
+        // ToDo Aron: Wie werden Models bewegt? Müssen neue Models mit den neuen Werten erstellt werden oder können alte Models
+        // bewegt werden?
+        renderChicken(chickenPositions.value);
         break;
     }
   })

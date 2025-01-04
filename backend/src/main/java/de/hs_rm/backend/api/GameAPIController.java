@@ -14,6 +14,7 @@ import de.hs_rm.backend.exception.GameLeaveException;
 import de.hs_rm.backend.gamelogic.Game;
 import de.hs_rm.backend.gamelogic.GameService;
 import de.hs_rm.backend.gamelogic.characters.players.Character;
+import de.hs_rm.backend.gamelogic.characters.players.Chicken;
 import de.hs_rm.backend.gamelogic.characters.players.Player;
 import de.hs_rm.backend.gamelogic.characters.players.PlayerPosition;
 import de.hs_rm.backend.gamelogic.map.PlayMap;
@@ -25,6 +26,7 @@ import java.io.File;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -40,7 +42,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.python.util.PythonInterpreter;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -267,6 +269,28 @@ public class GameAPIController {
         response.put("time", LocalDateTime.now().toString());
 
         messagingService.sendNewCharacterPosition(lobbyid, response);
+
+    }
+
+    @MessageMapping("/topic/ingame/{lobbyid}/chickenPosition") 
+    public void moveChicken(Chicken chicken, @DestinationVariable String lobbyid) {
+        HashMap<String, Object> response = new HashMap<>(); 
+        Game existingGame = gameService.getGameById(lobbyid);
+        List<Chicken> chickens = existingGame.getChickens();
+
+        // ToDo Aron: angle in chickenPosition hinzufügen
+        boolean validChickenMove = existingGame.moveChicken(chicken.getId(), chicken.getPosX(), chicken.getPosY());
+
+        if(validChickenMove) {
+            response.put("type", "chickensPosition");
+            response.put("feedback", chickens);
+            response.put("status", "ok");
+            response.put("time", LocalDateTime.now().toString());
+
+            messagingService.sendNewChickenPosition(lobbyid, response);
+
+            return;
+        }
 
     }
 

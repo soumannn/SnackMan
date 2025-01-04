@@ -419,17 +419,18 @@ public class Game {
         return true;
     }
 
-    public void moveChicken(String id, double newX, double newY) {
+    public boolean moveChicken(String id, double newX, double newY) {
         for(Chicken chicken : chickens){
             if (chicken.getId().equals(id)) {
                 chicken.setPosX(newX);
                 chicken.setPosY(newY);
                 LOGGER.info("Chicken {} moved to {} | {}", chicken.getId(), chicken.getPosX(), chicken.getPosY());
-                break;
+                return true;
             }
 
         }
         LOGGER.info("Chicken {} not found.", id);
+        return false;
     }
 
     public Player findPlayerByUsername(String username) {
