@@ -18,24 +18,24 @@ const themes = ref <IThemes>({
         ground: "/src/assets/game/realistic/ground.png",
         wall: "/src/assets/game/realistic/wall.png",
       character: {
-          snackman: "/src/assets/game/realistic/snackman/snackman.gltf",
-          ghost: "/src/assets/game/realistic/ghost/ghost.gltf",
+          snackman: "/src/assets/game/realistic/snackman/snackman.glb",
+          ghost: "/src/assets/game/realistic/ghost/ghost.glb",
       },
     },
     retro: {
         ground: "/src/assets/game/retro/cobblestone_2.png",
         wall: "/src/assets/game/retro/dirty_1.png",
       character: {
-          snackman: "/src/assets/game/retro/scene.gltf",
-          ghost: "/src/assets/game/retro/scene.gltf",
+          snackman: "/src/assets/game/retro/retroSnackman.glb",
+          ghost: "/src/assets/game/retro/retroGhost.glb",
       },
     },
     sweetWorld: {
         ground: "/src/assets/game/sweetWorld/sweetWorldFloor.jpg",
         wall: "/src/assets/game/sweetWorld/sweetWorldWall.png",
       character: {
-          snackman: "/src/assets/game/sweetWorld/scene.gltf",
-          ghost: "/src/assets/game/sweetWorld/scene.gltf",
+          snackman: "/src/assets/game/sweetWorld/snackman/sweetWorldPinkSnackman.glb",
+          ghost: "/src/assets/game/sweetWorld/ghost/sweetWorldGhost.glb",
       },
     },
     });
