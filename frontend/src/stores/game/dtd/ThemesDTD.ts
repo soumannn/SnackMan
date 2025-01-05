@@ -2,8 +2,8 @@ export interface IThemeDTD {
     ground: string;
     wall: string;
     character: {
-        snackman: string;
-        ghost: string;
+        snackman:  string | { path: string; scale: number };
+        ghost: string | { path: string; scale: number };
     };
 }
 

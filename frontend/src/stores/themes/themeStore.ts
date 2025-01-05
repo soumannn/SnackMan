@@ -26,8 +26,11 @@ const themes = ref <IThemes>({
         ground: "/src/assets/game/retro/cobblestone_2.png",
         wall: "/src/assets/game/retro/dirty_1.png",
       character: {
-          snackman: "/src/assets/game/retro/retroSnackman.glb",
-          ghost: "/src/assets/game/retro/retroGhost.glb",
+          snackman: "/src/assets/game/retro/snackman/retroSnackman.glb",
+          ghost: {
+            path: "/src/assets/game/retro/ghost/retroGhost.glb",
+            scale: 0.2,
+          },
       },
     },
     sweetWorld: {

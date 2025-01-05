@@ -285,9 +285,18 @@ function renderCharactersTest(playerPositions: IPlayerPositionDTD[]) {
           console.log(`Ghost-Modell wird geladen für ${playerPosition.playerName}`, modelPath);
       }
       if (modelPath){
-          modelLoader.load(modelPath, (gltf) => {
+        let loadingPath: string; 
+        let scaleNumber: number
+        if (typeof modelPath === "string"){
+          loadingPath= modelPath;
+          scaleNumber=0.5; 
+        }else{
+          loadingPath=modelPath.path;
+          scaleNumber= modelPath.scale;  
+        }
+          modelLoader.load(loadingPath, (gltf) => {
           const model = gltf.scene;
-          model.scale.set(0.5, 0.5, 0.5);
+          model.scale.set(scaleNumber, scaleNumber, scaleNumber);
           players.set(playerPosition.playerName, model.id);
           scene.add(model);
 
