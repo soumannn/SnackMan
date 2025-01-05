@@ -10,6 +10,7 @@ import { useGameStore } from '@/stores/game/gamestore'
 import type { IMessageDTD } from '@/stores/game/dtd/IMessageDTD'
 import { sendMessage, subscribeTo } from '@/config/stompWebsocket'
 import { useRoute } from 'vue-router'
+import type { IPlayerDTD } from '@/stores/game/dtd/IPlayerDTD'
 import type { IPlayerPositionDTD } from '@/stores/game/dtd/IPlayerPositionDTD'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import type { ICharacterDTD } from '@/stores/game/dtd/ICharacterDTD'
@@ -18,6 +19,7 @@ import sweetWorldWall from '@/assets/game/sweetWorld/sweetWorldWall.png';
 import { PeppersGhostEffect } from 'three/examples/jsm/Addons.js'
 import { useThemeStore } from "@/stores/themes/themeStore";
 import { watch } from 'vue';
+import { Playerrole } from '@/stores/game/dtd/EPlayerrole'
 
 
 const gameStore = useGameStore()
@@ -265,10 +267,22 @@ function renderCharactersTest(playerPositions: IPlayerPositionDTD[]) {
     if (!players.has(playerPosition.playerName)) {
       //Modell initial rendern
       let modelPath;
-      if (playerPosition.playerName.includes("Snackman")) {
+      const playersList = gameStore.gameState.gamedata?.players;
+      let playerData= undefined; 
+      if (playersList){
+        for (const player of playersList){
+          if (player.name == playerPosition.playerName){
+            playerData= player; 
+            break; 
+          }
+        }
+      }
+      if (playerData?.playerrole == Playerrole.SNACKMAN) {
           modelPath = snackmanModel;
+          console.log(`Snackman-Modell wird geladen für ${playerPosition.playerName}`, modelPath);
       } else {
           modelPath = ghostModel;
+          console.log(`Ghost-Modell wird geladen für ${playerPosition.playerName}`, modelPath);
       }
       if (modelPath){
           modelLoader.load(modelPath, (gltf) => {

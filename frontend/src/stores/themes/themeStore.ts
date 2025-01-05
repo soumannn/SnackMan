@@ -10,8 +10,8 @@ const themes = ref <IThemes>({
         ground: "/src/assets/game/christmas/ChristmasGround.png",
         wall: "/src/assets/game/christmas/ChristmasWall.png",
       character: {
-          snackman: "/src/assets/game/christmas/snackman/scene.gltf",
-          ghost: "/src/assets/game/christmas/ghost/scene.gltf",
+          snackman: "/src/assets/game/christmas/snackman/snackman.glb",
+          ghost: "/src/assets/game/christmas/ghost/ghost.glb",
       },
     },
     realistic: {
