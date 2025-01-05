@@ -1,27 +1,28 @@
 package de.hs_rm.backend.gamelogic.characters.players;
 
 public class Chicken {
-    private double posX;
-    private double posY;
+    private int posX;
+    private int posY;
     private String id;
     private int angle;
     private final double SPEED;
     
-    public Chicken(double posX, double posY, double speed) {
+    public Chicken(int posX, int posY, double speed, String id) {
         this.posX = posX;
         this.posY = posY;
         this.SPEED = speed;
+        this.id = id; 
     }
-    public double getPosX() {
+    public int getPosX() {
         return posX;
     }
-    public void setPosX(double posX) {
+    public void setPosX(int posX) {
         this.posX = posX;
     }
-    public double getPosY() {
+    public int getPosY() {
         return posY;
     }
-    public void setPosY(double posY) {
+    public void setPosY(int posY) {
         this.posY = posY;
     }
     public double getSpeed () {

@@ -230,7 +230,7 @@ public class Game {
             }
 
         }
-        // DONE: random position von hühnchen
+        chickens.clear();
         for (int i = 0; i < this.chickenNum; i++) {
             Tile randomTile;
             int index = -1;
@@ -248,11 +248,12 @@ public class Game {
                 chickenSpeed = pyObject.asDouble();
                 LOGGER.info("Chicken Speed: {}", chickenSpeed);
             }
-            Chicken chicken = new Chicken(index % playmap.getWidth(), index / playmap.getWidth(), chickenSpeed);
+            Chicken chicken = new Chicken(index % playmap.getWidth(), index / playmap.getWidth(), chickenSpeed, "chicken_" + i);
             chickens.add(chicken);
-            // DONE: chicken zu random tile hinzufügen
             randomTile.addChicken(chicken);
+            LOGGER.info("Chicken {} placed at ({}, {})", chicken.getId(), chicken.getPosX(), chicken.getPosY());
         }
+
         this.itemsNum = Math.max(1, playmap.getCountSurface() / itemsPerSurfaceRatio); // 1 Item pro
                                                                                           // temsPerSurfaceRatio
 
@@ -419,9 +420,18 @@ public class Game {
         return true;
     }
 
-    public boolean moveChicken(String id, double newX, double newY) {
+    public boolean moveChicken(String id, int newX, int newY) {
         for(Chicken chicken : chickens){
             if (chicken.getId().equals(id)) {
+
+                int targetIndex = newX * playmap.getWidth() + newY;
+                Tile targetTile = playmap.getTilesList().get(targetIndex);
+
+                if (targetTile.getType() == TileType.WALL) {
+                    LOGGER.info("Chicken {} blocked by a wall at ({}, {})", id, newX, newY);
+                    return false;
+                }
+    
                 chicken.setPosX(newX);
                 chicken.setPosY(newY);
                 LOGGER.info("Chicken {} moved to {} | {}", chicken.getId(), chicken.getPosX(), chicken.getPosY());

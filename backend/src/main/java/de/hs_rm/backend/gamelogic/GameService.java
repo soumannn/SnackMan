@@ -1,5 +1,6 @@
 package de.hs_rm.backend.gamelogic;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -8,21 +9,28 @@ import java.util.Map;
 import de.hs_rm.backend.exception.SetRoleException;
 import de.hs_rm.backend.gamelogic.characters.players.PlayerRole;
 import de.hs_rm.backend.gamelogic.map.PlayMap;
+import de.hs_rm.backend.messaging.GameMessagingService;
 
+import org.python.core.PyObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import de.hs_rm.backend.exception.GameJoinException;
 import de.hs_rm.backend.gamelogic.characters.players.Character;
+import de.hs_rm.backend.gamelogic.characters.players.Chicken;
 import de.hs_rm.backend.gamelogic.characters.players.ChickenLogic;
 import de.hs_rm.backend.gamelogic.characters.players.Player;
 
 @Service
 public class GameService {
     private ChickenLogic chickenLogic;
+    
+    @Autowired
+    GameMessagingService messagingService;
 
     public GameService(ChickenLogic chickenLogic) {
         this.chickenLogic = chickenLogic;

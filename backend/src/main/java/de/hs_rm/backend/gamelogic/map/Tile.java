@@ -17,6 +17,7 @@ public class Tile {
         this.type = type;
         itemList = new ArrayList<>();
         characterList = new ArrayList<>();
+        this.chickenList = new ArrayList<>();
     }
 
     public boolean hasItem() {

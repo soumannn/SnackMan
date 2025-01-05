@@ -272,10 +272,22 @@ public class GameAPIController {
 
     }
 
-    @MessageMapping("/topic/ingame/{lobbyid}/chickenPosition") 
-    public void moveChicken(Chicken chicken, @DestinationVariable String lobbyid) {
-        HashMap<String, Object> response = new HashMap<>(); 
+    // Aktiv, Wenn ein spezifisches Huhn bewegt werden soll
+    @MessageMapping("/topic/ingame/{lobbyid}/chickenPosition")
+    public void moveChicken(@RequestBody Chicken chicken, @DestinationVariable String lobbyid) {
+        HashMap<String, Object> response = new HashMap<>();
         Game existingGame = gameService.getGameById(lobbyid);
+
+        if (existingGame == null) {
+            response.put("type", "error");
+            response.put("feedback", "No game found for lobby ID: " + lobbyid);
+            response.put("status", "error");
+            response.put("time", LocalDateTime.now().toString());
+
+            messagingService.sendNewChickenPosition(lobbyid, response);
+            return;
+        }
+
         List<Chicken> chickens = existingGame.getChickens();
 
         // ToDo Aron: angle in chickenPosition hinzufügen
@@ -287,13 +299,15 @@ public class GameAPIController {
             response.put("status", "ok");
             response.put("time", LocalDateTime.now().toString());
 
-            messagingService.sendNewChickenPosition(lobbyid, response);
-
-            return;
+        }else {
+            response.put("type", "error");
+            response.put("feedback", "Failed to move chicken");
+            response.put("status", "error");
+            response.put("time", LocalDateTime.now().toString());
         }
-
+        messagingService.sendNewChickenPosition(lobbyid, response);
     }
-
+    
     // Method to end the game
     @PostMapping("/end/{gameId}")
     public ResponseEntity<?> endGame(@PathVariable String gameId) {
