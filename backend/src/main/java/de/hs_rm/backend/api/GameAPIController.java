@@ -293,7 +293,7 @@ public class GameAPIController {
         // ToDo Aron: angle in chickenPosition hinzufügen
         boolean validChickenMove = existingGame.moveChicken(chicken.getId(), chicken.getPosX(), chicken.getPosY());
 
-        if(validChickenMove) {
+        if(true) {
             response.put("type", "chickensPosition");
             response.put("feedback", chickens);
             response.put("status", "ok");

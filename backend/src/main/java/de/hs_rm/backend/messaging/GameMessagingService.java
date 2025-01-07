@@ -35,8 +35,8 @@ public class GameMessagingService {
         template.convertAndSend("/topic/game/" + lobbyid, gameState);
     }
 
-    // ToDo Aron
-    // Chicken Daten ans Frontend schicken
+  
+   
     public void sendNewChickenPosition(String lobyid, Object position){ 
         logger.info("Sending chickenPositions {}", position, "to lobby: {}", lobyid);
         template.convertAndSend("/topic/ingame/chickenPosition/" + lobyid, position);

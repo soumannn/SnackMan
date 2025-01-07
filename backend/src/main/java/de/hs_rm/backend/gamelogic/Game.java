@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import de.hs_rm.backend.gamelogic.characters.players.Chicken;
-import de.hs_rm.backend.gamelogic.characters.players.ChickenLogic;
+import de.hs_rm.backend.gamelogic.characters.players.ChickenService;
 import de.hs_rm.backend.gamelogic.characters.players.FoodItems;
 import de.hs_rm.backend.gamelogic.characters.players.Ghost;
 import de.hs_rm.backend.gamelogic.characters.players.GhostObjectItem;
@@ -50,7 +50,7 @@ public class Game {
     private int itemsPerSurfaceRatio;
     private int nutriscore;
 
-    private ChickenLogic chickenLogic;
+    private ChickenService chickenService;
   
     private Map<String, Character> characters; // for game (after game start), strinng for username
 
@@ -100,7 +100,7 @@ public class Game {
             new SnackmanObjectItem("Extra Life", -1, -1, "Grants an extra life"));
 
     public Game(Player gamemaster, int snackmanLife, int snackmanMaxLife, double snackmanSpeed, double ghostSpeed,
-            int itemsPerSurfaceRatio, int nutriscore, ChickenLogic chickenLogic) {
+            int itemsPerSurfaceRatio, int nutriscore, ChickenService chickenService) {
         this.id = generateId(5);
         this.players = new ArrayList<>();
         this.chickens = new ArrayList<>();
@@ -114,7 +114,7 @@ public class Game {
         this.ghostSpeed = ghostSpeed;
         this.itemsPerSurfaceRatio = itemsPerSurfaceRatio;
         this.nutriscore=nutriscore;
-        this.chickenLogic = chickenLogic;
+        this.chickenService = chickenService;
     }
 
     public int getSnackmanLife() {
@@ -241,7 +241,7 @@ public class Game {
             } while (randomTile.getType() != TileType.SURFACE || randomTile.hasChicken());
 
             // ToDo Aron: ChickenSpeed als Umgebeungsvariable oder können alle Hühner unterschiedliche Geschwindigkeiten haben?
-            Object result = chickenLogic.executePythonFunction("get_speed", new Object[]{});
+            Object result = chickenService.executePythonFunction("get_speed", new Object[]{});
 
             if(result instanceof PyObject) {
                 PyObject pyObject = (PyObject) result;

@@ -15,24 +15,26 @@ def move_chicken(xPosition, yPosition, umgebungsdaten = None):
     """
 
     # Zuerst ein  zufälliges Bewegungsmuster zum Testen
-    newX = xPosition
+    newX = xPosition + 1
     newY = yPosition
 
-    moves = ["up", "down", "left", "right"]
+    # moves = ["up", "down", "left", "right"]
 
-    move = random.choice(moves)
+    # move = random.choice(moves)
 
     
-    if move == "up":
-        newY += 1
-    elif move == "down":
-        newY -= 1
-    elif move == "left":
-        newX -= 1
-    elif move == "right":
-        newX += 1
+    # if move == "up":
+    #     newY += 1
+    # elif move == "down":
+    #     newY -= 1
+    # elif move == "left":
+    #     newX -= 1
+    # elif move == "right":
+    #     newX += 1
 
     # Validierung auf umgebungsdaten hier ? ToDo Aron
+
+    
 
     return (newX, newY)
 

@@ -12,6 +12,7 @@ import de.hs_rm.backend.gamelogic.map.PlayMap;
 import de.hs_rm.backend.messaging.GameMessagingService;
 
 import org.python.core.PyObject;
+import org.python.core.PyTuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,17 +23,17 @@ import org.springframework.stereotype.Service;
 import de.hs_rm.backend.exception.GameJoinException;
 import de.hs_rm.backend.gamelogic.characters.players.Character;
 import de.hs_rm.backend.gamelogic.characters.players.Chicken;
-import de.hs_rm.backend.gamelogic.characters.players.ChickenLogic;
+import de.hs_rm.backend.gamelogic.characters.players.ChickenService;
 import de.hs_rm.backend.gamelogic.characters.players.Player;
 
 @Service
 public class GameService {
-    private ChickenLogic chickenLogic;
+    private ChickenService chickenLogic;
     
     @Autowired
     GameMessagingService messagingService;
 
-    public GameService(ChickenLogic chickenLogic) {
+    public GameService(ChickenService chickenLogic) {
         this.chickenLogic = chickenLogic;
     }
 
@@ -165,6 +166,7 @@ public class GameService {
         return game;
     }
 
+
     public boolean move(String username, int targetX, int targetY) {
         if (username == null || username.isEmpty()) {
             throw new IllegalArgumentException("Username and direction must not be empty.");
@@ -182,6 +184,24 @@ public class GameService {
 
     public void setGameList(Map<String, Game> gameList) {
         this.gameList = gameList;
+    }
+
+     // ToDo Aron: Hier evtl dauerschlfe einbauen um Chicken zu bewegen oder besser in ChickenService?
+
+    @Scheduled(fixedRate = 500)
+    public void updateChickenPositionForAllGames(){
+        for( Game game : gameList.values()) {
+            for (Chicken chicken : game.getChickens()) {
+                Object result = chickenLogic.executePythonFunction("move_chicken", chicken.getPosX(), chicken.getPosY());
+                if (result instanceof PyObject) {
+                    PyTuple position = (PyTuple) result;
+                    int newX = (int) position.get(0);
+                    int newY = (int) position.get(1);
+                    chicken.setPosX(newX);
+                    chicken.setPosY(newY);
+                }
+            }
+        }
     }
 
     

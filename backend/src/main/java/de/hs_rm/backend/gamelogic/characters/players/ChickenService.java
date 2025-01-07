@@ -7,6 +7,7 @@ import org.python.util.PythonInterpreter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import de.hs_rm.backend.gamelogic.map.PlayMap;
@@ -14,9 +15,10 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
 @Service
-public class ChickenLogic {
+// ToDo Aron: Umbennen in ChickenService
+public class ChickenService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ChickenLogic.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ChickenService.class);
 
 
     @Value("${scripts.dir}")
@@ -32,7 +34,7 @@ public class ChickenLogic {
 
 
 
-    public ChickenLogic() {
+    public ChickenService() {
         // System.out.println("ChickenLogic initialisiert");
         LOGGER.info("ChickenServbice Klasse initialisiert");
         interpreter = new PythonInterpreter();
@@ -90,6 +92,12 @@ public class ChickenLogic {
             
         
     }
+
+    // ToDo Aron: Hier evtl dauerschlfe einbauen um Chicken zu bewegen oder besser in GameService?
+  
+
+
+
 
     @PreDestroy
     public void cleanup() {

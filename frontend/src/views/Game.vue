@@ -397,8 +397,7 @@ onMounted(async () => {
       case 'chickenPositions':
         console.log("CHICKENPOSITIONS -> MESSAGE.FEEDBACK: ", message.feedback)
         chickenPositions.value = message.feedback
-        // ToDo Aron: Wie werden Models bewegt? Müssen neue Models mit den neuen Werten erstellt werden oder können alte Models
-        // bewegt werden?
+        // ToDo Aron:Modells neue koordiinaten mitgeben
         renderChicken(chickenPositions.value);
         break;
     }
