@@ -7,24 +7,27 @@ import { sendMessage, subscribeTo, stompClient } from '@/config/stompWebsocket'
 export const useThemeStore = defineStore("theme", () => {
 const themes = ref <IThemes>({
     christmas: {
-        ground: "/src/assets/game/christmas/ChristmasGround.png",
+        ground: "/src/assets/game/christmas/schneeboden.png",
         wall: "/src/assets/game/christmas/ChristmasWall.png",
+        skybox: "/src/assets/game/christmas/skyBox/skywinter.png",
       character: {
           snackman: "/src/assets/game/christmas/snackman/snackman.glb",
           ghost: "/src/assets/game/christmas/ghost/ghost.glb",
       },
     },
     realistic: {
-        ground: "/src/assets/game/realistic/ground.png",
-        wall: "/src/assets/game/realistic/wall.png",
+        ground: "/src/assets/game/realistic/groundrea.png",
+        wall: "/src/assets/game/realistic/wallrea.png",
+        skybox:  "/src/assets/game/realistic/skyBox/reasky.png",
       character: {
           snackman: "/src/assets/game/realistic/snackman/snackman.glb",
           ghost: "/src/assets/game/realistic/ghost/ghost.glb",
       },
     },
     retro: {
-        ground: "/src/assets/game/retro/cobblestone_2.png",
-        wall: "/src/assets/game/retro/dirty_1.png",
+        ground: "/src/assets/game/retro/grass_1.png",
+        wall: "/src/assets/game/retro/cobblestone_2.png",
+        skybox: "/src/assets/game/retro/skyBox/sky052k.png",
       character: {
           snackman: "/src/assets/game/retro/snackman/retroSnackman.glb",
           ghost: {
@@ -34,8 +37,9 @@ const themes = ref <IThemes>({
       },
     },
     sweetWorld: {
-        ground: "/src/assets/game/sweetWorld/sweetWorldFloor.jpg",
-        wall: "/src/assets/game/sweetWorld/sweetWorldWall.png",
+        ground: "/src/assets/game/sweetWorld/schocko.png",
+        wall: "/src/assets/game/sweetWorld/sweetWorldWall.png", 
+        skybox:  "/src/assets/game/sweetWorld/skyBox/kugelsky.png",
       character: {
           snackman: "/src/assets/game/sweetWorld/snackman/sweetWorldPinkSnackman.glb",
           ghost: "/src/assets/game/sweetWorld/ghost/sweetWorldGhost.glb",
@@ -105,3 +109,12 @@ const themes = ref <IThemes>({
   };
 
 });
+
+/*skybox: {
+        right: "/src/assets/game/christmas/skyBox/sky_yuki_01rt.png",
+        left:  "/src/assets/game/christmas/skyBox/sky_yuki_01lf.png",
+        top:"/src/assets/game/christmas/skyBox/sky_yuki_01up.png",
+        bottom: "/src/assets/game/christmas/skyBox/sky_yuki_01dn.png",
+        front:"/src/assets/game/christmas/skyBox/sky_yuki_01ft.png",
+        back: "/src/assets/game/christmas/skyBox/sky_yuki_01bk.png",
+    },*/

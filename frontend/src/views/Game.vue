@@ -22,6 +22,8 @@ import { watch } from 'vue';
 import { Playerrole } from '@/stores/game/dtd/EPlayerrole'
 
 
+
+
 const gameStore = useGameStore()
 const themeStore= useThemeStore()
 const route = useRoute()
@@ -365,6 +367,59 @@ function loadMap(map: String[], selectedTheme :{ground: string; wall:string}) {
 console.log("Selected theme:", selectedTheme);
 
 }
+function addSkybox(scene: THREE.Scene, skyBoxPath:string | {right: string; left: string; top: string; bottom: string; front: string; back: string }) {
+  /*const loader = new GLTFLoader();
+  loader.load(
+    skyBox, 
+    (gltf) => {
+      console.log("Skybox GLB erfolgreich geladen:", skyBox);
+      const sky = gltf.scene;
+      sky.scale.set(100,100,100);
+      sky.position.set(0,0,0);  
+      scene.add(sky); 
+    },
+    undefined,
+    (error) => {
+      console.error("Fehler beim Laden der Skybox GLB:", error);
+    }
+  );*/
+  
+  const loader = new THREE.TextureLoader();
+  if (typeof skyBoxPath === 'string'){
+    loader.load(
+      skyBoxPath,
+    (texture) => {
+      const sphereGeometry = new THREE.SphereGeometry(500, 64, 64);
+      const sphereMaterial = new THREE.MeshBasicMaterial({
+        map: texture,
+        side: THREE.BackSide, 
+      });
+
+      const skySphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+      scene.add(skySphere);
+      console.log("SkySphere erfolgreich hinzugefügt!");
+    },
+    undefined,
+    (error) => {
+      console.error("Fehler beim Laden der SkySphere-Textur:", error);
+    }
+  );
+  }else{
+    const materials = [
+      new THREE.MeshBasicMaterial({ map: loader.load(skyBoxPath.right), side: THREE.BackSide }), 
+      new THREE.MeshBasicMaterial({ map: loader.load(skyBoxPath.left), side: THREE.BackSide }),  
+      new THREE.MeshBasicMaterial({ map: loader.load(skyBoxPath.top), side: THREE.BackSide }),  
+      new THREE.MeshBasicMaterial({ map: loader.load(skyBoxPath.bottom), side: THREE.BackSide }),
+      new THREE.MeshBasicMaterial({ map: loader.load(skyBoxPath.front), side: THREE.BackSide }), 
+      new THREE.MeshBasicMaterial({ map: loader.load(skyBoxPath.back), side: THREE.BackSide }),  
+    ];
+
+    const skyboxGeometry = new THREE.BoxGeometry(500, 500, 500); // Größe des Skybox-Würfels
+    const skybox = new THREE.Mesh(skyboxGeometry, materials);
+    skybox.position.set(0, 0, 0);
+    scene.add(skybox);
+  }
+}
 
 async function handleCharacters(data: ICharacterDTD[]) {
   let playerPositions: IPlayerPositionDTD[] = [];
@@ -444,8 +499,16 @@ onMounted(async () => {
           ground: themeStore.currentTheme.ground,
           wall: themeStore.currentTheme.wall,
     });
+    //addSkybox(scene, themeStore.currentTheme.sky);
+    //console.log("Skybox-Pfad:", themeStore.currentTheme.sky);
   } else {
     console.error('No map found')
+  }
+  if (themeStore.currentTheme.skybox) {
+    addSkybox(scene, themeStore.currentTheme.skybox); 
+    console.log("Skybox-Pfade:", themeStore.currentTheme.skybox);
+  } else {
+    console.error("Keine Skybox-Daten im aktuellen Theme gefunden");
   }
 
   const mockPositions: IPlayerPositionDTD[] = [
@@ -473,6 +536,9 @@ watch(
     if (newTheme) {
       console.log(`Theme geändert zu: ${newTheme}`);
       const currentTheme = themeStore.currentTheme;
+      //console.log(`Ändere Skybox zu: ${themeStore.currentTheme.sky}`);
+      //addSkybox(scene, themeStore.currentTheme.sky); // Dynamisch Skybox ändern
+      //console.log("Skybox-Pfad:", themeStore.currentTheme.sky);
 
       // Map neu laden, falls vorhanden
       if (map.value && currentTheme) {
@@ -482,6 +548,11 @@ watch(
         });
       } else {
         console.error('Keine Map oder kein aktuelles Theme gefunden');
+      }
+      if (themeStore.currentTheme.skybox){
+        addSkybox(scene, themeStore.currentTheme.skybox);
+      }else{
+        console.error("Keine Skybox-Daten im aktuellen Theme gefunden");
       }
     }
   }
