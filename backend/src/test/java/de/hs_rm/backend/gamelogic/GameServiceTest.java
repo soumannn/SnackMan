@@ -60,14 +60,14 @@ public class GameServiceTest {
         Player mockPlayer = mock(Player.class); // Mock-Spieler erstellen
         Game mockGame = mock(Game.class); // Mock-Spiel erstellen
         when(mockGame.findPlayerByUsername("testPlayer")).thenReturn(mockPlayer); // Spieler wird gefunden
-        when(mockGame.move("testPlayer", 2, 2)).thenReturn(false); // Bewegung schlägt fehl
+        when(mockGame.move("testPlayer", 2, 2,2.1)).thenReturn(false); // Bewegung schlägt fehl
 
         gameList.put("game1", mockGame);
 
         boolean result = gameService.move("testPlayer", 2, 2);
 
         assertFalse(result);
-        verify(mockGame).move("testPlayer", 2, 2); // Überprüfen, ob move aufgerufen wurde
+        verify(mockGame).move("testPlayer", 2, 2,2.1); // Überprüfen, ob move aufgerufen wurde
     }
 
     @Test // Spieler wird gefunden, Bewegung gelingt
@@ -75,13 +75,13 @@ public class GameServiceTest {
         Player mockPlayer = mock(Player.class); 
         Game mockGame = mock(Game.class); 
         when(mockGame.findPlayerByUsername("testPlayer")).thenReturn(mockPlayer); 
-        when(mockGame.move("testPlayer", 3, 3)).thenReturn(true); 
+        when(mockGame.move("testPlayer", 3, 3, 2.1)).thenReturn(true); 
 
         gameList.put("game1", mockGame); 
 
         boolean result = gameService.move("testPlayer", 3, 3);
 
         assertTrue(result);
-        verify(mockGame).move("testPlayer", 3, 3);
+        verify(mockGame).move("testPlayer", 3, 3, 2.1);
     }
 }

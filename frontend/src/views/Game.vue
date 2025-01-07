@@ -258,6 +258,7 @@ function renderCharactersTest(playerPositions: IPlayerPositionDTD[]) {
     if (!players.has(playerPosition.playerName) && !loadingPlayers.get(playerPosition.playerName)) {
       const snackmanModelURL = new URL('@/assets/game/realistic/snackman/snackman.glb', import.meta.url).href;
 
+      //wenn model initial geladen wird loading auf true setzen, sonst wird eventuell doppelt geladen 
       loadingPlayers.set(playerPosition.playerName, true);
 
       //Modell initial rendern
@@ -270,6 +271,7 @@ function renderCharactersTest(playerPositions: IPlayerPositionDTD[]) {
         model.position.set(playerPosition.x, 1, playerPosition.y);
         model.rotation.y = playerPosition.angle + adjustAngle;
 
+        //wenn geladen aus loading löschen
         loadingPlayers.delete(playerPosition.playerName);
       });
     } else {

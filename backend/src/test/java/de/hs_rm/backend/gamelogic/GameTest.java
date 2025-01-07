@@ -348,13 +348,13 @@ class GameTest{
         assertEquals(snackman.getPosY(), index / playmap.getWidth());
 
         // Bewegung testen
-        boolean surface = game.move("testPlayer", 2, 1); // gültig
-        boolean wall = game.move("testPlayer", 0, 1); // Wand
-        boolean edge = game.move("testPlayer", 0, 0); // Ecke
+        boolean surface = game.move("testPlayer", 2, 1,2.1); // gültig
+        boolean wall = game.move("testPlayer", 0, 1, 2.1); // Wand
+        boolean edge = game.move("testPlayer", 0, 0, 2.1); // Ecke
 
         // Out-of-Bounds testen
         assertThrows(IndexOutOfBoundsException.class, () -> {
-            game.move("testPlayer", -1, -1); // ungültig
+            game.move("testPlayer", -1, -1, 2.1); // ungültig
         });
 
         // Validierung der Ergebnisse
