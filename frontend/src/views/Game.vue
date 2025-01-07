@@ -2,7 +2,7 @@
 /*Basic Configuration for Scene(=Container), Camera and Rendering for Playground*/
 import * as THREE from 'three'
 import { WebGLRenderer } from 'three'
-import { onMounted, ref} from 'vue'
+import {onBeforeMount, onMounted, ref} from 'vue'
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js'
 import ground from '@/assets/game/realistic/ground.png'
 import wall from '@/assets/game/realistic/wall.png'
@@ -13,6 +13,7 @@ import { useRoute } from 'vue-router'
 import type { IPlayerPositionDTD } from '@/stores/game/dtd/IPlayerPositionDTD'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import type { ICharacterDTD } from '@/stores/game/dtd/ICharacterDTD'
+import type { IChickenPositionDTD } from '@/stores/game/dtd/IChickenPositionDTD'
 
 const gameStore = useGameStore()
 
@@ -35,6 +36,10 @@ let movementSpeed = slowMovementSpeed
 const life = ref(2) //startlife
 const maxLife = ref(3)
 const collectedItems = ref<string[]>([]) //Gesammelte Items
+
+// Typ falsch?
+let chickenPositions = ref<IChickenPositionDTD[]>([]);
+
 
 function addItem(itemName: string) {
   collectedItems.value.push(itemName)
@@ -123,7 +128,7 @@ sphere.position.y = 2
 sphere.position.x = 3
 sphere.position.z = -4
 
-scene.add(sphere)
+// scene.add(sphere)
 
 //lightning
 const ambientLight = new THREE.AmbientLight(0x404040, 10)
@@ -283,6 +288,20 @@ function renderCharactersTest(playerPositions: IPlayerPositionDTD[]) {
       }
     }
   });
+}
+
+  function renderChicken(chickenPositions: IChickenPositionDTD[]){
+  const modelLoader = new GLTFLoader()
+
+  chickenPositions.forEach((chickenPosition) => {
+    modelLoader.load('/src/assets/game/realistic/chicken/chicken.gltf', (objekt) => {
+      const model = objekt.scene
+      model.position.set(chickenPosition.x, 1, chickenPosition.y)
+      model.scale.set(0.03, 0.03, 0.03)
+      model.rotateY(chickenPosition.angle)
+      scene.add(model)
+    })
+  })
 }
 
 function loadMap(map: String[]) {
@@ -464,6 +483,7 @@ function loadMap(map: String[]) {
   })
 }
 
+
 async function handleCharacters(data: ICharacterDTD[]) {
   let playerPositions: IPlayerPositionDTD[] = [];
   data.forEach(character => {
@@ -484,6 +504,17 @@ onMounted(async () => {
   } catch (error) {
     console.error('Error fetching game status:', error)
   }
+
+  if (gameStore.gameState.gamedata.chickens == null) {
+    chickenPositions.value = []
+    console.log("Keine Positionsdaten weil Chicken Array leer")
+  } else {
+    chickenPositions.value = gameStore.gameState.gamedata.chickens;
+    console.log("Chickens-Positionsdaten: " + chickenPositions.value)
+  }
+  
+  const chickenList = gameStore.gameState.gamedata.chickens
+  console
 
   subscribeTo(`/ingame/playerPositions/${lobbyId}`, async (message: any) => {
     switch (message.type) {
@@ -555,6 +586,16 @@ onMounted(async () => {
       angle: 2 * Math.PI,
     },
   ]
+  // const mockPosition: IChickenPositionDTD[] = [
+  //   {
+  //     x: 3,
+  //     y: 2,
+  //     angle: Math.PI,
+  //   }
+  // ]
+
+  renderChicken(chickenPositions.value)
+  renderCharactersTest(mockPositions)
   animate()
 })
 </script>
