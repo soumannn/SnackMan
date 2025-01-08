@@ -221,7 +221,10 @@ function cameraPositionBewegen(delta: number) {
         movementSpeed * delta,
       )
     }
-    camera.position.y = 2
+    nextPosition.y = 1
+    validatePosition(nextPosition)
+
+    camera.position.y = 1
   }
 }
 
