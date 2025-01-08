@@ -3,6 +3,9 @@ package de.hs_rm.backend.gamelogic.map;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import de.hs_rm.backend.gamelogic.characters.players.Character;
 import de.hs_rm.backend.gamelogic.characters.players.Chicken;
 import de.hs_rm.backend.gamelogic.characters.players.FoodItems;
@@ -18,6 +21,9 @@ public class Tile {
     List<Item> itemList;
     List<Character> characterList;
     List<Chicken> chickenList;
+
+    Logger logger = LoggerFactory.getLogger(Tile.class);
+
 
     public Tile(TileType type) {
         this.type = type;
@@ -44,6 +50,10 @@ public class Tile {
      * @return true wenn Charakter erfolgreich rein kommt und ggfs. Item nehmen
      */
     public boolean addCharacter(Character character){
+        for (Item item : itemList) {
+            logger.debug("Checking item: {} for character: {}", item.getName(), character.getClass().getSimpleName());
+        }
+        
         this.characterList.add(character);
         if(!itemList.isEmpty()){
             // DONE: Item hier nehmen
@@ -52,6 +62,7 @@ public class Tile {
                     Snackman snackman = (Snackman) character; // Cast zu Snackman
                     if(item instanceof FoodItems){
                         snackman.eatSnack((FoodItems)item);
+                        logger.info("Snackman eats FoodItem '{}'.", item.getName());
                     } else if(item instanceof ObjectsItems){
                         snackman.collectObjectItem((ObjectsItems) item);
                     }
@@ -60,8 +71,9 @@ public class Tile {
                     Ghost ghost = (Ghost) character;
                     ghost.collectObjectItem((ObjectsItems) item);
                 }
+                itemList.remove(item);
+                logger.debug("Item removed. Remaining items: {}", itemList.size());
             }
-
         }
 
         if(character instanceof Snackman ){

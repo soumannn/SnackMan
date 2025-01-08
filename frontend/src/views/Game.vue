@@ -22,7 +22,10 @@ const lobbyId = route.params.id.toString()
 
 let nextPosition: THREE.Vector3
 let lastSend: number = 0
+let lastMoveValid = false;
 const players = new Map<string, number>(); // Spieler mit Namen als Key auf Character Model
+const loadingPlayers = new Map<string, boolean>(); // Spielername -> Ladevorgang
+
 
 let movingForward: boolean,
   movingBackward: boolean,
@@ -231,7 +234,6 @@ function validatePosition(nextPosition: THREE.Vector3) {
   const currentTime: number = Date.now()
 
   if (currentTime - lastSend > 50) {
-
     sendMessage(`/topic/ingame/${lobbyId}/playerPosition`, {
       playerName: sessionStorage.getItem('myName'),
       posX: nextPosition.x,
@@ -239,9 +241,7 @@ function validatePosition(nextPosition: THREE.Vector3) {
       angle: camera.rotation.z,
     })
     lastSend = currentTime
-  } else {
-    moveCamera()
-  }
+  } 
 }
 
 
@@ -268,9 +268,12 @@ function renderCharactersTest(playerPositions: IPlayerPositionDTD[]) {
     }
   })
 
-    playerPositions.forEach((playerPosition) => {
-    if (!players.has(playerPosition.playerName)) {
+    playerPositions.forEach(async (playerPosition) => {
+    if (!players.has(playerPosition.playerName) && !loadingPlayers.get(playerPosition.playerName)) {
       const snackmanModelURL = new URL('@/assets/game/realistic/snackman/snackman.glb', import.meta.url).href;
+
+      loadingPlayers.set(playerPosition.playerName, true);
+
       //Modell initial rendern
       modelLoader.load(snackmanModelURL, (gltf) => {
         const model = gltf.scene;
@@ -280,6 +283,8 @@ function renderCharactersTest(playerPositions: IPlayerPositionDTD[]) {
 
         model.position.set(playerPosition.x, 1, playerPosition.y);
         model.rotation.y = playerPosition.angle + adjustAngle;
+
+        loadingPlayers.delete(playerPosition.playerName);
       });
     } else {
       //Modell updaten
@@ -321,6 +326,8 @@ function loadMap(map: String[]) {
   const groundMaterial = new THREE.MeshStandardMaterial({ map: groundTexture })
   const wallMaterial = new THREE.MeshStandardMaterial({ map: wallTexture })
 
+  const mapOffset = 0.5;
+
   const modelLoader = new GLTFLoader()
 
   let rowCounter = 0
@@ -329,32 +336,32 @@ function loadMap(map: String[]) {
       switch (e[i]) {
         case '*':
           const wallCube = new THREE.Mesh(wallGeometry, wallMaterial)
-          wallCube.position.set(rowCounter, 1.5, i)
+          wallCube.position.set(rowCounter + mapOffset, 1.5, i + mapOffset)
           scene.add(wallCube)
           break
         case ' ':
           const groundCube = new THREE.Mesh(groundGeometry, groundMaterial)
-          groundCube.position.set(rowCounter, 0, i)
+          groundCube.position.set(rowCounter + mapOffset, 0, i + mapOffset)
           scene.add(groundCube)
           break
         case 'E':
           const groundCubeUnderItem = new THREE.Mesh(groundGeometry, groundMaterial)
-          groundCubeUnderItem.position.set(rowCounter, 0, i)
+          groundCubeUnderItem.position.set(rowCounter + mapOffset, 0, i + mapOffset)
           scene.add(groundCubeUnderItem)
+
           const modelPathE = Math.random() > 0.5
-            ? '/src/assets/game/items/E/strawberry_shortcake/strawberry_shortcake.glb'
-            : '/src/assets/game/items/E/chocolate_bar/chocolate_bar.glb';
+            ? new URL("@/assets/game/items/E/strawberry_shortcake/strawberry_shortcake.glb", import.meta.url).href : new URL("@/assets/game/items/E/strawberry_shortcake/chocolate_bar.glb", import.meta.url).href;
 
           modelLoader.load(modelPathE, (objekt) => {
             console.log('Model geladen:', modelPathE);
             const model = objekt.scene
 
             if (modelPathE.includes('chocolate_bar')) {
-              model.position.set(rowCounter - 2, 0.75, i)
+              model.position.set(rowCounter - 2 + mapOffset, 0.75, i + mapOffset)
               model.scale.set(0.2, 0.2, 0.2) // Schokolade kleiner machen
             }
             else {
-              model.position.set(rowCounter - 2, 0.5, i)
+              model.position.set(rowCounter - 2 + mapOffset, 0.5, i + mapOffset)
               model.scale.set(0.5, 0.5, 0.5) // sonst normal
             }
             scene.add(model)
@@ -368,22 +375,23 @@ function loadMap(map: String[]) {
           break
           case 'D':
           const groundCubeUnderItem1 = new THREE.Mesh(groundGeometry, groundMaterial)
-          groundCubeUnderItem1.position.set(rowCounter, 0, i)
+          groundCubeUnderItem1.position.set(rowCounter + mapOffset, 0, i + mapOffset)
           scene.add(groundCubeUnderItem1)
+          
           const modelPathD = Math.random() > 0.5
-            ? '/src/assets/game/items/D/cotton_candy/cottoncandy.glb'
-            : '/src/assets/game/items/D/popcorn/popcorn.glb';
+            ? new URL("@/assets/game/items/D/cotton_candy/cottoncandy.glb", import.meta.url).href
+            : new URL("@/assets/game/items/D/popcorn/popcorn.glb", import.meta.url).href;
 
           modelLoader.load(modelPathD, (objekt) => {
             console.log('Model geladen:', modelPathD);
             const model = objekt.scene
 
             if (modelPathD.includes('popcorn')) {
-              model.position.set(rowCounter - 2, 0.75, i)
+              model.position.set(rowCounter - 2 + mapOffset, 0.75, i + mapOffset)
               model.scale.set(0.2, 0.2, 0.2) // Schokolade kleiner machen
             }
             else {
-              model.position.set(rowCounter - 2, 0.5, i)
+              model.position.set(rowCounter - 2 +mapOffset, 0.5, i + mapOffset)
               model.scale.set(0.5, 0.5, 0.5) // sonst normal
             }
             scene.add(model);
@@ -397,7 +405,7 @@ function loadMap(map: String[]) {
           break
           case 'C':
           const groundCubeUnderItem2 = new THREE.Mesh(groundGeometry, groundMaterial)
-          groundCubeUnderItem2.position.set(rowCounter, 0, i)
+          groundCubeUnderItem2.position.set(rowCounter + mapOffset , 0, i + mapOffset)
           scene.add(groundCubeUnderItem2)
           const modelPathC = Math.random() > 0.5
             ? '/src/assets/game/items/C/candy_cane/candycane.glb'
@@ -408,11 +416,11 @@ function loadMap(map: String[]) {
             const model = objekt.scene
 
             if (modelPathC.includes('candycane')) {
-              model.position.set(rowCounter - 2, 1, i)
+              model.position.set(rowCounter - 2 + mapOffset, 1, i + mapOffset)
               model.scale.set(0.1, 0.1, 0.1) // candycane kleiner machen
             }
             else {
-              model.position.set(rowCounter - 3, 1, i)
+              model.position.set(rowCounter - 3 + mapOffset, 1, i + mapOffset)
               model.scale.set(0.5, 0.5, 0.3) // sonst normal
             }
             scene.add(model);
@@ -426,7 +434,7 @@ function loadMap(map: String[]) {
           break
           case 'B':
           const groundCubeUnderItem3 = new THREE.Mesh(groundGeometry, groundMaterial)
-          groundCubeUnderItem3.position.set(rowCounter, 0, i)
+          groundCubeUnderItem3.position.set(rowCounter + mapOffset, 0, i + mapOffset)
           scene.add(groundCubeUnderItem3)
           const modelPathB = Math.random() > 0.5
             ? '/src/assets/game/items/B/apple/apple.glb'
@@ -437,11 +445,11 @@ function loadMap(map: String[]) {
             const model = objekt.scene
 
             if (modelPathB.includes('apple')) {
-              model.position.set(rowCounter - 3, 0.75, i)
+              model.position.set(rowCounter - 3 + mapOffset, 0.75, i +mapOffset)
               model.scale.set(0.005, 0.005, 0.005) // apple kleiner machen
             }
             else {
-              model.position.set(rowCounter - 3, 0.5, i)
+              model.position.set(rowCounter - 3 + mapOffset, 0.5, i + mapOffset)
               model.scale.set(0.2, 0.2, 0.2) // sonst normal
             }
             scene.add(model);
@@ -455,22 +463,23 @@ function loadMap(map: String[]) {
           break
           case 'A':
           const groundCubeUnderItem4 = new THREE.Mesh(groundGeometry, groundMaterial)
-          groundCubeUnderItem4.position.set(rowCounter, 0, i)
+          groundCubeUnderItem4.position.set(rowCounter + mapOffset, 0, i + mapOffset)
           scene.add(groundCubeUnderItem4)
+
           const modelPathA = Math.random() > 0.5
-            ? '/src/assets/game/items/A/ginger/ginger.glb'
-            : '/src/assets/game/items/A/lemon/lemon.glb';
+            ? new URL("@/assets/game/items/A/ginger/ginger.glb", import.meta.url).href
+            : new URL("@/assets/game/items/A/lemon/lemon.glb", import.meta.url).href
 
           modelLoader.load(modelPathA, (objekt) => {
             console.log('Model geladen:', modelPathA);
             const model = objekt.scene
 
             if (modelPathA.includes('ginger')) {
-              model.position.set(rowCounter - 3, 1, i-1)
+              model.position.set(rowCounter - 3 + mapOffset, 1, i - 1 + mapOffset)
               model.scale.set(0.2, 0.2, 0.2) // Ginger kleiner machen
             }
             else {
-              model.position.set(rowCounter - 3, 1, i)
+              model.position.set(rowCounter - 3 + mapOffset, 1, i + mapOffset)
               model.scale.set(0.5, 0.5, 0.5) // sonst normal
             }
             scene.add(model);
@@ -484,7 +493,7 @@ function loadMap(map: String[]) {
           break
           default:
           const groundCubeUnderItem5 = new THREE.Mesh(groundGeometry, groundMaterial)
-          groundCubeUnderItem5.position.set(rowCounter, 0, i)
+          groundCubeUnderItem5.position.set(rowCounter + mapOffset, 0, i + mapOffset)
           scene.add(groundCubeUnderItem5)
       }
     }
@@ -535,14 +544,13 @@ onMounted(async () => {
   });
 
   subscribeTo(`/ingame/${lobbyId}`, async (messageValidation: IMessageDTD) => {
+    console.log(messageValidation.type)
     switch (messageValidation.type) {
       case 'playerMoveValidation':
         const playerPosition: any = messageValidation.feedback
 
         if (playerPosition.playerName === sessionStorage.getItem('myName')) {
-          console.log("FROM PLAYER MOVE VALIDATION: ", messageValidation.feedback)
-          console.log('recevied validation')
-          moveCamera()
+            moveCamera();
         }
 
         break;
