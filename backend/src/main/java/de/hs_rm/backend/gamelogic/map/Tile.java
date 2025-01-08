@@ -3,8 +3,14 @@ package de.hs_rm.backend.gamelogic.map;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.hs_rm.backend.gamelogic.characters.players.*;
 import de.hs_rm.backend.gamelogic.characters.players.Character;
+import de.hs_rm.backend.gamelogic.characters.players.Chicken;
+import de.hs_rm.backend.gamelogic.characters.players.FoodItems;
+import de.hs_rm.backend.gamelogic.characters.players.Ghost;
+import de.hs_rm.backend.gamelogic.characters.players.Item;
+import de.hs_rm.backend.gamelogic.characters.players.ObjectsItems;
+import de.hs_rm.backend.gamelogic.characters.players.PlayerRole;
+import de.hs_rm.backend.gamelogic.characters.players.Snackman;
 
 
 public class Tile {
@@ -57,24 +63,28 @@ public class Tile {
             }
 
         }
+
+        if(character instanceof Snackman ){
         // TODO: Kollision zwischen Ghost und Snackman
         for (Character currentCharacter:characterList){
-            if(currentCharacter != character && currentCharacter instanceof Ghost && Snackman){
-                int ghostPosX = currentCharacter.getPosX();
-                int ghostPosY = currentCharacter.getPosY();
-                int snackmanPosX= currentCharacter.getPosX();
-                int snackmanPosY=currentCharacter.getPosY();
-
-                //hier findet das Aufeinandertreffen von Snackman und Ghost statt
-                if(ghostPosX == snackmanPosX && ghostPosY == snackmanPosY){
-                    Ghost ghost = (Ghost) currentCharacter; //casten
-                    Snackman snackman =(Snackman) character;
-
-                    ghost.hit();
-                    snackman.caught();//life--
+            if (currentCharacter instanceof Ghost) {
+                Ghost ghost = (Ghost) currentCharacter;
+                ghost.hit();
+                character = (Snackman) character;
+                character.caught();
                 }
             }
         }
+        if(character instanceof Ghost ){
+            // TODO: Kollision zwischen Ghost und Snackman
+            for (Character currentCharacter:characterList){
+                if (currentCharacter instanceof Snackman) {
+                    Snackman snackman = (Snackman) currentCharacter;
+                    snackman.caught();
+                    ((Ghost) character).hit();
+                }
+            }
+         }
         return true;
     }
 
