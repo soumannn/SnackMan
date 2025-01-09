@@ -174,6 +174,7 @@ const lobbyId = route.params.id.toString()
 const chickenCount = computed({
   get: () => gameStore.gameState.gamedata?.chickens.length || 0,
   set: async (value: number) => {
+    console.log('New chicken count to:', value)
     await gameStore.setChickenCount(value)
   },
 })
