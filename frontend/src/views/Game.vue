@@ -13,7 +13,6 @@ import { useRoute } from 'vue-router'
 import type { IPlayerPositionDTD } from '@/stores/game/dtd/IPlayerPositionDTD'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import type { ICharacterDTD } from '@/stores/game/dtd/ICharacterDTD'
-import Modal from '@/components/Modal.vue'
 
 const gameStore = useGameStore()
 
@@ -42,6 +41,8 @@ const effectVolume = ref(50)
 const life = ref(2) //startlife
 const maxLife = ref(3)
 const collectedItems = ref<string[]>([]) //Gesammelte Items
+
+const playerSoundLists: THREE.PositionalAudio [] = []
 
 function lockPointer() {
   pointerLockControls.lock();
@@ -186,6 +187,7 @@ watch(musicVolume, (newVolume) => bgMusic.setVolume(newVolume / 100))
 watch(effectVolume, (newVolume) => {
   walkingSound.setVolume(newVolume / 100);
   hitSound.setVolume(newVolume / 100)
+  playerSoundLists.forEach((sound)=> sound.setVolume(newVolume/100))
 })
 
 const threeContainer = ref<null | HTMLElement>(null)
@@ -349,6 +351,23 @@ function renderCharactersTest(playerPositions: IPlayerPositionDTD[]) {
         model.scale.set(0.5, 0.5, 0.5);
         players.set(playerPosition.playerName, model.id);
         scene.add(model);
+        model.add(listener)
+
+        const audioLoader = new THREE.AudioLoader()
+        const playerWalkingSound = new THREE.PositionalAudio(listener);
+        const playerWalkingSoundURL = new URL(`@/assets/game/realistic/sounds/walking.mp3`, import.meta.url).href;
+
+        audioLoader.load(playerWalkingSoundURL, function (buffer) {
+          playerWalkingSound.setBuffer(buffer);
+          playerWalkingSound.setLoop(true);
+          playerWalkingSound.setVolume(musicVolume.value / 100);
+          playerWalkingSound.setRefDistance(1)
+          playerWalkingSound.setMaxDistance(10)
+          playerWalkingSound.setRolloffFactor(3)
+          playerWalkingSound.play()
+        });
+
+        playerSoundLists.push(playerWalkingSound)
 
         model.position.set(playerPosition.x, 1, playerPosition.y);
         model.rotation.y = playerPosition.angle + adjustAngle;
