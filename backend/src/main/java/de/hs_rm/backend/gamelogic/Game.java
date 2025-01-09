@@ -2,6 +2,7 @@
 package de.hs_rm.backend.gamelogic;
 
 import java.util.*;
+import java.util.jar.Attributes;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -409,6 +410,12 @@ public class Game {
             return true; // Bewegung erfolgreich, keine weiteren Änderungen notwendig
         }
     
+        //Überprüfung ob Character im Tile ist:
+        if (targetTile.hasCharacter()) {
+        LOGGER.info("Collision detected: Character on the same tile");
+        targetTile.addCharacter(curCharacter); // Kollision wird behandelt
+        }
+
         // Ziel-Tile prüfen
         if (targetTile.getType() == TileType.WALL) {
             LOGGER.info("Kollision mit einer Wand: Zielkoordinaten posX={}, posY={}", posX, posY);
@@ -445,6 +452,35 @@ public class Game {
         }
         LOGGER.info("Player with username {} not found.", username);
         return null;
+    }
+
+    //Methode: ob Snackman und Ghost im selben Tile sind
+    public boolean checkCollision(String username, Tile targetTile) {
+        Character movingCharacter = this.getCharacterByName(username);
+        if (movingCharacter == null) {
+            LOGGER.warn("Kein Charakter gefunden mit dem Namen: {}", username);
+            return false;
+        }
+    
+        // hier passiert die überprüfung
+        for (Character character : targetTile.getCharacterList()) {
+            if (character instanceof Ghost && movingCharacter instanceof Snackman) {
+                LOGGER.info("Kollision erkannt: Snackman '{}' wurde von Ghost '{}' getroffen.", username, character.get(name));
+                ((Snackman) movingCharacter).caught(); 
+                ((Ghost) character).hit();
+                return true;
+            }
+        }
+        LOGGER.info("Keine Kollision auf Tile gefunden für Spieler '{}'.", username);
+        return false;
+    }
+
+    public Character getCharacterByName(String name) {
+        if (characters == null || !characters.containsKey(name)) {
+            LOGGER.warn("Character with name '{}' not found in the game.", name);
+            return null;
+        }
+        return characters.get(name);
     }
 
     public String getId() {

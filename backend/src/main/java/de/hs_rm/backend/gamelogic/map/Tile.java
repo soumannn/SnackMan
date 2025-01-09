@@ -84,6 +84,7 @@ public class Tile {
                 ghost.hit();
                 character = (Snackman) character;
                 character.caught();
+                logger.info("Collision: Snackman caught by Ghost " );
                 }
             }
         }
@@ -94,6 +95,7 @@ public class Tile {
                     Snackman snackman = (Snackman) currentCharacter;
                     snackman.caught();
                     ((Ghost) character).hit();
+                    logger.info("Collision: Ghost caught by Snackman ");
                 }
             }
          }

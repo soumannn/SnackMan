@@ -39,6 +39,7 @@ let movementSpeed = slowMovementSpeed
 const life = ref(2) //startlife
 const maxLife = ref(3)
 const collectedItems = ref<string[]>([]) //Gesammelte Items
+const collisionWarning = ref(false);
 
 // Typ falsch?
 let chickenPositions = ref<IChickenPositionDTD[]>([]);
@@ -530,7 +531,12 @@ onMounted(async () => {
     console.log("Chickens-Positionsdaten: " + chickenPositions.value)
   }
 
-
+  function showCollisionWarning() {
+    collisionWarning.value = true;
+    setTimeout(() => {
+        collisionWarning.value = false;
+    }, 2000); // Warnung nach 2 Sekunden ausblenden
+  }
 
   //const chickenList = gameStore.gameState.gamedata.chickens
 
@@ -556,6 +562,24 @@ onMounted(async () => {
         break;
     }
   })
+
+  //für Kollision
+  subscribeTo(`/ingame/${lobbyId}/PlayerCollision`, (message) => {
+  console.log("Kollisionsnachricht erhalten: ", message);
+
+  if (message.type === "playerCollision" && message.feedback) {
+    const { snackmanName, ghostName } = message.feedback;
+    console.log(`Snackman '${snackmanName}' wurde von Ghost '${ghostName}' getroffen.`);
+
+    if (snackmanName === sessionStorage.getItem("myName")) {
+      life.value -= 1; // Leben von Snackman reduzieren
+      console.log(`Snackman '${snackmanName}' hat noch ${life.value} Leben.`);
+      if (life.value <= 0) {
+        console.warn("Snackman wurde besiegt!");
+      }
+    }
+  }
+});
 
   if (threeContainer.value) {
     threeContainer.value.appendChild(renderer.domElement)
@@ -611,6 +635,9 @@ onMounted(async () => {
 <template>
   <div ref="threeContainer" id="app" class="gameContainer relative z-20"></div>
   <div class="absolute z-50 top-0 flex justify-between w-full items-center p-8">
+    <div v-if="collisionWarning" class="collision-warning">
+    Kollision mit Ghost! Ein Leben verloren.
+    </div>
     <div
       id="items"
       class="ml-4 p-8 bg-black text-white border-2 border-white rounded-lg shadow-lg z-20 w-45 h-45"
@@ -645,4 +672,17 @@ onMounted(async () => {
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.collision-warning {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: red;
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    font-weight: bold;
+    z-index: 1000;
+    }
+    </style>
