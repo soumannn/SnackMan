@@ -1,12 +1,18 @@
 
 package de.hs_rm.backend.gamelogic;
 
-import java.util.*;
-import java.util.jar.Attributes;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.hs_rm.backend.gamelogic.characters.players.Character;
 import de.hs_rm.backend.gamelogic.characters.players.Chicken;
 import de.hs_rm.backend.gamelogic.characters.players.FoodItems;
 import de.hs_rm.backend.gamelogic.characters.players.Ghost;
@@ -16,7 +22,6 @@ import de.hs_rm.backend.gamelogic.characters.players.ObjectsItems;
 import de.hs_rm.backend.gamelogic.characters.players.Player;
 import de.hs_rm.backend.gamelogic.characters.players.Snackman;
 import de.hs_rm.backend.gamelogic.characters.players.SnackmanObjectItem;
-import de.hs_rm.backend.gamelogic.characters.players.Character;
 import de.hs_rm.backend.gamelogic.map.PlayMap;
 import de.hs_rm.backend.gamelogic.map.Tile;
 import de.hs_rm.backend.gamelogic.map.TileType;
@@ -409,12 +414,6 @@ public class Game {
             curCharacter.move(posY, posX, angle); // Aktualisiere nur die Position des Charakters
             return true; // Bewegung erfolgreich, keine weiteren Änderungen notwendig
         }
-    
-        //Überprüfung ob Character im Tile ist:
-        if (targetTile.hasCharacter()) {
-        LOGGER.info("Collision detected: Character on the same tile");
-        targetTile.addCharacter(curCharacter); // Kollision wird behandelt
-        }
 
         // Ziel-Tile prüfen
         if (targetTile.getType() == TileType.WALL) {
@@ -432,6 +431,7 @@ public class Game {
 
         //posy und posx vertauscht
         curCharacter.move(posY, posX, angle);
+        targetTile.addCharacter(curCharacter);//Fügt Charakter zum Ziel-Tile hinzu = heißt Kollision wird geprüfttt
         targetTile.addCharacter(curCharacter);
     
         LOGGER.info("{} moved to posX={}, posY={}", username, posX, posY);
@@ -452,27 +452,6 @@ public class Game {
         }
         LOGGER.info("Player with username {} not found.", username);
         return null;
-    }
-
-    //Methode: ob Snackman und Ghost im selben Tile sind
-    public boolean checkCollision(String username, Tile targetTile) {
-        Character movingCharacter = this.getCharacterByName(username);
-        if (movingCharacter == null) {
-            LOGGER.warn("Kein Charakter gefunden mit dem Namen: {}", username);
-            return false;
-        }
-    
-        // hier passiert die überprüfung
-        for (Character character : targetTile.getCharacterList()) {
-            if (character instanceof Ghost && movingCharacter instanceof Snackman) {
-                LOGGER.info("Kollision erkannt: Snackman '{}' wurde von Ghost '{}' getroffen.", username, character.get(name));
-                ((Snackman) movingCharacter).caught(); 
-                ((Ghost) character).hit();
-                return true;
-            }
-        }
-        LOGGER.info("Keine Kollision auf Tile gefunden für Spieler '{}'.", username);
-        return false;
     }
 
     public Character getCharacterByName(String name) {
