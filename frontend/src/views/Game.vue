@@ -18,6 +18,9 @@ const gameStore = useGameStore()
 
 const route = useRoute()
 const lobbyId = route.params.id.toString()
+let chickenModell : THREE.Group; 
+let chickenMixer: THREE.AnimationMixer; 
+const clcok= new THREE.Clock(); 
 
 let nextPosition: THREE.Vector3
 let lastSend: number = 0
@@ -143,8 +146,43 @@ function animate() {
   renderer.render(scene, camera)
   const delta = clock.getDelta()
   cameraPositionBewegen(delta)
+  updateChickenAnimation(); 
 }
-
+function loadChicken(scene:THREE.Scene){
+const loader =new GLTFLoader();
+const chickenModellUrl=  new URL('@/assets/game/chicken/chicken1.glb', import.meta.url).href;
+loader.load(
+  chickenModellUrl,
+    (gltf) => {
+      chickenModell = gltf.scene; 
+      chickenModell.scale.set(0.5, 0.5, 0.5); 
+      chickenModell.position.set(-1, 1, 0);
+      scene.add(chickenModell);
+      chickenMixer= new THREE.AnimationMixer(chickenModell);
+      const animation = gltf.animations; 
+      
+      if(animation && animation.length>0){
+        const action = chickenMixer.clipAction(animation[0]);
+        action.play(); 
+        console.log('Chicken Animation gestartet')
+      }else{
+        console.log('keine Animation im chicken gefunden')
+      }
+    },
+    undefined, // Fortschritts-Callback (optional)
+    (error) => {
+      console.error('Fehler beim Laden des Chicken-Modells:', error);
+    }
+  );
+  
+  console.log('Komplette Szene nach dem Start:', scene.children);
+}
+function updateChickenAnimation(){
+  if (chickenMixer){
+      const delta = clock.getDelta(); 
+      chickenMixer.update(delta);
+  }
+}
 function cameraPositionBewegen(delta: number) {
   const cameraViewDirection = new THREE.Vector3()
   camera.getWorldDirection(cameraViewDirection)
@@ -491,6 +529,7 @@ onMounted(async () => {
   } catch (error) {
     console.error('Error fetching game status:', error)
   }
+  loadChicken(scene); 
 
   subscribeTo(`/ingame/playerPositions/${lobbyId}`, async (message: any) => {
     switch (message.type) {
