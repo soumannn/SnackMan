@@ -432,7 +432,6 @@ public class Game {
         //posy und posx vertauscht
         curCharacter.move(posY, posX, angle);
         targetTile.addCharacter(curCharacter);//Fügt Charakter zum Ziel-Tile hinzu = heißt Kollision wird geprüfttt
-        targetTile.addCharacter(curCharacter);
     
         LOGGER.info("{} moved to posX={}, posY={}", username, posX, posY);
         LOGGER.debug("TargetTile has item: {}, Items: {}", targetTile.hasItem(), targetTile.getItemList());

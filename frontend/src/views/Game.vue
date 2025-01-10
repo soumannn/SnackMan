@@ -36,10 +36,10 @@ const fastMovementSpeed = 4
 let movementSpeed = slowMovementSpeed
 
 //#für HuD
-const life = ref(2) //startlife
+const life = ref(3) 
 const maxLife = ref(3)
 const collectedItems = ref<string[]>([]) //Gesammelte Items
-const collisionWarning = ref(false);
+const collisionWarning = ref(false);//für visuelle Warnung bei Kollisonn
 
 // Typ falsch?
 let chickenPositions = ref<IChickenPositionDTD[]>([]);
@@ -563,21 +563,29 @@ onMounted(async () => {
     }
   })
 
-  //für Kollision
+  //für Kollision zwischen Snackman und Ghost
   subscribeTo(`/ingame/${lobbyId}/PlayerCollision`, (message) => {
-  console.log("Kollisionsnachricht erhalten: ", message);
+  console.log("Collision message received: ", message);
 
   if (message.type === "playerCollision" && message.feedback) {
     const { snackmanName, ghostName } = message.feedback;
-    console.log(`Snackman '${snackmanName}' wurde von Ghost '${ghostName}' getroffen.`);
+    console.log(`Snackman '${snackmanName}' was hit by Ghost '${ghostName}.`);
 
     if (snackmanName === sessionStorage.getItem("myName")) {
-      life.value -= 1; // Leben von Snackman reduzieren
-      console.log(`Snackman '${snackmanName}' hat noch ${life.value} Leben.`);
+      life.value -= 1; 
+      console.log(`Snackman '${snackmanName}' has ${life.value} lives left.`);
       if (life.value <= 0) {
-        console.warn("Snackman wurde besiegt!");
+        console.warn("Snackman was defeated!");
       }
     }
+    if (ghostName === sessionStorage.getItem("myName")) {
+      //console.log(`Ghost '${ghostName}' has ${ghostTouchCount} successful hits.`);
+    }
+
+    collisionWarning.value = true;
+    setTimeout(() => {
+      collisionWarning.value = false; 
+    }, 2000);
   }
 });
 

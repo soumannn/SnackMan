@@ -75,27 +75,39 @@ public class Tile {
                 logger.debug("Item removed. Remaining items: {}", itemList.size());
             }
         }
+        boolean collisionOccurred = false; //Speicherung des Kollisionsstatus
 
-        if(character instanceof Snackman ){
         // TODO: Kollision zwischen Ghost und Snackman
+        if(character instanceof Snackman ){
+            Snackman snackman = (Snackman) character;
         for (Character currentCharacter:characterList){
             if (currentCharacter instanceof Ghost) {
                 Ghost ghost = (Ghost) currentCharacter;
+                // Prüft: Snackman unverwundbar ist
+                if (snackman.isInvincible()) {
+                    logger.info("Collision ignored: Snackman is invincible.");
+                    continue; // Keine weiteren Aktionen für diesen Ghost
+                }
                 ghost.hit();
-                character = (Snackman) character;
-                character.caught();
+                snackman.caught();
                 logger.info("Collision: Snackman caught by Ghost " );
+                collisionOccurred = true;
                 }
             }
         }
         if(character instanceof Ghost ){
-            // TODO: Kollision zwischen Ghost und Snackman
+            Ghost ghost = (Ghost) character;
             for (Character currentCharacter:characterList){
                 if (currentCharacter instanceof Snackman) {
                     Snackman snackman = (Snackman) currentCharacter;
+                    if (snackman.isInvincible()) {
+                        logger.info("Collision ignored: Snackman is invincible.");
+                        continue;
+                    }
                     snackman.caught();
-                    ((Ghost) character).hit();
+                    ghost.hit();
                     logger.info("Collision: Ghost caught by Snackman ");
+                    collisionOccurred = true;
                 }
             }
          }
