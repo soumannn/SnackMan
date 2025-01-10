@@ -13,7 +13,6 @@ public class Snackman extends Character {
     //Initialisierung
     private int maxLife;
     private int life; 
-    private int nutriscore; 
     private int currentCalorie;
 
 
@@ -23,10 +22,9 @@ public class Snackman extends Character {
     public LocalDateTime lastDamageTimestamp; // Speichert die Zeit, zu der der Snackman zuletzt Schaden bekommen hat.
     public final Duration invincibilityDuration = Duration.ofSeconds(5); //  Legt fest, wie lange Snackman unverwundbar bleibt
 
-    public Snackman(double speed, int posX, int posY, int life,int maxLife, int nutriscore){
+    public Snackman(double speed, int posX, int posY, int life,int maxLife){
         super(speed,posX,posY);
         this.life= maxLife; 
-        this.nutriscore=0; 
         this.maxLife= 3;
         this.lastDamageTimestamp = null;
     }
@@ -50,20 +48,6 @@ public class Snackman extends Character {
     public void setMaxLife(int maxLife) {
         this.maxLife = maxLife;
     }
-
-
-
-    public int getNutriscore() {
-        return nutriscore;
-    }
-
-
-
-    public void setNutriscore(int nutriscore) {
-        this.nutriscore = nutriscore;
-    }
-
-
 
     public int getCurrentCalorie() {
         return currentCalorie;
@@ -98,11 +82,6 @@ public class Snackman extends Character {
         } else {
             logger.warn("No ObjectItem to use.");
         }
-    }
-    
-    public double increaseNutriScore(double amount){
-        this.nutriscore += amount; 
-        return this.nutriscore; 
     }
 
     //Methode: Prüft ob der Spieler unverwundbar ist und wenn nicht, reduziert es die Lebenspunkte und aktiviert die Invincibility.

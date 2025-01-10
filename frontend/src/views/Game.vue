@@ -661,7 +661,7 @@ onMounted(async () => {
     console.log(`Snackman '${snackmanName}' was hit by Ghost '${ghostName}.`);
 
     if (snackmanName === sessionStorage.getItem("myName")) {
-      life.value -= 1; 
+      //life.value -= 1; 
       console.log(`Snackman '${snackmanName}' has ${life.value} lives left.`);
       if (life.value <= 0) {
         console.warn("Snackman was defeated!");
