@@ -83,7 +83,7 @@ function registerListeners(window: Window, renderer: WebGLRenderer) {
     renderer.domElement.requestPointerLock()
   })
 
-  window.addEventListener('resize',(e) => {
+  window.addEventListener('resize', (e) => {
     //renderer und somit auch die komplette szene wird auf neuen Browserfenster bereich angepasst
     renderer.setPixelRatio(window.devicePixelRatio)
     renderer.setSize(window.innerWidth, window.innerHeight)
@@ -189,10 +189,11 @@ function loadMusic() {
 const { scene, camera, renderer, pointerLockControls, clock, listener } =
   createSceneCameraRendererControlsClockListener()
 
-let controllLocked = watch(pointerLockControls, async (oldValue, newValue) => {
+/*let controllLocked = watch(pointerLockControls, async (oldValue, newValue) => {
   console.log("CHANGE");
   newValue.isLocked;
 });
+*/
 
 registerListeners(window, renderer)
 const [bgMusic, walkingSound, hitSound] = loadMusic()
@@ -227,9 +228,9 @@ pointLight.position.set(10, 20, 10) //extra Lightning for the ball
 scene.add(pointLight)
 
 function animate() {
-  setTimeout( function() {
+  setTimeout(function () {
     requestAnimationFrame(animate)
-  }, 1000 / 60 );
+  }, 1000 / 60);
   renderer.render(scene, camera)
   const delta = clock.getDelta()
   cameraPositionBewegen(delta)
@@ -337,20 +338,20 @@ function renderCharactersTest(playerPositions: IPlayerPositionDTD[]) {
   const modelLoader = new GLTFLoader();
   const adjustAngle = Math.PI;
   const fehlerndeSpieler = Array.from(players.keys()).filter((playerName) =>
-    !playerPositions.map((position)=>position.playerName).includes(playerName))
+    !playerPositions.map((position) => position.playerName).includes(playerName))
 
-  fehlerndeSpieler.forEach((player)=>{
+  fehlerndeSpieler.forEach((player) => {
     const index: number | undefined = players.get(player)
-    if(index){
+    if (index) {
       const object = scene.getObjectById(index)
       players.delete(player)
-      if(object){
+      if (object) {
         scene.remove(object)
       }
     }
   })
 
-    playerPositions.forEach(async (playerPosition) => {
+  playerPositions.forEach(async (playerPosition) => {
     if (!players.has(playerPosition.playerName) && !loadingPlayers.get(playerPosition.playerName)) {
       const snackmanModelURL = new URL('@/assets/game/realistic/snackman/snackman.glb', import.meta.url).href;
 
@@ -371,14 +372,14 @@ function renderCharactersTest(playerPositions: IPlayerPositionDTD[]) {
     } else {
       //Modell updaten
       const index: number | undefined = players.get(playerPosition.playerName)
-      if(index) {
+      if (index) {
         const model = scene.getObjectById(index);
         if (model) {
           const messungsBox = new THREE.Box3()
           const breite = new THREE.Vector3()
           messungsBox.getSize(breite)
           messungsBox.expandByObject(model)
-          model.position.set(playerPosition.x - (breite.x/2), 1, playerPosition.y);
+          model.position.set(playerPosition.x - (breite.x / 2), 1, playerPosition.y);
           model.rotation.y = playerPosition.angle + adjustAngle;
         }
       }
@@ -386,7 +387,7 @@ function renderCharactersTest(playerPositions: IPlayerPositionDTD[]) {
   });
 }
 
-function renderChicken(chickenPositions: IChickenPositionDTD[]){
+function renderChicken(chickenPositions: IChickenPositionDTD[]) {
   const modelLoader = new GLTFLoader()
 
   chickenPositions.forEach((chickenPosition) => {
@@ -432,7 +433,8 @@ function loadMap(map: String[]) {
           scene.add(groundCubeUnderItem)
 
           const modelPathE = Math.random() > 0.5
-            ? new URL("@/assets/game/items/E/strawberry_shortcake/strawberry_shortcake.glb", import.meta.url).href : new URL("@/assets/game/items/E/strawberry_shortcake/chocolate_bar.glb", import.meta.url).href;
+            ? new URL("@/assets/game/items/E/strawberry_shortcake/strawberry_shortcake.glb", import.meta.url).href 
+            : new URL("@/assets/game/items/E/chocolate_bar/chocolate_bar.glb", import.meta.url).href;
 
           modelLoader.load(modelPathE, (objekt) => {
             console.log('Model geladen:', modelPathE);
@@ -485,11 +487,11 @@ function loadMap(map: String[]) {
           break
         case 'C':
           const groundCubeUnderItem2 = new THREE.Mesh(groundGeometry, groundMaterial)
-          groundCubeUnderItem2.position.set(rowCounter + mapOffset , 0, i + mapOffset)
+          groundCubeUnderItem2.position.set(rowCounter + mapOffset, 0, i + mapOffset)
           scene.add(groundCubeUnderItem2)
           const modelPathC = Math.random() > 0.5
-            ? '/src/assets/game/items/C/candy_cane/candycane.glb'
-            : '/src/assets/game/items/C/chips/chips.glb';
+            ? new URL("@/assets/game/items/C/candy_cane/candycane.glb", import.meta.url).href
+            : new URL("@/assets/game/items/C/chips/chips.glb", import.meta.url).href;
 
           modelLoader.load(modelPathC, (objekt) => {
             console.log('Model geladen:', modelPathC);
@@ -499,8 +501,8 @@ function loadMap(map: String[]) {
               model.position.set(rowCounter - 2 + mapOffset, 1, i + mapOffset)
               model.scale.set(0.1, 0.1, 0.1) // candycane kleiner machen
             } else {
-              model.position.set(rowCounter - 3, 1, i)
-              model.scale.set(0.5, 0.5, 0.3) // sonst normal
+              model.position.set(rowCounter - 2 + mapOffset, 1, i + mapOffset)
+              model.scale.set(0.3, 0.3, 0.3)
             }
             scene.add(model);
             console.log(`Modell (C) Position: x=${model.position.x}, y=${model.position.y}, z=${model.position.z}`);
@@ -516,18 +518,18 @@ function loadMap(map: String[]) {
           groundCubeUnderItem3.position.set(rowCounter + mapOffset, 0, i + mapOffset)
           scene.add(groundCubeUnderItem3)
           const modelPathB = Math.random() > 0.5
-            ? '/src/assets/game/items/B/apple/apple.glb'
-            : '/src/assets/game/items/B/banana/banana.glb';
+            ? new URL("@/assets/game/items/B/apple/apple.glb", import.meta.url).href
+            : new URL("@/assets/game/items/B/banana/banana.glb", import.meta.url).href;
 
           modelLoader.load(modelPathB, (objekt) => {
             console.log('Model geladen:', modelPathB);
             const model = objekt.scene
 
             if (modelPathB.includes('apple')) {
-              model.position.set(rowCounter - 3 + mapOffset, 0.75, i +mapOffset)
+              model.position.set(rowCounter - 2 + mapOffset, 0.75, i + mapOffset)
               model.scale.set(0.005, 0.005, 0.005) // apple kleiner machen
             } else {
-              model.position.set(rowCounter - 3, 0.5, i)
+              model.position.set(rowCounter - 2, 0.75, i)
               model.scale.set(0.2, 0.2, 0.2) // sonst normal
             }
             scene.add(model);
@@ -546,18 +548,20 @@ function loadMap(map: String[]) {
 
           const modelPathA = Math.random() > 0.5
             ? new URL("@/assets/game/items/A/ginger/ginger.glb", import.meta.url).href
-            : new URL("@/assets/game/items/A/lemon/lemon.glb", import.meta.url).href
+            : new URL("@/assets/game/items/A/lemon/lemon_remake.glb", import.meta.url).href
 
           modelLoader.load(modelPathA, (objekt) => {
             console.log('Model geladen:', modelPathA);
             const model = objekt.scene
 
             if (modelPathA.includes('ginger')) {
-              model.position.set(rowCounter - 3, 1, i - 1)
+              model.position.set(rowCounter - 2, 1, i)
               model.scale.set(0.2, 0.2, 0.2) // Ginger kleiner machen
+              model.rotateZ(Math.PI / 0.75)
             } else {
               model.position.set(rowCounter - 3, 1, i)
-              model.scale.set(0.5, 0.5, 0.5) // sonst normal
+              model.scale.set(0.2, 0.2, 0.2) // sonst normal
+              model.rotateZ(Math.PI / 0.75)
             }
             scene.add(model);
             console.log(`Modell (A) Position: x=${model.position.x}, y=${model.position.y}, z=${model.position.z}`);
@@ -569,9 +573,9 @@ function loadMap(map: String[]) {
           );
           break
         default:
-          const groundCubeUnderItem5 = new THREE.Mesh(groundGeometry, groundMaterial)
-          groundCubeUnderItem5.position.set(rowCounter + mapOffset, 0, i + mapOffset)
-          scene.add(groundCubeUnderItem5)
+          const groundCubeUnderItemlast = new THREE.Mesh(groundGeometry, groundMaterial)
+          groundCubeUnderItemlast.position.set(rowCounter + mapOffset, 0, i + mapOffset)
+          scene.add(groundCubeUnderItemlast)
       }
     }
     rowCounter++
@@ -628,7 +632,7 @@ onMounted(async () => {
         const playerPosition: any = messageValidation.feedback
 
         if (playerPosition.playerName === sessionStorage.getItem('myName')) {
-            moveCamera();
+          moveCamera();
         }
 
         break;
@@ -712,7 +716,8 @@ onMounted(async () => {
   <div v-if="showSettings" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
     <div class="bg-white p-6 rounded-lg shadow-lg w-96">
       <h3 class="text-2xl font-bold mb-4">Lautstärke</h3>
-      Musik <input type="range" class="form-control-range" id="formControlRange" v-model="musicVolume"> {{ musicVolume }}%
+      Musik <input type="range" class="form-control-range" id="formControlRange" v-model="musicVolume"> {{ musicVolume
+      }}%
       <br>
       Effekte <input type="range" class="form-control-range" id="formControlRange" v-model="effectVolume">
       {{ effectVolume }}%
@@ -729,7 +734,7 @@ onMounted(async () => {
     <template #titel>
       <h3 class="header-modal-adventure">Lautstärke</h3>
     </template>
-    <template #content>
+<template #content>
       <div flex flex-col gap-3>
         Musik <input type="range" class="form-control-range" id="formControlRange" v-model="musicVolume">
         {{ musicVolume }}%
@@ -743,7 +748,7 @@ onMounted(async () => {
         </button>
       </div>
     </template>
-  </Modal> -->
+</Modal> -->
 
 </template>
 
