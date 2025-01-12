@@ -3,86 +3,86 @@
     {
       "bufferView": 2,
       "componentType": 5126,
-      "count": 378,
+      "count": 1440,
       "max": [
-        1.0,
-        1.0,
-        1.0000001192092896
+        -0.6797000169754028,
+        0.48112499713897705,
+        1.457839012145996
       ],
       "min": [
-        -0.9999999403953552,
-        -1.0,
-        -0.9999998211860657
+        -1.099797010421753,
+        -0.48915401101112366,
+        0.43450701236724854
       ],
       "type": "VEC3"
     },
     {
       "bufferView": 2,
-      "byteOffset": 4536,
+      "byteOffset": 17280,
       "componentType": 5126,
-      "count": 378,
+      "count": 1440,
       "max": [
         1.0,
         1.0,
-        0.9626373648643494
+        1.0
       ],
       "min": [
-        -0.9626373648643494,
-        -0.9800477623939514,
-        -0.9626373648643494
+        -1.0,
+        -1.0,
+        -1.0
       ],
       "type": "VEC3"
     },
     {
       "bufferView": 1,
       "componentType": 5126,
-      "count": 378,
+      "count": 1440,
       "max": [
-        0.8966804146766663,
-        0.9977685809135437
+        1.0,
+        1.0
       ],
       "min": [
-        0.002231419086456299,
-        0.002231419086456299
+        0.0,
+        0.0
       ],
       "type": "VEC2"
     },
     {
       "bufferView": 0,
       "componentType": 5125,
-      "count": 546,
+      "count": 2160,
       "type": "SCALAR"
     }
   ],
   "asset": {
     "extras": {
-      "author": "IDon'tHaveAUsername (https://sketchfab.com/anonoymous)",
+      "author": "jucianmoura (https://sketchfab.com/jucianmoura)",
       "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
-      "source": "https://sketchfab.com/3d-models/pac-man-93e23bce34c346b698ec2729dd9f8960",
-      "title": "Pac- Man"
+      "source": "https://sketchfab.com/3d-models/pacman-voxel-3d-model-def6bb16c7e041aa833c7d058647ba55",
+      "title": "pacman voxel 3d model"
     },
-    "generator": "Sketchfab-14.5.0",
+    "generator": "Sketchfab-15.19.0",
     "version": "2.0"
   },
   "bufferViews": [
     {
       "buffer": 0,
-      "byteLength": 2184,
+      "byteLength": 8640,
       "name": "floatBufferViews",
       "target": 34963
     },
     {
       "buffer": 0,
-      "byteLength": 3024,
-      "byteOffset": 2184,
+      "byteLength": 11520,
+      "byteOffset": 8640,
       "byteStride": 8,
       "name": "floatBufferViews",
       "target": 34962
     },
     {
       "buffer": 0,
-      "byteLength": 9072,
-      "byteOffset": 5208,
+      "byteLength": 34560,
+      "byteOffset": 20160,
       "byteStride": 12,
       "name": "floatBufferViews",
       "target": 34962
@@ -90,13 +90,8 @@
   ],
   "buffers": [
     {
-      "byteLength": 14280,
+      "byteLength": 54720,
       "uri": "scene.bin"
-    }
-  ],
-  "images": [
-    {
-      "uri": "textures/Material.001_baseColor.png"
     }
   ],
   "materials": [
@@ -104,11 +99,14 @@
       "doubleSided": true,
       "name": "Material.001",
       "pbrMetallicRoughness": {
-        "baseColorTexture": {
-          "index": 0
-        },
+        "baseColorFactor": [
+          0.8989652572879936,
+          0.8200988937266088,
+          0.008766752984188952,
+          1.0
+        ],
         "metallicFactor": 0.0,
-        "roughnessFactor": 0.5
+        "roughnessFactor": 0.8011823178082373
       }
     }
   ],
@@ -158,67 +156,11 @@
       "children": [
         2
       ],
-      "name": "root"
-    },
-    {
-      "children": [
-        3
-      ],
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        2.220446049250313e-16,
-        1.0,
-        0.0,
-        0.0,
-        -1.0,
-        2.220446049250313e-16,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ],
-      "name": "GLTF_SceneRootNode"
-    },
-    {
-      "children": [
-        4
-      ],
-      "matrix": [
-        0.7071067350592309,
-        -0.7071068273138611,
-        -0.0,
-        0.0,
-        0.7071068273138611,
-        0.7071067350592309,
-        0.0,
-        0.0,
-        0.0,
-        -0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0
-      ],
-      "name": "Sphere_2"
+      "name": "mmlcsr4clg2niwdc64rrejqzghsc0obj.obj.cleaner.materialmerger.gles"
     },
     {
       "mesh": 0,
-      "name": "Object_4"
-    }
-  ],
-  "samplers": [
-    {
-      "magFilter": 9729,
-      "minFilter": 9987,
-      "wrapS": 10497,
-      "wrapT": 10497
+      "name": "Object_2"
     }
   ],
   "scene": 0,
@@ -228,12 +170,6 @@
       "nodes": [
         0
       ]
-    }
-  ],
-  "textures": [
-    {
-      "sampler": 0,
-      "source": 0
     }
   ]
 }

@@ -7,42 +7,42 @@ import { sendMessage, subscribeTo, stompClient } from '@/config/stompWebsocket'
 export const useThemeStore = defineStore("theme", () => {
 const themes = ref <IThemes>({
     christmas: {
-        ground: "/src/assets/game/christmas/schneeboden.png",
-        wall: "/src/assets/game/christmas/ChristmasWall.png",
-        skybox: "/src/assets/game/christmas/skyBox/skywinter.png",
+        ground: new URL('@/assets/game/christmas/schneeboden.png', import.meta.url).href,
+        wall: new URL('@/assets/game/christmas/ChristmasWall.png', import.meta.url).href,
+        skybox: new URL('@/assets/game/christmas/skyBox/skywinter.png', import.meta.url).href,
       character: {
-          snackman: "/src/assets/game/christmas/snackman/snackman.glb",
-          ghost: "/src/assets/game/christmas/ghost/ghost.glb",
+          snackman:new URL('@/assets/game/christmas/snackman/chrismasSnackman.glb', import.meta.url).href,
+          ghost: new URL('@/assets/game/christmas/ghost/ghost.glb', import.meta.url).href,
       },
     },
     realistic: {
-        ground: "/src/assets/game/realistic/groundrea.png",
-        wall: "/src/assets/game/realistic/wallrea.png",
-        skybox:  "/src/assets/game/realistic/skyBox/reasky.png",
+        ground: new URL('@/assets/game/realistic/groundrea.png', import.meta.url).href,
+        wall: new URL('@/assets/game/realistic/wallrea.png', import.meta.url).href,
+        skybox: new URL('@/assets/game/realistic/skyBox/reasky.png', import.meta.url).href,
       character: {
-          snackman: "/src/assets/game/realistic/snackman/snackman.glb",
-          ghost: "/src/assets/game/realistic/ghost/ghost.glb",
+          snackman: new URL('@/assets/game/realistic/resnackman/reasnackman.glb', import.meta.url).href,
+          ghost:new URL('@/assets/game/realistic/reaghost/ghostRea.glb', import.meta.url).href,
       },
     },
     retro: {
-        ground: "/src/assets/game/retro/grass_1.png",
-        wall: "/src/assets/game/retro/cobblestone_2.png",
-        skybox: "/src/assets/game/retro/skyBox/sky052k.png",
+        ground: new URL('@/assets/game/retro/grass_1.png', import.meta.url).href,
+        wall: new URL('@/assets/game/retro/cobblestone_2.png', import.meta.url).href,
+        skybox: new URL('@/assets/game/retro/skyBox/sky052k.png', import.meta.url).href,
       character: {
-          snackman: "/src/assets/game/retro/snackman/retroSnackman.glb",
+          snackman: new URL('@/assets/game/retro/snackman/snackmanretro.glb', import.meta.url).href,
           ghost: {
-            path: "/src/assets/game/retro/ghost/retroGhost.glb",
+            path: new URL('@/assets/game/retro/ghost/retroGhost.glb', import.meta.url).href,
             scale: 0.2,
           },
       },
     },
     sweetWorld: {
-        ground: "/src/assets/game/sweetWorld/schocko.png",
-        wall: "/src/assets/game/sweetWorld/sweetWorldWall.png", 
-        skybox:  "/src/assets/game/sweetWorld/skyBox/kugelsky.png",
+        ground: new URL('@/assets/game/sweetWorld/schocko.png', import.meta.url).href,
+        wall: new URL('@/assets/game/sweetWorld/sweetWorldWall.png', import.meta.url).href,
+        skybox:  new URL('@/assets/game/sweetWorld/skyBox/kugelsky.png', import.meta.url).href,
       character: {
-          snackman: "/src/assets/game/sweetWorld/snackman/sweetWorldPinkSnackman.glb",
-          ghost: "/src/assets/game/sweetWorld/ghost/sweetWorldGhost.glb",
+          snackman: new URL('@/assets/game/sweetWorld/snackman/sweetWorldPinkSnackman.glb', import.meta.url).href,
+          ghost: new URL('@/assets/game/sweetWorld/ghost/sweetWorldGhost.glb', import.meta.url).href,
       },
     },
     });
