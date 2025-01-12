@@ -572,6 +572,113 @@ function loadMap(map: String[]) {
             }
           );
           break
+          case '1':
+          const groundCubeUnderItem5 = new THREE.Mesh(groundGeometry, groundMaterial)
+          groundCubeUnderItem5.position.set(rowCounter + mapOffset, 0, i + mapOffset)
+          scene.add(groundCubeUnderItem5)
+
+          const modelPath1 = new URL("@/assets/game/items/speed_boost/shoesboots.glb", import.meta.url).href
+
+          modelLoader.load(modelPath1, (objekt) => {
+            console.log('Model geladen:', modelPath1);
+            const model = objekt.scene
+            model.position.set(rowCounter - 3 + mapOffset, 0.75, i + mapOffset)
+            model.scale.set(0.1, 0.1, 0.1)
+
+            model.traverse((child) => {
+              if (child instanceof THREE.Mesh) {
+                if (child.material) {
+                  child.material.needsUpdate = true;
+                  console.log('Material:', child.material);
+                }
+              }
+            });
+
+            scene.add(model);
+            console.log(`Modell (A) Position: x=${model.position.x}, y=${model.position.y}, z=${model.position.z}`);
+          },
+            undefined,
+            (error) => {
+              console.error('Fehler beim Laden des Modells:', error);
+            }
+          );
+          break
+        case '2':
+          const groundCubeUnderItem6 = new THREE.Mesh(groundGeometry, groundMaterial)
+          groundCubeUnderItem6.position.set(rowCounter + mapOffset, 0, i + mapOffset)
+          scene.add(groundCubeUnderItem6)
+
+          const modelPath2 = new URL("@/assets/game/items/shield/shield.glb", import.meta.url).href
+
+          modelLoader.load(modelPath2, (objekt) => {
+            console.log('Model geladen:', modelPath2);
+            const model = objekt.scene
+            model.position.set(rowCounter - 2 + mapOffset, 1, i + mapOffset)
+            model.scale.set(0.2, 0.2, 0.2)
+
+            model.traverse((child) => {
+              if (child instanceof THREE.Mesh) {
+                if (child.material) {
+                  child.material.needsUpdate = true;
+                  console.log('Material:', child.material);
+                }
+              }
+            });
+
+            scene.add(model);
+            console.log(`Modell (A) Position: x=${model.position.x}, y=${model.position.y}, z=${model.position.z}`);
+          },
+            undefined,
+            (error) => {
+              console.error('Fehler beim Laden des Modells:', error);
+            }
+          );
+          break
+        case '3':
+          const groundCubeUnderItem7 = new THREE.Mesh(groundGeometry, groundMaterial)
+          groundCubeUnderItem7.position.set(rowCounter + mapOffset, 0, i + mapOffset)
+          scene.add(groundCubeUnderItem7)
+
+          const modelPath3 = new URL("@/assets/game/items/double_points/doublepoints.glb", import.meta.url).href
+
+          modelLoader.load(modelPath3, (objekt) => {
+            console.log('Model geladen:', modelPath3);
+            const model = objekt.scene
+            model.position.set(rowCounter - 2 + mapOffset, 0.75, i + mapOffset)
+            model.scale.set(2.5, 2.5, 2.5)
+
+            scene.add(model);
+            console.log(`Modell (A) Position: x=${model.position.x}, y=${model.position.y}, z=${model.position.z}`);
+          },
+            undefined,
+            (error) => {
+              console.error('Fehler beim Laden des Modells:', error);
+            }
+          );
+          break
+        case '4':
+          const groundCubeUnderItem8 = new THREE.Mesh(groundGeometry, groundMaterial)
+          groundCubeUnderItem8.position.set(rowCounter + mapOffset, 0, i + mapOffset)
+          scene.add(groundCubeUnderItem8)
+
+          const modelPath4 = new URL("@/assets/game/items/extra_life/heart.glb", import.meta.url).href
+
+          modelLoader.load(modelPath4, (objekt) => {
+            console.log('Model geladen:', modelPath4);
+            const model = objekt.scene
+            model.position.set(rowCounter - 2 + mapOffset, 0.75, i + mapOffset)
+            model.scale.set(0.05, 0.05, 0.05)
+
+
+            scene.add(model);
+            console.log(`Modell (A) Position: x=${model.position.x}, y=${model.position.y}, z=${model.position.z}`);
+          },
+            undefined,
+            (error) => {
+              console.error('Fehler beim Laden des Modells:', error);
+            }
+          );
+          break
         default:
           const groundCubeUnderItemlast = new THREE.Mesh(groundGeometry, groundMaterial)
           groundCubeUnderItemlast.position.set(rowCounter + mapOffset, 0, i + mapOffset)
