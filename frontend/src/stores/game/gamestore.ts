@@ -132,7 +132,7 @@ export const useGameStore = defineStore('gameStore', () => {
     }
   }
 
-  async function startGameViaStomp(selectedMapName: string, lobbyId: string): Promise<Result> {
+  async function startGameViaStomp(selectedMapName: string): Promise<Result> {
     const actingPlayer = getActingPlayer()
     if (!actingPlayer) {
       return new Promise((resolve) =>
@@ -358,6 +358,8 @@ export const useGameStore = defineStore('gameStore', () => {
           case 'gameStart':
             gameState.gamedata = message.feedback as IGameDTD
             break
+          case 'playerMoveValidation':
+            console.log("test")
           default:
             console.error('Unknown message type:', message.type)
         }
