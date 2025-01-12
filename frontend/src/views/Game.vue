@@ -13,6 +13,7 @@ import { useRoute } from 'vue-router'
 import type { IPlayerPositionDTD } from '@/stores/game/dtd/IPlayerPositionDTD'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import type { ICharacterDTD } from '@/stores/game/dtd/ICharacterDTD'
+import type { IChickenDTD } from '@/stores/game/dtd/IChickenDTD'
 
 const gameStore = useGameStore()
 
@@ -21,6 +22,8 @@ const lobbyId = route.params.id.toString()
 let chickenModell : THREE.Group; 
 let chickenMixer: THREE.AnimationMixer; 
 const clcok= new THREE.Clock(); 
+
+let currentIndex=0;
 
 let nextPosition: THREE.Vector3
 let lastSend: number = 0
@@ -36,7 +39,18 @@ let movingForward: boolean,
 const slowMovementSpeed = 2
 const fastMovementSpeed = 4
 let movementSpeed = slowMovementSpeed
-
+const mockChicken: IChickenDTD[] = [
+  { x: 0, y: 0, angle: 0 },   // Startpunkt, schaut nach Norden
+  { x: 1, y: 0, angle: 90 },  // Bewegt sich nach Osten
+  { x: 2, y: 0, angle: 90 },  // Weiter nach Osten
+  { x: 2, y: 1, angle: 180 }, // Dreht sich nach Süden
+  { x: 2, y: 2, angle: 180 }, // Weiter nach Süden
+  { x: 1, y: 2, angle: 270 }, // Dreht sich nach Westen
+  { x: 0, y: 2, angle: 270 }, // Weiter nach Westen
+  { x: 0, y: 1, angle: 0 },   // Dreht sich nach Norden
+  { x: 0, y: 0, angle: 0 },   // Zurück zum Startpunkt
+  { x: 1, y: 1, angle: 45 },  // Diagonal nach Nord-Osten
+]
 //#für HuD
 const life = ref(2) //startlife
 const maxLife = ref(3)
@@ -143,13 +157,16 @@ function animate() {
   setTimeout( function() {
     requestAnimationFrame(animate)
   }, 1000 / 60 );
-  renderer.render(scene, camera)
   const delta = clock.getDelta()
   cameraPositionBewegen(delta)
   updateChickenAnimation(); 
+  moveChicken(delta, mockChicken)
+  iterateChickenPath(delta, mockChicken)
+  followChicken(camera, chickenModell,cameraOffset);
+  renderer.render(scene, camera)
 }
 function loadChicken(scene:THREE.Scene){
-const loader =new GLTFLoader();
+const loader =new GLTFLoader();//@/assets/game/realistic/snackman/snackman.glb
 const chickenModellUrl=  new URL('@/assets/game/chicken/chicken1.glb', import.meta.url).href;
 loader.load(
   chickenModellUrl,
@@ -160,13 +177,14 @@ loader.load(
       scene.add(chickenModell);
       chickenMixer= new THREE.AnimationMixer(chickenModell);
       const animation = gltf.animations; 
-      
+      //Überprüfung ob modell animation haben dann werden diese ausgeführt
       if(animation && animation.length>0){
         const action = chickenMixer.clipAction(animation[0]);
+        action.timeScale = 800; 
         action.play(); 
         console.log('Chicken Animation gestartet')
       }else{
-        console.log('keine Animation im chicken gefunden')
+        console.log('keine Animation im chicken gefunden, modell wird geladen')
       }
     },
     undefined, // Fortschritts-Callback (optional)
@@ -177,12 +195,101 @@ loader.load(
   
   console.log('Komplette Szene nach dem Start:', scene.children);
 }
+
+function moveChicken(delta: number, chickenData: IChickenDTD[]) {
+  if (!chickenModell) {
+    console.warn("Chicken-Modell ist nicht geladen.");
+    return;
+  }
+
+  // Nächsten Punkt berechnen
+  const nextIndex = (currentIndex + 1) % chickenData.length;
+  const currentPosition = new THREE.Vector3(
+    chickenData[currentIndex].x,
+    0,
+    chickenData[currentIndex].y
+  );
+  const nextPosition = new THREE.Vector3(
+    chickenData[nextIndex].x,
+    0,
+    chickenData[nextIndex].y
+  );
+
+  // Richtung und Bewegung berechnen
+  const direction = nextPosition.clone().sub(currentPosition).normalize();
+  const chickenSpeed = 1; // Geschwindigkeit: 1 Einheit pro Sekunde
+  const movement = direction.multiplyScalar(chickenSpeed * delta);
+
+  // Chicken bewegen
+  chickenModell.position.add(movement);
+
+  // Prüfen, ob das Ziel erreicht wurde
+  if (chickenModell.position.distanceTo(nextPosition) < 0.1) {
+    currentIndex = nextIndex; // Nächsten Punkt anvisieren
+    console.log(`Nächster Punkt erreicht: Index ${currentIndex}`);
+  }
+
+  // Modellrotation anpassen
+  chickenModell.rotation.y = THREE.MathUtils.degToRad(chickenData[currentIndex].angle);
+}
+// Test: Alle Schritte loggen
+function iterateChickenPath(delta: number, chickenData: IChickenDTD[]) {
+  for (let i = 0; i < chickenData.length; i++) {
+    console.log(`Schritt ${i}: Position:`, chickenData[i]);
+  }
+}
+
+const cameraOffset = new THREE.Vector3(0, 5, -10); // Offset der Kamera relativ zum Chicken
+
+function followChicken(camera: THREE.Camera, chicken: THREE.Group, offset: THREE.Vector3) {
+  if (chicken) {
+    // Kamera-Position basierend auf Chicken-Position und Offset
+    const targetPosition = chicken.position.clone().add(offset);
+    camera.position.lerp(targetPosition, 0.1); // Sanfte Bewegung der Kamera
+    camera.lookAt(chicken.position); // Kamera auf das Chicken ausrichten
+  }
+}
+  /*
+   console.log("aktueller werrt", currentIndex);
+   const chickenSpeed= 3; 
+   
+    const currentPosition = new THREE.Vector3(chickenData[currentIndex].x, 0, chickenData[currentIndex].y);
+    const nextIndex = (currentIndex + 1) % chickenData.length; 
+    const nextPosition = new THREE.Vector3(
+    chickenData[nextIndex].x,0,chickenData[nextIndex].y);
+    console.log("Aktuelle Position:", currentPosition);
+    console.log("Nächste Position:", nextPosition);
+    
+    const direction = nextPosition.clone().sub(currentPosition).normalize();
+
+     const movement = direction.clone().multiplyScalar(chickenSpeed * delta); // Bewegung
+
+// Aktualisiere die Position des Modells
+if (chickenModell) {
+  chickenModell.position.add(movement); // Bewegung des Modells in Richtung des nächsten Punkts
+
+  console.log("Aktualisierte Modellposition:", chickenModell.position);
+
+  // Prüfen, ob das Ziel erreicht wurde
+  if (chickenModell.position.distanceTo(nextPosition) < 0.1) {
+    currentIndex = nextIndex; // Nächsten Punkt anvisieren
+    console.log("Nächster Index:", currentIndex);
+  }
+
+  // Optional: Rotation anpassen
+  chickenModell.rotation.y = THREE.MathUtils.degToRad(chickenData[currentIndex].angle);
+} else {
+  console.warn("Chicken-Modell ist nicht geladen.");
+}
+}*/
 function updateChickenAnimation(){
   if (chickenMixer){
       const delta = clock.getDelta(); 
       chickenMixer.update(delta);
   }
 }
+
+
 function cameraPositionBewegen(delta: number) {
   const cameraViewDirection = new THREE.Vector3()
   camera.getWorldDirection(cameraViewDirection)
@@ -600,6 +707,7 @@ onMounted(async () => {
       angle: 2 * Math.PI,
     },
   ]
+
   animate()
 })
 </script>
