@@ -62,12 +62,13 @@ public class Tile {
                     } else if(item instanceof ObjectsItems){
                         snackman.collectObjectItem((ObjectsItems) item);
                     }
-                    itemsToRemove.add(item);
+                   // itemsToRemove.add(item);
                 } else if (character instanceof Ghost && item.getType()==PlayerRole.GHOST && item instanceof ObjectsItems){
                     Ghost ghost = (Ghost) character;
                     ghost.collectObjectItem((ObjectsItems) item);
-                    itemsToRemove.add(item);
+                  //  itemsToRemove.add(item);
                 }
+                removeItem(item);
             }
             itemList.removeAll(itemsToRemove); // enfernt alle zu entfernenen Items ausserhalb der schleife
             logger.debug("Item removed. Remaining items: {}", itemList.size());
@@ -88,6 +89,14 @@ public class Tile {
     public boolean addItem(Item item){
         this.itemList.add(item);
         return true;
+    }
+
+    public Item removeItem(Item item){
+        if(itemList.contains(item)){
+            itemList.remove(item);
+            return item;
+        }
+        return null;
     }
 
     public boolean removeCharacter(Character character) {
