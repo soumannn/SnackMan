@@ -9,7 +9,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import de.hs_rm.backend.gamelogic.Game;
 import de.hs_rm.backend.gamelogic.characters.players.Player;
 import de.hs_rm.backend.gamelogic.characters.players.PlayerRole;
+import de.hs_rm.backend.gamelogic.map.Tile;
 import de.hs_rm.backend.gamelogic.characters.players.Chicken;
+import de.hs_rm.backend.gamelogic.characters.players.Item;
 
 @SpringBootTest
 class GameTests {
@@ -153,6 +155,7 @@ class GameTests {
         Player notFound = game.findPlayerByUsername("Nonexistent");
         assertNull(notFound);
     }
+
     /*
     @Test
     void setChickenTest() {
