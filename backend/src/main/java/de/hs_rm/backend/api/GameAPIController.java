@@ -234,12 +234,13 @@ public class GameAPIController {
 
             // Spieler aus dem Spiel entfernen
             existingGame = gameService.leaveGame(lobbyid, player);
-            logger.info("Player: {}, left game: {}", player.getName(), lobbyid);
+            if(existingGame == null){
+                return;
+            }
 
             response.put("feedback", existingGame.getPlayers());
             response.put("status", "ok");
             response.put("time", LocalDateTime.now().toString());
-
             messagingService.sendPlayerList(lobbyid, response);
 
         } catch (GameLeaveException e) {
@@ -255,6 +256,9 @@ public class GameAPIController {
     @MessageMapping("/topic/ingame/{lobbyid}/playerPosition")
     public void moveCharacter(PlayerPosition position, @DestinationVariable String lobbyid) {
 
+        //Variable die dafür sogt das man eine bestimmten Abstand zu einer Wand hat
+        float offset = 0.005f;
+
         //Zum Testen logik um Spieler zu bewegen fehlt noch
 
         HashMap<String, Object> validationResponse = new HashMap<>();
@@ -269,16 +273,16 @@ public class GameAPIController {
         //Wenn Laut Game Bewegung nicht Valide, dann wird es nochmal mit anderen Werten probiert um den Spieler wieder aus der Wand raus zu schieben (4 Mal für alle 4 Himmelsrichtungen)
         if (!validMove) {
             if (existingGame.move(position.getPlayerName(), Math.round(position.getPosX()), position.getPosY(), position.getPosZ(), position.getAngle())) {
-                position.setPosX((float) Math.round(position.getPosX()));
+                position.setPosX((float) (Math.round(position.getPosX()) + offset));
                 validMove = true;
             } else if (existingGame.move(position.getPlayerName(), position.getPosX(), Math.round(position.getPosY()), position.getPosZ(), position.getAngle())) {
-                position.setPosY((float) Math.round(position.getPosY()));
+                position.setPosY((float) (Math.round(position.getPosY()) + offset));
                 validMove = true;
-            } else if (existingGame.move(position.getPlayerName(), Math.floor(position.getPosX()) - 0.0001, position.getPosY(), position.getPosZ(), position.getAngle())) {
-                position.setPosX((float) (Math.floor(position.getPosX())-0.0001));
+            } else if (existingGame.move(position.getPlayerName(), Math.floor(position.getPosX()) - offset, position.getPosY(), position.getPosZ(), position.getAngle())) {
+                position.setPosX((float) (Math.floor(position.getPosX()) - offset));
                 validMove = true;
-            } else if (existingGame.move(position.getPlayerName(), position.getPosX(), Math.floor(position.getPosY())  - 0.0001, position.getPosZ(), position.getAngle())) {
-                position.setPosY((float) (Math.floor(position.getPosY()) - 0.0001));
+            } else if (existingGame.move(position.getPlayerName(), position.getPosX(), Math.floor(position.getPosY()) - offset, position.getPosZ(), position.getAngle())) {
+                position.setPosY((float) (Math.floor(position.getPosY()) - offset));
                 validMove = true;
             }
         }
@@ -311,6 +315,23 @@ public class GameAPIController {
         messagingService.sendNewCharacterPosition(lobbyid, response);
 
     }
+
+    @PostMapping("/{gameId}/jumpAllowed")
+    public ResponseEntity<Map<String, Boolean>> checkJumpAllowed(
+            @PathVariable String gameId,
+            @RequestBody Map<String, String> requestBody) {
+
+        String playerName = requestBody.get("name");
+        if (playerName == null || playerName.isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("jumpAllowed", false)); 
+        }
+        boolean isJumpAllowed = gameService.isJumpAllowed(gameId, playerName);
+
+        return ResponseEntity.ok(Map.of("jumpAllowed", isJumpAllowed));
+    }
+
+    
 
     // Method to end the game
     @PostMapping("/end/{gameId}")
