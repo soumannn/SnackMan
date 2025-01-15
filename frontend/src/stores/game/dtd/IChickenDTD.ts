@@ -1,6 +1,8 @@
 export interface IChickenDTD {
-  id: string; 
-  x: number; 
-  y: number; 
-  angle: number;
+  //wie unterscheidet ihr die chicken auf der Map?
+  id: string;
+  gameId: string;
+  currentCalorie?: number | undefined;
+  posX: number;
+  posY: number;
 }

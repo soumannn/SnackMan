@@ -1,12 +1,13 @@
-
 package de.hs_rm.backend.gamelogic;
 
+import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.hs_rm.backend.gamelogic.characters.players.Chicken;
 import de.hs_rm.backend.gamelogic.characters.players.FoodItems;
 import de.hs_rm.backend.gamelogic.characters.players.Ghost;
 import de.hs_rm.backend.gamelogic.characters.players.GhostObjectItem;
@@ -15,6 +16,7 @@ import de.hs_rm.backend.gamelogic.characters.players.ObjectsItems;
 import de.hs_rm.backend.gamelogic.characters.players.Player;
 import de.hs_rm.backend.gamelogic.characters.players.Snackman;
 import de.hs_rm.backend.gamelogic.characters.players.SnackmanObjectItem;
+import de.hs_rm.backend.gamelogic.characters.chicken.Chicken;
 import de.hs_rm.backend.gamelogic.characters.players.Character;
 import de.hs_rm.backend.gamelogic.map.PlayMap;
 import de.hs_rm.backend.gamelogic.map.Tile;
@@ -31,6 +33,16 @@ public class Game {
     private PlayMap playmap;
     private int chickenNum;
     private String selectedMap;
+    private int itemsNum;
+
+    private int snackmanLife;
+    private int snackmanMaxLife;
+    private double snackmanSpeed;
+    private double ghostSpeed;
+    private int itemsPerSurfaceRatio;
+    private int nutriscore;
+    private String pathToChickenBot;
+
     private boolean privateLobby;
     private String password;
     private int itemsNum;
@@ -69,27 +81,21 @@ public class Game {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Game.class);
 
-    private static final int ITEMS_PER_SURFACE_RATIO = 10; // Items pro Surface-Tile
-
-    //TO-DO: beide Listen müssen nochmal angepasst werden
+    // TO-DO: beide Listen müssen nochmal angepasst werden
     // Globale Liste der vordefinierten FoodItems
     private static final List<FoodItems> FOOD_ITEMS = List.of(
             new FoodItems("Banana", -1, -1, NutriScore.A), // Positionen werden später festgelegt
             new FoodItems("Cookie", -1, -1, NutriScore.C),
-            new FoodItems("Apple", -1, -1, NutriScore.B)
-            );
+            new FoodItems("Apple", -1, -1, NutriScore.B));
     // vordefinierten ObjectsItems --> Pos muss geändert werden
     private static final List<ObjectsItems> OBJECTS_ITEMS = List.of(
             new GhostObjectItem("Speed Boost", -1, -1, "Increases movement speed temporarily"),
             new GhostObjectItem("Shield", -1, -1, "Provides temporary invincibility"),
             new SnackmanObjectItem("Double Points", -1, -1, "Doubles points gained for a limited time"),
-            new SnackmanObjectItem("Extra Life", -1, -1, "Grants an extra life")
-    );
+            new SnackmanObjectItem("Extra Life", -1, -1, "Grants an extra life"));
 
-    private static final int ITEMS_NUM = 5;
-
-
-    public Game(Player gamemaster){
+    public Game(Player gamemaster, int snackmanLife, int snackmanMaxLife, double snackmanSpeed, double ghostSpeed,
+            int itemsPerSurfaceRatio, int nutriscore, String pathToChickenBot) {
         this.id = generateId(5);
         this.players = new ArrayList<>();
         this.chickens = new ArrayList<>();
@@ -109,6 +115,41 @@ public class Game {
         }
 
 
+        this.snackmanLife = snackmanLife;
+        this.snackmanMaxLife = snackmanMaxLife;
+        this.snackmanSpeed = snackmanSpeed;
+        this.ghostSpeed = ghostSpeed;
+        this.itemsPerSurfaceRatio = itemsPerSurfaceRatio;
+        this.nutriscore=nutriscore;
+        this.pathToChickenBot = pathToChickenBot;
+    }
+
+    public int getSnackmanLife() {
+        return snackmanLife;
+    }
+
+    public int getSnackmanMaxLife() {
+        return snackmanMaxLife;
+    }
+
+    public double getSnackmanSpeed() {
+        return snackmanSpeed;
+    }
+
+    public double getGhostSpeed() {
+        return ghostSpeed;
+    }
+
+    public int getItemsPerSurfaceRatio() {
+        return itemsPerSurfaceRatio;
+    }
+
+    public int getNutriscore() {
+        return nutriscore;
+    }
+
+    public void setNutriscore(int nutriscore) {
+        this.nutriscore = nutriscore;
     }
 
     public String getSelectedMap() {
@@ -119,8 +160,26 @@ public class Game {
         this.selectedMap = selectedMap;
     }
 
+    public int getChickenNum() {
+        return chickenNum;
+    }
+
+
+    public void setChickenNum(int chickenNum) {
+        this.chickenNum = chickenNum;
+    }
+
+    public String getPathToChickenBot() {
+        return pathToChickenBot;
+    }
+
+    public void setPathToChickenBot(String pathToChickenBot) {
+        this.pathToChickenBot = pathToChickenBot;
+    }
+
     // Generiert eindeutige ID
-    // Synchronisieren --> verhindert, dass mehrere Threads gleichzeitig doppelte IDs erzeugen
+    // Synchronisieren --> verhindert, dass mehrere Threads gleichzeitig doppelte
+    // IDs erzeugen
     private synchronized String generateId(int length) {
         String newId;
         do {
@@ -147,21 +206,30 @@ public class Game {
         if (this.playmap == null) {
             return false;
         }
-        return start(this.playmap);
+        return start(this.playmap, this.chickenNum);
     }
 
-    public boolean start(PlayMap playMap) {
+    public boolean start(PlayMap playMap, int chickenNum) {
+
+        this.chickenNum = chickenNum;
         this.started = true;
         LOGGER.info("started: {} gameid: {}", this.started, this.id);
 
-        // TODO: hier sollte random name als param übergeben werden
-        if (this.playmap == null) {
-            this.playmap = playMap;
+        this.playmap = playMap;
+
+        int surfaceCount = playmap.getCountSurface();
+        int maxChickenAllowed = surfaceCount / 5; // 1 Chicken pro 5 SURFACE-Tiles
+
+        LOGGER.info("Requested chicken count exceeds allowed maximum: Requested={}, Allowed={}, SurfaceTiles={}", this.chickenNum, maxChickenAllowed, surfaceCount);
+        if (this.chickenNum> maxChickenAllowed) {
+            LOGGER.warn("Requested chicken count exceeds allowed maximum: Requested={}, Allowed={}, SurfaceTiles={}", this.chickenNum, maxChickenAllowed, surfaceCount);
+        return false;
         }
 
         Random random = new Random();
 
-        // DONE: hier sollte Charakter liste erstellen und player zu jedem charater zuweisen
+        // DONE: hier sollte Charakter liste erstellen und player zu jedem charater
+        // zuweisen
         for (Player player : players) {
             Tile randomTile = null;
             // Wiederholen, bis ein Surface-Tile gefunden wird
@@ -174,13 +242,14 @@ public class Game {
             switch (player.getPlayerrole()) {
                 // DONE: random position von Charakter
                 case GHOST -> {
-
-                    characters.put(player.getName(), new Ghost(1.0, index % playmap.getWidth(), index / playmap.getWidth()));
+                    characters.put(player.getName(),
+                            new Ghost(ghostSpeed, index % playmap.getWidth(), index / playmap.getWidth()));
                     randomTile.addCharacter(characters.get(player.getName()));
                 }
                 case SNACKMAN -> {
 
-                    characters.put(player.getName(), new Snackman(1.0, index % playmap.getWidth(), index / playmap.getWidth(), 3, 3));
+                    characters.put(player.getName(),
+                            new Snackman(snackmanSpeed, index % playmap.getWidth(), index / playmap.getWidth(), snackmanLife, snackmanMaxLife));
                     randomTile.addCharacter(characters.get(player.getName()));
                 }
                 default -> {
@@ -191,19 +260,47 @@ public class Game {
         }
         // DONE: random position von hühnchen
         for (int i = 0; i < this.chickenNum; i++) {
+            LOGGER.info("Chicken number: {}", chickenNum);
             Tile randomTile;
             int index = -1;
+            Path testPathForScript = null;
+
+            // ToDo Aron: url ist nur zu Testzwecken hier bis entsprechende Umgebungsvariablen in application.properties und ordner außerhalb src erneut implementiert sind!
+            URL url = getClass().getResource("/scripts/test_script_wrong_location.py");
+            if (url != null) {
+                testPathForScript = Paths.get(url.getPath());
+                LOGGER.info("Path to test script: {}", testPathForScript.toString());
+            } else {
+                LOGGER.error("Script not found");
+            }
             do {
                 index = random.nextInt(playmap.getTilesList().size());
                 randomTile = playmap.getTilesList().get(index);
             } while (randomTile.getType() != TileType.SURFACE || randomTile.hasChicken());
 
-            Chicken chicken = new Chicken(index % playmap.getWidth(), index / playmap.getWidth());
+
+            Chicken chicken = new Chicken(index % playmap.getWidth(), index / playmap.getWidth(), testPathForScript, this);
+
+
             chickens.add(chicken);
-            //DONE: chicken zu random tile hinzufügen
+            // DONE: chicken zu random tile hinzufügen
             randomTile.addChicken(chicken);
+
+            LOGGER.info("Adding chicken: {} at Tile: {}", i, randomTile);
+            LOGGER.info("Chicken added to tile: {}", randomTile);
+            Thread thread = new Thread(() -> {
+                LOGGER.info("Runnign in a thread" + Thread.currentThread().getName());
+
+                chicken.executeBehavior();
+            });
+            thread.start();
+
+
+
         }
-        this.itemsNum = Math.max(1, playmap.getCountSurface()/ ITEMS_PER_SURFACE_RATIO ); // 1 Item pro ITEMS_PER_SURFACE_RATIO
+
+        this.itemsNum = Math.max(1, playmap.getCountSurface() / itemsPerSurfaceRatio); // 1 Item pro
+                                                                                          // temsPerSurfaceRatio
 
         for (int i = 0; i < itemsNum; i++) {
             Tile randomTile;
@@ -216,52 +313,62 @@ public class Game {
                     || randomTile.hasItem());
 
             if (createFoodItem) {
-            // Zufälliges Item aus der FOOD_ITEMS-Liste auswählen
-            FoodItems randomItemTemplate = FOOD_ITEMS.get(random.nextInt(FOOD_ITEMS.size()));
+                // Zufälliges Item aus der FOOD_ITEMS-Liste auswählen
+                FoodItems randomItemTemplate = FOOD_ITEMS.get(random.nextInt(FOOD_ITEMS.size()));
 
-            // Erstelle eine neue Instanz mit der korrekten Position
-            FoodItems newItem = new FoodItems(
-                    randomItemTemplate.getName(),
-                    index % playmap.getWidth(),
-                    index / playmap.getWidth(),
-                    randomItemTemplate.getNutriScore()
-                    );
+                // Erstelle eine neue Instanz mit der korrekten Position
+                FoodItems newItem = new FoodItems(
+                        randomItemTemplate.getName(),
+                        index % playmap.getWidth(),
+                        index / playmap.getWidth(),
+                        randomItemTemplate.getNutriScore());
 
-            // Item hinzufügen
-            randomTile.addItem(newItem);
-            playmap.updateMapState(index / playmap.getWidth(), index % playmap.getWidth(), newItem.getSymbol()); // für Food
-        } else {
+                // Item hinzufügen
+                randomTile.addItem(newItem);
+                playmap.updateMapState(index / playmap.getWidth(), index % playmap.getWidth(), newItem.getSymbol()); // für
+                                                                                                                     // Food
+            } else {
 
-            // Zufälliges ObjectsItem aus der vordefinierten Liste
-        ObjectsItems randomObjectTemplate =  OBJECTS_ITEMS.get(random.nextInt(OBJECTS_ITEMS.size()));
-        ObjectsItems newObjectItem;
+                // Zufälliges ObjectsItem aus der vordefinierten Liste
+                ObjectsItems randomObjectTemplate = OBJECTS_ITEMS.get(random.nextInt(OBJECTS_ITEMS.size()));
+                ObjectsItems newObjectItem;
 
-        // Bestimmt die konkrete Unterklasse des ObjectsItems mit Position
-        if (randomObjectTemplate instanceof GhostObjectItem) {
-            newObjectItem = new GhostObjectItem(
-                    randomObjectTemplate.getName(),
-                    index % playmap.getWidth(),
-                    index / playmap.getWidth(),
-                    randomObjectTemplate.getEffectDescription()
-            );
-        } else if (randomObjectTemplate instanceof SnackmanObjectItem) {
-            newObjectItem = new SnackmanObjectItem(
-                    randomObjectTemplate.getName(),
-                    index % playmap.getWidth(),
-                    index / playmap.getWidth(),
-                    randomObjectTemplate.getEffectDescription()
-            );
-        }else {
-            LOGGER.warn("Unknown ObjectsItem type: {}", randomObjectTemplate.getName());
-            continue;
+                // Bestimmt die konkrete Unterklasse des ObjectsItems mit Position
+                if (randomObjectTemplate instanceof GhostObjectItem) {
+                    newObjectItem = new GhostObjectItem(
+                            randomObjectTemplate.getName(),
+                            index % playmap.getWidth(),
+                            index / playmap.getWidth(),
+                            randomObjectTemplate.getEffectDescription());
+                } else if (randomObjectTemplate instanceof SnackmanObjectItem) {
+                    newObjectItem = new SnackmanObjectItem(
+                            randomObjectTemplate.getName(),
+                            index % playmap.getWidth(),
+                            index / playmap.getWidth(),
+                            randomObjectTemplate.getEffectDescription());
+                } else {
+                    LOGGER.warn("Unknown ObjectsItem type: {}", randomObjectTemplate.getName());
+                    continue;
+                }
+
+                // ObjectsItem hinzufügen
+                randomTile.addItem(newObjectItem);
+                playmap.updateMapState(index / playmap.getWidth(), index % playmap.getWidth(),
+                        newObjectItem.getSymbol()); // für Object
+            }
+
         }
-
-        // ObjectsItem hinzufügen
-        randomTile.addItem(newObjectItem);
-        playmap.updateMapState(index / playmap.getWidth(), index % playmap.getWidth(), newObjectItem.getSymbol()); // für Object
+        // Bewegung von Hühn ausführen
+        /*
+        for (Chicken chicken : chickens) {
+            try {
+                chicken.executeBehavior(playmap);
+            } catch (Exception e) {
+                LOGGER.error("Error while executing behavior for chicken: {}", chicken, e);
+            }
         }
+        */
 
-    }
         return started;
     }
 
@@ -392,7 +499,6 @@ public class Game {
         LOGGER.debug("TargetTile has item: {}, Items: {}", targetTile.hasItem(), targetTile.getItemList());
         return true;
     }
-    
 
 
     public Player findPlayerByUsername(String username) {
@@ -429,7 +535,6 @@ public class Game {
         int index = random.nextInt(players.size()); // zwischen 0 und players.size() - 1
         return players.get(index);
     }
-
 
     public void setPlayers(List<Player> players) {
         this.players = players;
@@ -477,6 +582,14 @@ public class Game {
 
     public void addCharacter(String username, Character character) {
         this.characters.put(username, character);
+    }
+
+    public int getItemsNum() {
+        return itemsNum;
+    }
+
+    public void setItemsNum(int itemsNum) {
+        this.itemsNum = itemsNum;
     }
 
     public String getPassword(){

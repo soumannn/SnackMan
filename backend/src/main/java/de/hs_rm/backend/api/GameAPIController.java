@@ -14,6 +14,7 @@ import de.hs_rm.backend.exception.GameLeaveException;
 import de.hs_rm.backend.gamelogic.Game;
 import de.hs_rm.backend.gamelogic.GameService;
 import de.hs_rm.backend.gamelogic.characters.players.Character;
+import de.hs_rm.backend.gamelogic.characters.players.Chicken;
 import de.hs_rm.backend.gamelogic.characters.players.Player;
 import de.hs_rm.backend.gamelogic.characters.players.PlayerPosition;
 import de.hs_rm.backend.gamelogic.map.PlayMap;
@@ -24,6 +25,7 @@ import de.hs_rm.backend.gamelogic.characters.players.PlayerRole;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -61,8 +63,6 @@ public class GameAPIController {
 
     Logger logger = LoggerFactory.getLogger(GameAPIController.class);
 
-    // private Game game;
-
     // TODO: Sicherheit für Spiel, keys in responsebody
     // TODO: Was passiert wenn Fehler nicht hier sondern in Spiellogik (Game-Klasse)
     // kommt
@@ -80,63 +80,86 @@ public class GameAPIController {
         gamemaster.setPlayerrole(PlayerRole.SNACKMAN);
         gamemaster.setPassword(gamemasterFromFrontend.getPassword());
         // #63 NEW: gameservice now creates game
-        Game newGame = gameService.createGame(gamemasterFromFrontend);
+        Game newGame = gameService.createGame(gamemaster);
 
         return createOkResponse(newGame);
     }
 
-    // Method to join an existing game
-    // @PostMapping("/join/{gameId}")
-    // public ResponseEntity<?> joinGame(@PathVariable String gameId) {
-    // if (game == null || !game.getId().equals(gameId)) {
-    // return createErrorResponse("Game ID is invalid!");
-    // }
-    // // Logik zum Beitreten des Spiels
-    // return ResponseEntity.ok(game);
-    // }
-
     // Method to start the game
     @PostMapping("/start/{gameId}")
-    public ResponseEntity<?> startGame(@PathVariable String gameId, @RequestBody Map<String, String> payload) {
-        String selectedMap = payload.get("selectedMap").trim();
+    public ResponseEntity<?> startGame(@PathVariable String gameId,  @RequestBody Map<String, Object> payload) {
+        String selectedMap = (String) payload.get("selectedMap");
+        int chickenNum =(Integer) payload.get("chickenNum");
+        
         logger.info("Starting game with ID: {} and selected map: {}", gameId, selectedMap);
 
         if (selectedMap == null || selectedMap.isEmpty()) {
             return createErrorResponse("Invalid request: 'selectedMap' is required.");
         }
-        PlayMap playMap = playMapService.createPlayMap(selectedMap);
-        // #63 NEW: gameService now starts the game
-        Game existingGame = gameService.startGame(gameId, playMap);
+        if (chickenNum == 0) {
+            return createErrorResponse("Invalid request: 'chickenNum' is required.");
+        }
+
+        PlayMap playMap = playMapService.createPlayMap(selectedMap.trim());
+
+        Game existingGame = gameService.getGameById(gameId);
 
         if (existingGame == null) {
             return createErrorResponse("No game found to start.");
         }
 
+        boolean success = gameService.startGame(gameId, playMap, chickenNum);
+
+        if (!success) {
+            return createErrorResponse("Chicken nummbers in game is not fair");
+        }
+
         return createOkResponse(existingGame);
     }
 
-    @MessageMapping("/topic/game/{lobbyid}/start/{selectedMapName}")
+    @MessageMapping("/topic/game/{lobbyid}/start/{selectedMapName}/{chickenNum}")
     @SendTo("/topic/game/{lobbyid}")
     public void startGameViaStomp(
             Player actingPlayer,
             @DestinationVariable String lobbyid,
-            @DestinationVariable String selectedMapName
+            @DestinationVariable String selectedMapName,
+            @DestinationVariable int chickenNum
     ) {
+        
+        Game existingGame = gameService.getGameById(lobbyid);
         HashMap<String, Object> response = new HashMap<>();
 
         try {
-            if (selectedMapName == null || selectedMapName.isEmpty()) {
+            if (existingGame == null) {
+                response.put("type", "gameStart");
+                response.put("feedback", null);
+                response.put("status", "No game found to start");
+                return;
+            }
+            
+            else if (selectedMapName == null || selectedMapName.isEmpty()) {
                 response.put("type", "gameStart");
                 response.put("feedback", null);
                 response.put("status", "no map selected");
+                return;
 
             } else {
                 PlayMap playMap = playMapService.createPlayMap(selectedMapName);
-                Game existingGame = gameService.startGame(lobbyid, playMap);
+                boolean success = gameService.startGame(lobbyid, playMap, chickenNum);
 
-                response.put("type", "gameStart");
-                response.put("feedback", existingGame);
-                response.put("status", "ok");
+                logger.info("Received chickenNum: {}", existingGame.getChickenNum());
+                logger.info("Chickens before initialization: {}", existingGame.getChickens());
+
+
+                if (!success) {
+                    response.put("type", "gameStart");
+                    response.put("feedback", null);
+                    response.put("status", "Error: The selected number of chickens: " + chickenNum +" exceeds the allowed limit for " + selectedMapName);
+                } else {
+                    response.put("type", "gameStart");
+                    response.put("feedback", existingGame);
+                    response.put("status", "ok");
+                }
 
             }
         } catch (Exception e) {
@@ -144,7 +167,7 @@ public class GameAPIController {
             response.put("feedback", null);
             response.put("status", "Error: " + e.getMessage());
         }
-
+        logger.info("Sending response: {}", response);
         response.put("time", LocalDateTime.now().toString());
         messagingService.sendGameStart(lobbyid, response);
     }
@@ -247,6 +270,23 @@ public class GameAPIController {
 
     }
 
+    @MessageMapping("/topic/ingame/{lobbyid}/chickenPosition")
+    @SendTo("/topic/ingame/{lobbyod}")
+    public Map<String, Object> chickenPosition(@DestinationVariable String lobbyid){
+
+        Game existingGame = gameService.getGameById(lobbyid);
+        List<Chicken> chickens = existingGame.getChickens();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("type", "chickenPositions");
+        response.put("chickens", chickens);
+        response.put("status", "ok");
+        response.put("time", LocalDateTime.now().toString());
+
+        return response;
+    }
+
+
     // Method to end the game
     @PostMapping("/end/{gameId}")
     public ResponseEntity<?> endGame(@PathVariable String gameId) {
@@ -294,21 +334,7 @@ public class GameAPIController {
         return createErrorResponse("can not kick "+ usernameKicked +"!");
 
     }
-
-
-    // Method to set the number of elements (e.g., chickens) in the game
-    @PostMapping("/setChicken/{gameId}/{number}")
-    public ResponseEntity<?> setNumberOfChicken(@PathVariable String gameId ,@PathVariable int number) {
-        // #63 NEW: gameService now sets the number of Chickens
-        Game existingGame = gameService.setChicken(gameId, number);
-
-        if (existingGame == null) {
-            return createErrorResponse("No game found.");
-        }
-
-        return createOkResponse(existingGame);
-    }
-
+    
     // Retrieve the game status
     @GetMapping("/status/{gameId}")
     public ResponseEntity<?> getGameStatus(@PathVariable String gameId) {

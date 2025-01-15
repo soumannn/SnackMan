@@ -14,7 +14,7 @@ public class PlayMap {
 
 private char[][] map;
 private List <Tile> tilesList = new ArrayList<>();
-private int countSurface = 0;
+private int countSurface;
 
 
 private static final Logger LOGGER = LoggerFactory.getLogger(PlayMap.class);
@@ -78,6 +78,7 @@ public void updateMapState(int x, int y, char symbol) {
 
 public void createTiles(){
     tilesList.clear(); // zurücksetzen
+    countSurface = 0;
     if (map == null || map.length == 0) {
         return; // keine Karte heisst keine TIles
     }
@@ -121,6 +122,17 @@ public List<Tile> getTilesList() {
 
 public void setTilesList(List<Tile> tilesList) {
     this.tilesList = tilesList;
+}
+
+public Tile getTileFromList(int x, int y) {
+    // ToDo Aron: Schauen ob rechnung richtig ist
+    if (x >= 0 && x < map.length && y >= 0 && y < map[0].length) {
+        Tile tile = tilesList.get(x * map[0].length + y);
+        return tile;
+    } else {
+        LOGGER.warn("Invalid position to get tile from list: ({}, {})", x, y);
+        return null; 
+    }
 }
 
 public int getWidth() {

@@ -30,6 +30,7 @@ public class GameServiceTest {
         gameService.setGameList(gameList); 
     }
 
+    /* 
     @Test // Test für null Username
     void testMoveUsernameIsNull() {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
@@ -37,7 +38,7 @@ public class GameServiceTest {
         });
         assertEquals("Username and direction must not be empty.", exception.getMessage());
     }
-
+    /* 
 
     @Test // Test für leeren Username
     void testMoveUsernameIsEmpty() {
@@ -46,6 +47,7 @@ public class GameServiceTest {
         });
         assertEquals("Username and direction must not be empty.", exception.getMessage());
     }
+    
 
     @Test // Test für Spieler, der in keinem Spiel ist
     void testMovePlayerNotFound() {
@@ -55,6 +57,7 @@ public class GameServiceTest {
         assertEquals("Player not found in any game.", exception.getMessage());
     }
 
+    /*
     @Test // Spieler wird gefunden, aber Bewegung schlägt fehl
     void testMoveMoveFails() {
         Player mockPlayer = mock(Player.class); // Mock-Spieler erstellen

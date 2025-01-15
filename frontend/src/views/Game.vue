@@ -14,6 +14,7 @@ import type { IPlayerPositionDTD } from '@/stores/game/dtd/IPlayerPositionDTD'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import type { ICharacterDTD } from '@/stores/game/dtd/ICharacterDTD'
 import type { IChickenDTD } from '@/stores/game/dtd/IChickenDTD'
+import type { Message } from 'postcss'
 
 const gameStore = useGameStore()
 
@@ -721,7 +722,12 @@ onMounted(async () => {
 
         break;
     }
-  })
+  });
+
+  subscribeTo(`/ingame/chickenPositions/${lobbyId}`, async (message) => {
+        console.log("FROM CHICKEN POSITIONS: ", message.feedback);
+        //await handleChickenPositions(message.feedback);
+    });
 
   if (threeContainer.value) {
     threeContainer.value.appendChild(renderer.domElement)

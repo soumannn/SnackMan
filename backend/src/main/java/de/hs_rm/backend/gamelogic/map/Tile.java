@@ -6,6 +6,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.hs_rm.backend.gamelogic.characters.chicken.Chicken;
 import de.hs_rm.backend.gamelogic.characters.players.*;
 import de.hs_rm.backend.gamelogic.characters.players.Character;
 
@@ -23,6 +24,7 @@ public class Tile {
         this.type = type;
         itemList = new ArrayList<>();
         characterList = new ArrayList<>();
+        chickenList = new ArrayList<>();
     }
 
     public boolean hasItem() {
@@ -78,6 +80,21 @@ public class Tile {
         this.chickenList.add(chicken);
         if(!itemList.isEmpty()){
             // TODO: Item hier nehmen
+            for (Item item : itemList) {
+                if(item instanceof FoodItems){
+                    FoodItems foodItem = (FoodItems) item; //cast zu FoodItem
+                    Egg egg = chicken.eatSnack(foodItem, chicken.getPosX(), chicken.getPosY());
+                    if(egg != null){
+                        itemList.remove(item);
+                        logger.info("Item '{}' removed from tile", item.getName());
+                        //Ei wird hier zum Tile hinzugefügt
+                        itemList.add(egg); //FEHLER!
+                        logger.info("Egg by chicken geboren and added to tile");
+                        break;
+                    }
+
+                }
+            }
         }
         return true;
     }
@@ -93,6 +110,21 @@ public class Tile {
             return true; 
         }
         return false; 
+    }
+
+
+    public boolean removeChicken(Chicken chicken){
+        // System.out.println("ChickenList: " + chickenList.size());
+        // System.out.println("Chicken: " + chicken);
+        if (chickenList != null && chickenList.contains(chicken)) {
+            chickenList.remove(chicken);
+            // logger.info("ChickenList beim Entfernen: {}", chickenList.);
+            return true;
+        } else {
+            logger.info("Chicken not found in tile.");
+            return false;
+            
+        }
     }
 
     public List<Item> getItemList() {
@@ -118,5 +150,15 @@ public class Tile {
     public void setCharacterList(List<Character> characterList) {
         this.characterList = characterList;
     }
+
+    public List<Chicken> getChickenList() {
+        return chickenList;
+    }
+
+    public void setChickenList(List<Chicken> chickenList) {
+        this.chickenList = chickenList;
+    }
+
+    
     
 }
