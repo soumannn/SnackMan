@@ -5,4 +5,8 @@ export interface IChickenDTD {
   currentCalorie?: number | undefined;
   posX: number;
   posY: number;
+  egg:{
+    positionx: number; 
+    positiony: number; 
+  }
 }
