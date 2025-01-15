@@ -1,12 +1,11 @@
+import type { IItemDTD } from '@/stores/game/dtd/IItemDTD'
+
 export interface IChickenDTD {
-  //wie unterscheidet ihr die chicken auf der Map?
-  id: string;
-  gameId: string;
-  currentCalorie?: number | undefined;
+  chickenID: string;
+  //gameId: string;
+  //currentCalorie?: number | undefined;
   posX: number;
   posY: number;
-  egg:{
-    positionx: number; 
-    positiony: number; 
-  }
+  angle: number;
+  eggList: IItemDTD[];
 }

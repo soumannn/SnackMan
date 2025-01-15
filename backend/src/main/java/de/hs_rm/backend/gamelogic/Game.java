@@ -33,7 +33,6 @@ public class Game {
     private PlayMap playmap;
     private int chickenNum;
     private String selectedMap;
-    private int itemsNum;
 
     private int snackmanLife;
     private int snackmanMaxLife;
@@ -260,7 +259,8 @@ public class Game {
         }
         // DONE: random position von hühnchen
         for (int i = 0; i < this.chickenNum; i++) {
-            LOGGER.info("Chicken number: {}", chickenNum);
+            
+            UUID uniqueID = UUID.randomUUID();
             Tile randomTile;
             int index = -1;
             Path testPathForScript = null;
@@ -279,7 +279,7 @@ public class Game {
             } while (randomTile.getType() != TileType.SURFACE || randomTile.hasChicken());
 
 
-            Chicken chicken = new Chicken(index % playmap.getWidth(), index / playmap.getWidth(), testPathForScript, this);
+            Chicken chicken = new Chicken(index % playmap.getWidth(), index / playmap.getWidth(), testPathForScript, this, uniqueID.toString());
 
 
             chickens.add(chicken);
@@ -294,8 +294,6 @@ public class Game {
                 chicken.executeBehavior();
             });
             thread.start();
-
-
 
         }
 
@@ -584,14 +582,6 @@ public class Game {
         this.characters.put(username, character);
     }
 
-    public int getItemsNum() {
-        return itemsNum;
-    }
-
-    public void setItemsNum(int itemsNum) {
-        this.itemsNum = itemsNum;
-    }
-
     public String getPassword(){
         if (!privateLobby) {
             return null;
@@ -615,11 +605,11 @@ public class Game {
         return privateLobby;
     }
 
-    public int getItemsNum() {
-        return itemsNum;
-    }
+    // public int getItemsNum() {
+    //     return itemsNum;
+    // }
 
-    public void setItemsNum(int itemsNum) {
-        this.itemsNum = itemsNum;
-    }
+    // public void setItemsNum(int itemsNum) {
+    //     this.itemsNum = itemsNum;
+    // }
 }
