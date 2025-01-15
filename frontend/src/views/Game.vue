@@ -41,15 +41,46 @@ const fastMovementSpeed = 4
 let movementSpeed = slowMovementSpeed
 const mockChicken: IChickenDTD[] = [
   { x: 0, y: 0, angle: 0 },   // Startpunkt, schaut nach Norden
-  { x: 1, y: 0, angle: 90 },  // Bewegt sich nach Osten
-  { x: 2, y: 0, angle: 90 },  // Weiter nach Osten
-  { x: 2, y: 1, angle: 180 }, // Dreht sich nach Süden
-  { x: 2, y: 2, angle: 180 }, // Weiter nach Süden
-  { x: 1, y: 2, angle: 270 }, // Dreht sich nach Westen
-  { x: 0, y: 2, angle: 270 }, // Weiter nach Westen
-  { x: 0, y: 1, angle: 0 },   // Dreht sich nach Norden
-  { x: 0, y: 0, angle: 0 },   // Zurück zum Startpunkt
-  { x: 1, y: 1, angle: 45 },  // Diagonal nach Nord-Osten
+  { x: 1, y: 0, angle: 0 },   // Schritt 1 nach vorne
+  { x: 2, y: 0, angle: 0 },   // Schritt 2 nach vorne
+  { x: 3, y: 0, angle: 0 },   // Schritt 3 nach vorne
+  { x: 4, y: 0, angle: 0 },   // Schritt 4 nach vorne
+  { x: 5, y: 0, angle: 0 },   // Schritt 5 nach vorne
+  { x: 6, y: 0, angle: 0 },   // Schritt 6 nach vorne
+  { x: 7, y: 0, angle: 0 },   // Schritt 7 nach vorne
+  { x: 8, y: 0, angle: 0 },   // Schritt 8 nach vorne
+  { x: 9, y: 0, angle: 0 },   // Schritt 9 nach vorne
+  { x: 10, y: 0, angle:  270 },  // Schritt 10 nach vorne
+  { x: 10, y: -1, angle: 270 }, // Drehung nach links (Westen)
+  { x: 10, y: -2, angle: 270 },
+  { x: 10, y: -3, angle: 270 },
+  { x: 10, y: -4, angle: 270 },
+  { x: 10, y: -5, angle: 270 },
+  { x: 10, y: -6, angle: 270 },
+  { x: 10, y: -7, angle: 270 },
+  { x: 10, y: -8, angle: 270 },
+  { x: 10, y: -9, angle: 270 },
+  { x: 10, y: -10, angle: 270 },
+  { x: 10, y: -11, angle: 270 },
+  { x: 10, y: -12, angle: 270 },
+  { x: 10, y: -13, angle: 270 },
+  { x: 10, y: -14, angle: 270 },
+  { x: 10, y: -15, angle: 270 },
+  { x: 10, y: -16, angle: 270 },
+  { x: 10, y: -17, angle: 270 },
+  { x: 10, y: -18, angle: 270 },
+  { x: 10, y: -19, angle: 270 },
+  { x: 10, y: -20, angle: 180 },
+  { x: 9, y: -20, angle: 180 }, // Drehung nach hinten (Süden)
+  { x: 8, y: -20, angle: 180 },
+  { x: 7, y: -20, angle: 180 },
+  { x: 6, y: -20, angle: 180 },
+  { x: 5, y: -20, angle: 180 },
+  { x: 4, y: -20, angle: 180 },
+  { x: 3, y: -20, angle: 180 },
+  { x: 2, y: -20, angle: 180 },
+  { x: 1, y: -20, angle: 180 },
+  { x: 0, y: -20, angle: 180 }, // Zielpunkt erreicht
 ]
 //#für HuD
 const life = ref(2) //startlife
@@ -161,19 +192,21 @@ function animate() {
   cameraPositionBewegen(delta)
   updateChickenAnimation(); 
   moveChicken(delta, mockChicken)
-  iterateChickenPath(delta, mockChicken)
   followChicken(camera, chickenModell,cameraOffset);
   renderer.render(scene, camera)
 }
 function loadChicken(scene:THREE.Scene){
 const loader =new GLTFLoader();//@/assets/game/realistic/snackman/snackman.glb
-const chickenModellUrl=  new URL('@/assets/game/chicken/chicken1.glb', import.meta.url).href;
+const chickenModellUrl=  new URL('@/assets/game/chickenma/chicken.glb', import.meta.url).href;
 loader.load(
   chickenModellUrl,
     (gltf) => {
       chickenModell = gltf.scene; 
       chickenModell.scale.set(0.5, 0.5, 0.5); 
-      chickenModell.position.set(-1, 1, 0);
+      // Setze die Startposition basierend auf Mockup-Daten
+      const initialPosition = mockChicken[0];
+      chickenModell.position.set(initialPosition.x, 0, initialPosition.y);
+
       scene.add(chickenModell);
       chickenMixer= new THREE.AnimationMixer(chickenModell);
       const animation = gltf.animations; 
@@ -201,42 +234,71 @@ function moveChicken(delta: number, chickenData: IChickenDTD[]) {
     console.warn("Chicken-Modell ist nicht geladen.");
     return;
   }
+  if (currentIndex === chickenData.length - 1) {
+    console.log('Das Chicken hat alle Punkte erreicht und bleibt stehen.');
+    return; // Bewegung beenden
+  }
+  
+  console.log("Aktueller Index:", currentIndex);
 
-  // Nächsten Punkt berechnen
+  // Nächsten Punkt im Mockup berechnen
   const nextIndex = (currentIndex + 1) % chickenData.length;
   const currentPosition = new THREE.Vector3(
     chickenData[currentIndex].x,
     0,
     chickenData[currentIndex].y
   );
-  const nextPosition = new THREE.Vector3(
+  const targetPosition = new THREE.Vector3(
     chickenData[nextIndex].x,
     0,
     chickenData[nextIndex].y
   );
+  console.log("Aktuelle Position:", currentPosition);
+  console.log("Zielposition:", targetPosition);
+  // Bewegung in Richtung Zielpunkt
 
-  // Richtung und Bewegung berechnen
-  const direction = nextPosition.clone().sub(currentPosition).normalize();
-  const chickenSpeed = 1; // Geschwindigkeit: 1 Einheit pro Sekunde
+  const direction = targetPosition.clone().sub(currentPosition).normalize();
+  const chickenSpeed = 1; // Geschwindigkeit des Chickens (Einheiten/Sekunde)
   const movement = direction.multiplyScalar(chickenSpeed * delta);
-
-  // Chicken bewegen
   chickenModell.position.add(movement);
 
-  // Prüfen, ob das Ziel erreicht wurde
-  if (chickenModell.position.distanceTo(nextPosition) < 0.1) {
-    currentIndex = nextIndex; // Nächsten Punkt anvisieren
-    console.log(`Nächster Punkt erreicht: Index ${currentIndex}`);
+  console.log('Richtung:', direction);
+  console.log('Bewegung:', movement);
+  console.log("Bewegungsrichtung:", direction);
+  console.log("Bewegungsvektor:", movement);
+  console.log("Neue Position des Chicken-Modells:", chickenModell.position);
+
+  const totalDistance = currentPosition.distanceTo(targetPosition);
+  const currentDistance = chickenModell.position.distanceTo(targetPosition);
+
+  if (currentDistance < chickenSpeed * delta) {
+    chickenModell.position.set(targetPosition.x, 0, targetPosition.z);
+      currentIndex = nextIndex;
+      console.log('Ziel erreicht. Wechsel zu nächstem Punkt:', targetPosition);
+      console.log("Ziel erreicht. Wechsel zu nächstem Punkt. Neuer Index:", currentIndex);
   }
 
-  // Modellrotation anpassen
-  chickenModell.rotation.y = THREE.MathUtils.degToRad(chickenData[currentIndex].angle);
-}
-// Test: Alle Schritte loggen
-function iterateChickenPath(delta: number, chickenData: IChickenDTD[]) {
-  for (let i = 0; i < chickenData.length; i++) {
-    console.log(`Schritt ${i}: Position:`, chickenData[i]);
+ 
+  const targetRotation = THREE.MathUtils.degToRad(chickenData[nextIndex].angle);
+  const currentRotation = THREE.MathUtils.degToRad(chickenData[currentIndex].angle);
+
+  let lerpFactor = 0; // Standardmäßig keine Interpolation
+  if (currentDistance > totalDistance * 0.75) {
+    // Erste 1/4 der Strecke: Bleibt bei der aktuellen Rotation
+    lerpFactor = 0;
+  } else if (currentDistance < totalDistance * 0.25) {
+    // Letzte 1/4 der Strecke: Zielrotation erreicht
+    lerpFactor = 1;
+  } else {
+    // Zwischen 1/4 und 3/4 der Strecke: Interpolation
+    const progress = (totalDistance - currentDistance) / totalDistance; // Fortschritt zwischen 0 und 1
+    lerpFactor = (progress - 0.25) / 0.5; // Normierung auf den Bereich 0.25 bis 0.75
   }
+
+  // Interpoliere die Rotation basierend auf lerpFactor
+  chickenModell.rotation.y = THREE.MathUtils.lerp(currentRotation, targetRotation, lerpFactor);
+
+  console.log("Aktuelle Rotation (in Grad):", THREE.MathUtils.radToDeg(chickenModell.rotation.y));
 }
 
 const cameraOffset = new THREE.Vector3(0, 5, -10); // Offset der Kamera relativ zum Chicken
