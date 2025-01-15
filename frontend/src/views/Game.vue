@@ -16,6 +16,8 @@ import type { ICharacterDTD } from '@/stores/game/dtd/ICharacterDTD'
 import type { IChickenPositionDTD } from '@/stores/game/dtd/IChickenPositionDTD'
 import Modal from '@/components/Modal.vue'
 import { Playerrole } from '@/stores/game/dtd/EPlayerrole';
+import router from '@/router';
+
 
 const gameStore = useGameStore()
 
@@ -890,6 +892,9 @@ onMounted(async () => {
         <h2 class="text-2xl font-bold mb-4">Adjust Settings {{ showSettings }}</h2>
         <button @click="lockPointer" class="button-small-adventure">
           Close
+        </button>
+        <button  @click="router.push('/index')" class="button-small-adventure">
+          Return to Lobby
         </button>
       </div>
     </template>
