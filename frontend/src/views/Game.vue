@@ -29,7 +29,7 @@ let currentIndex=0;
 let nextPosition: THREE.Vector3
 let lastSend: number = 0
 let lastMoveValid = false;
-const chickens = new Map<string, number>();
+const chickens = new Map<string, number>(); // ChickenID als Key und Model-ID als Value
 const players = new Map<string, number>(); // Spieler mit Namen als Key auf Character Model
 const loadingPlayers = new Map<string, boolean>(); // Spielername -> Ladevorgang
 
@@ -193,41 +193,21 @@ function animate() {
   const delta = clock.getDelta()
   cameraPositionBewegen(delta)
   //updateChickenAnimation(); 
-  moveChicken(delta, ,gameStore.gamestate.chickenData)
-  followChicken(camera, chickenModell,cameraOffset);
-  renderer.render(scene, camera)
+  
+   //followChicken(camera, chickenModel, cameraOffset);
 }
 
-function moveChicken(delta: number,modellChicken: THREE.Object3D, chickenData: IChickenDTD[]) {
-  if (!modellChicken) {
-    console.warn("Chicken-Modell ist nicht geladen.");
-    return;
-  }
-  if (currentIndex === chickenData.length - 1) {
-    console.log('Das Chicken hat alle Punkte erreicht und bleibt stehen.');
-    return; // Bewegung beenden
-  }
+function moveChicken(modellChicken: THREE.Object3D, chickenData: IChickenDTD) {
+  const targetPosition = new THREE.Vector3(chickenData.posX,0,chickenData.posY); 
+  const currentPosition= modellChicken.position; 
   
-  console.log("Aktueller Index:", currentIndex);
-
-  // Nächsten Punkt im Mockup berechnen
-  const nextIndex = (currentIndex + 1) % chickenData.length;
-  const currentPosition = new THREE.Vector3(
-    chickenData[currentIndex].x,
-    0,
-    chickenData[currentIndex].y
-  );
-  const targetPosition = new THREE.Vector3(
-    chickenData[nextIndex].x,
-    0,
-    chickenData[nextIndex].y
-  );
   console.log("Aktuelle Position:", currentPosition);
   console.log("Zielposition:", targetPosition);
   // Bewegung in Richtung Zielpunkt
 
   const direction = targetPosition.clone().sub(currentPosition).normalize();
   const chickenSpeed = 1; // Geschwindigkeit des Chickens (Einheiten/Sekunde)
+  const delta= clock.getDelta(); 
   const movement = direction.multiplyScalar(chickenSpeed * delta);
   modellChicken.position.add(movement);
 
@@ -242,9 +222,7 @@ function moveChicken(delta: number,modellChicken: THREE.Object3D, chickenData: I
 
   if (currentDistance < chickenSpeed * delta) {
     modellChicken.position.set(targetPosition.x, 0, targetPosition.z);
-      currentIndex = nextIndex;
       console.log('Ziel erreicht. Wechsel zu nächstem Punkt:', targetPosition);
-      console.log("Ziel erreicht. Wechsel zu nächstem Punkt. Neuer Index:", currentIndex);
   }
 
  
@@ -411,34 +389,37 @@ function moveCamera() {
   camera.position.copy(nextPosition)
 }
 
-function renderChicken(chickenData: IChickenDTD){
+function renderChicken(chickenData:  IChickenDTD[]){
   console.log("INSIDE RENDER: ", chickenData);
   const loader =new GLTFLoader();//@/assets/game/realistic/snackman/snackman.glb
   //Überprüfung ob es eine chicken id gibt wenn nicht wird ein erstellt und wenn ja wir die position aktualsiert
-    if (!players.has(chickenData.id)) {
+  chickenData.forEach((chicken)=>{
+    if (!chickens.has(chicken.chickenID)) {
       const chickenModelURL = new URL('@/assets/game/chickenma/chicken.glb', import.meta.url).href;
       loader.load(chickenModelURL, (gltf: { scene: THREE.Group }) => {
         const model = gltf.scene;
         model.scale.set(0.5, 0.5, 0.5);
-        players.set(chickenData.id, model.id);
+        players.set(chicken.chickenID, model.id);
         scene.add(model);
-        model.position.set(chickenData.posX, 1, chickenData.posY);
+        model.position.set(chicken.posX, 1, chicken.posY);
         },
         undefined,(error) => {
             console.error("Fehler beim Laden des Chicken-Modells:", error);
         }
       );
     }else{
-      const chickenId: number | undefined = players.get(chickenData.id); 
+      // update der Position des huhns
+      const chickenId: number | undefined = players.get(chicken.chickenID); 
       if (chickenId){
         const modellChicken= scene.getObjectById(chickenId); 
         if(modellChicken){
-          moveChicken(modellChicken, chickenData);
+          moveChicken(modellChicken, chicken);
         }
       }
     }
-}
+  })
     
+}
 
 function renderCharactersTest(playerPositions: IPlayerPositionDTD[]) {
   console.log("INSIDE RENDER: ", playerPositions);
@@ -700,10 +681,11 @@ async function handleChickenPositions(data: IChickenDTD[]) {
       posX: chicken.posX,
       posY: chicken.posY,
       angle: chicken.angle,
-      eggList: chicken.eggList || [] 
+      egg: chicken.egg,
     });
     console.log(`Position X=${chicken.posX}, Y=${chicken.posY}`);
   });
+  renderChicken(chickenPositions);
 }
 
 onMounted(async () => {
