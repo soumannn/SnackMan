@@ -1,15 +1,13 @@
 <script setup lang="ts">
 import LobbyTabellenZeile from '@/components/LobbyTabellenZeile.vue';
 import type { IGameDTD } from '@/stores/game/dtd/IGameDTD';
-import { useGameStore } from '@/stores/game/gamestore';
-import { computed, onMounted, reactive, ref } from 'vue';
 import Modal from '@/components/Modal.vue';
 import { useModalStore } from '@/stores/modalstore';
 import { PlayerType } from '@/stores/game/dtd/PlayerType';
 import type { IPlayerDTD } from '@/stores/game/dtd/IPlayerDTD';
-import { ModalType } from '@/stores/game/dtd/EModalType';
 import { Playerrole } from '@/stores/game/dtd/EPlayerrole';
 import router from '@/router';
+import { onMounted, reactive, ref } from 'vue';
 
 const modal = useModalStore();
 const apiUrl = "/api/game";

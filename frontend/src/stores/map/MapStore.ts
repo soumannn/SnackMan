@@ -102,8 +102,8 @@ async function saveMap(){
     //Validierung zu den Values damit diese nicht null sind, ob diese wirklich gefüllt sind
     //!rows.value||!cols.value|| !grid.value.length
     let valideCell=false;
-    for (let row of grid.value){
-      for (let cell of row){
+    for (const row of grid.value){
+      for (const cell of row){
         //3= weil er denn wert des Strings überprüft ob er wirklich
         if (cell == "null"){
           valideCell=true;
@@ -120,7 +120,7 @@ async function saveMap(){
     // **Vergleich des Namens mit den vorhandenen Maps**
     await  fetchMaps();
     let nameExists = false;
-    for(let existingMap of mapsDTD.value.maps){
+    for(const existingMap of mapsDTD.value.maps){
         if (existingMap.name.trim().toLowerCase()=== mapName.value.trim().toLowerCase()){
           nameExists=true;
         }

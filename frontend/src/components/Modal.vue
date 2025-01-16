@@ -18,7 +18,6 @@
 
 
 <script setup lang="ts">
-import { useModalStore } from '@/stores/modalstore';
 
 
 

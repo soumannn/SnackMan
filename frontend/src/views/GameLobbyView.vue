@@ -24,128 +24,112 @@
 
       <ul class="space-x-2 mt-3 bg-gray-800 shadow-lg rounded-lg divide-y divide-gray-900 max-w-lg mb-4">
         <li v-for="(player, i) in players" :key="player.name"
-        class="pr-4 pl-4 p-2 flex items-center space-x-4 transition-colors">
-        <PlayerTile v-model="players[i]" :lobby-id="lobbyId" />
-      </li>
-      <li v-for="placeholder in placeholderCount"
-      class="pr-4 pl-4 p-2 text-gray-500 flex items-center justify-between transition-colors">
-      Empty
-    </li>
-  </ul>
+          class="pr-4 pl-4 p-2 flex items-center space-x-4 transition-colors">
+          <PlayerTile v-model="players[i]" :lobby-id="lobbyId" />
+        </li>
+        <li v-for="placeholder in placeholderCount"
+          class="pr-4 pl-4 p-2 text-gray-500 flex items-center justify-between transition-colors">
+          Empty
+        </li>
+      </ul>
 
 
-    <div class="flex items-center space-x-2 mt-3">
-      <p class="text-lg w-50 font-semibold text-zinc-200"> Chickens: </p>
-      <input type="number" v-model="chickenCount" class="w-50  p-2 bg-gray-800 shadow-lg rounded-lg text-blue-600" />
-      <button v-if="isGamemaster" class="w-80 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
-        @click="randomizeRoles()">
-        Randomize Roles
-      </button>
-    </div>
+      <div class="flex items-center space-x-2 mt-3">
+        <p class="text-lg w-50 font-semibold text-zinc-200"> Chickens: </p>
+        <input type="number" v-model="chickenCount" class="w-50  p-2 bg-gray-800 shadow-lg rounded-lg text-blue-600" />
+        <button v-if="isGamemaster" class="w-80 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+          @click="randomizeRoles()">
+          Randomize Roles
+        </button>
+      </div>
 
-    <div class="flex items-center space-x-2 mt-3">
-      <button v-if="isGamemaster" class="w-50 p-2 bg-blue-800 shadow-lg rounded-lg text-white-600  hover:bg-gray-800"
-        @click="openMapPopup()">
-        Select Map
-      </button>
-        <div
-        class="w-50 p-2 bg-gray-800 shadow-lg rounded-lg text-blue-600"
-        >
-        <p class="text-sm text-gray-400 mt-2">Selected: {{ mapStore.mapsDTD.selectedMap?.name || 'None' }}</p>
+      <div class="flex items-center space-x-2 mt-3">
+        <button v-if="isGamemaster" class="w-50 p-2 bg-blue-800 shadow-lg rounded-lg text-white-600  hover:bg-gray-800"
+          @click="openMapPopup()">
+          Select Map
+        </button>
+        <div class="w-50 p-2 bg-gray-800 shadow-lg rounded-lg text-blue-600">
+          <p class="text-sm text-gray-400 mt-2">Selected: {{ mapStore.mapsDTD.selectedMap?.name || 'None' }}</p>
         </div>
-        <button
-        v-if="isGamemaster"
-            class="w-50 p-2 bg-blue-800 shadow-lg rounded-lg text-white-600  hover:bg-gray-800"
-            @click="openThemePopup()"
-        >
-        Select Themes
+        <button v-if="isGamemaster" class="w-50 p-2 bg-blue-800 shadow-lg rounded-lg text-white-600  hover:bg-gray-800"
+          @click="openThemePopup()">
+          Select Themes
         </button>
         <div class="w-50 p-2 bg-gray-800 shadow-lg rounded-lg text-blue-600">
           <p class="text-sm text-gray-400 mt-2">Selected Theme: {{ themeStore.selectedTheme || 'None' }}</p>
         </div>
-     </div>
-      <button
-        :class="{
-          'bg-green-700 hover:bg-green-800 text-zinc-200': isHost,
-          'bg-gray-600': !isHost,
-        }"
-        :disabled="!isHost"
-        class="w-full mt-5 px-6 py-3 text-lg font-semibold rounded-lg transition"
-        @click="startGame()"
-      >
+      </div>
+      <button :class="{
+        'bg-green-700 hover:bg-green-800 text-zinc-200': isHost,
+        'bg-gray-600': !isHost,
+      }" :disabled="!isHost" class="w-full mt-5 px-6 py-3 text-lg font-semibold rounded-lg transition"
+        @click="startGame()">
         {{ isHost ? 'Start Game' : '---' }}
       </button>
-    <button :class="{
-      'bg-red-700 hover:bg-red-800 text-zinc-200': isHost,
-      'bg-gray-600': !isHost
-    }" class="w-full mt-5 px-6 py-3 text-lg font-semibold rounded-lg transition" @click="leaveGame(lobbyId)">
-      leave
-    </button>
-  </div>
+      <button :class="{
+        'bg-red-700 hover:bg-red-800 text-zinc-200': isHost,
+        'bg-gray-600': !isHost
+      }" class="w-full mt-5 px-6 py-3 text-lg font-semibold rounded-lg transition" @click="leaveGame(lobbyId)">
+        leave
+      </button>
+    </div>
 
-  <!--Pop up-->
-  <div v-if="isMapPopupVisible" class="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50">
-    <div class="bg-zinc-800 p-6 rounded-lg shadow-lg max-w-4xl w-full">
-      <h2 class="text-lg font-semibold text-zinc-200 mb-4">Select a Map</h2>
+    <!--Pop up-->
+    <div v-if="isMapPopupVisible" class="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50">
+      <div class="bg-zinc-800 p-6 rounded-lg shadow-lg max-w-4xl w-full">
+        <h2 class="text-lg font-semibold text-zinc-200 mb-4">Select a Map</h2>
 
-      <!-- Grid mit Map-Bildern -->
-      <div class="grid grid-cols-2 gap-4">
-        <div v-for="map in mapStore.mapsDTD.maps" :key="map.id" :class="[
-          'p-4 rounded-lg shadow-lg transition cursor-pointer',
-          map.id === selectedMap?.id ? 'bg-blue-700 border-blue-400' : 'bg-gray-800 hover:bg-gray-700'
-        ]" @click="selectMap(map)">
-          <!-- Canvas für die Map -->
-          <canvas :id="'mapCanvas-' + map.id" class="w-full h-40 border border-zinc-500 bg-blue-600"></canvas>
-          <p class="text-center text-zinc-200 font-semibold">{{ map.name }}</p>
+        <!-- Grid mit Map-Bildern -->
+        <div class="grid grid-cols-2 gap-4">
+          <div v-for="map in mapStore.mapsDTD.maps" :key="map.id" :class="[
+            'p-4 rounded-lg shadow-lg transition cursor-pointer',
+            map.id === selectedMap?.id ? 'bg-blue-700 border-blue-400' : 'bg-gray-800 hover:bg-gray-700'
+          ]" @click="selectMap(map)">
+            <!-- Canvas für die Map -->
+            <canvas :id="'mapCanvas-' + map.id" class="w-full h-40 border border-zinc-500 bg-blue-600"></canvas>
+            <p class="text-center text-zinc-200 font-semibold">{{ map.name }}</p>
+          </div>
+        </div>
+
+        <div class="flex justify-between mt-4">
+          <button class="bg-blue-600 hover:bg-blue-700 text-zinc-200 py-1 px-4 rounded-lg transition"
+            @click="selectRandomMap()">
+            Random Map
+          </button>
+
+          <button class="bg-red-600 hover:bg-red-700 text-zinc-200 py-1 px-4 rounded-lg transition"
+            @click="closeMapPopup()">
+            OK
+          </button>
         </div>
       </div>
+    </div>
+  </div>
+  <!-- Theme Popup -->
+  <div v-if="isThemePopupVisible" class="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50">
+    <div class="bg-zinc-800 p-6 rounded-lg shadow-lg max-w-lg w-full">
+      <h2 class="text-lg font-semibold text-zinc-200 mb-4">Select a Theme</h2>
+      <p class="text-zinc-300">Choose a Theme for the game.</p>
 
-      <div class="flex justify-between mt-4">
-        <button class="bg-blue-600 hover:bg-blue-700 text-zinc-200 py-1 px-4 rounded-lg transition"
-          @click="selectRandomMap()">
-          Random Map
+      <div class="grid grid-cols-2 gap-4 mt-4">
+        <button v-for="(theme, themeName) in themeStore.themes" :key="themeName" :class="[
+          'p-4 rounded-lg shadow-lg transition font-semibold',
+          themeName === themeStore.selectedTheme
+            ? 'bg-blue-700 text-white border-blue-400'
+            : 'bg-gray-800 text-zinc-200 hover:bg-gray-700'
+        ]" @click="themeStore.setSelectedTheme(themeName, lobbyId)">
+          {{ themeName }}
         </button>
+      </div>
 
-        <button class="bg-red-600 hover:bg-red-700 text-zinc-200 py-1 px-4 rounded-lg transition"
-          @click="closeMapPopup()">
+      <div class="flex justify-end mt-4">
+        <button class="bg-blue-600 hover:bg-blue-700 text-zinc-200 py-1 px-4 rounded-lg transition"
+          @click="closeThemePopup()">
           OK
         </button>
       </div>
     </div>
   </div>
-</div>
-<!-- Theme Popup -->
-<div v-if="isThemePopupVisible" class="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50">
-  <div class="bg-zinc-800 p-6 rounded-lg shadow-lg max-w-lg w-full">
-    <h2 class="text-lg font-semibold text-zinc-200 mb-4">Select a Theme</h2>
-    <p class="text-zinc-300">Choose a Theme for the game.</p>
-
-    <div class="grid grid-cols-2 gap-4 mt-4">
-      <button
-        v-for="(theme, themeName) in themeStore.themes"
-        :key="themeName"
-        :class="[
-          'p-4 rounded-lg shadow-lg transition font-semibold',
-          themeName === themeStore.selectedTheme
-            ? 'bg-blue-700 text-white border-blue-400'
-            : 'bg-gray-800 text-zinc-200 hover:bg-gray-700'
-        ]"
-        @click="themeStore.setSelectedTheme(themeName, lobbyId)"
-      >
-        {{ themeName }}
-      </button>
-    </div>
-
-    <div class="flex justify-end mt-4">
-      <button
-        class="bg-blue-600 hover:bg-blue-700 text-zinc-200 py-1 px-4 rounded-lg transition"
-        @click="closeThemePopup()"
-      >
-        OK
-      </button>
-    </div>
-  </div>
-</div>
 </template>
 
 <script setup lang="ts">
@@ -160,7 +144,7 @@ import type { MapDTD } from '@/stores/game/dtd/MapsDTD'
 import { nextTick } from 'vue';
 import { useThemeStore } from "@/stores/themes/themeStore";
 
-const themeStore= useThemeStore();
+const themeStore = useThemeStore();
 const isThemePopupVisible = ref(false);
 const gameStore = useGameStore()
 const { setPlayerRoleViaStomp } = gameStore
@@ -178,9 +162,6 @@ const selectedMap = ref<MapDTD | null>(null);
 
 // TODO: gamemaster.id mit clientplayer.id vergleichen
 const isHost = ref(true);
-
-// Eventuell erst starten wenn alle Ready
-const isReady = ref(false);
 
 // ID in der aktuellen Lobby
 const lobbyId = route.params.id.toString()
@@ -497,19 +478,19 @@ function drawMapCanvas(map: MapDTD) {
 }
 // Themes
 function openThemePopup() {
-      isThemePopupVisible.value = true;
+  isThemePopupVisible.value = true;
 }
 function closeThemePopup() {
   const selectedTheme = themeStore.selectedTheme;
-    if(selectedTheme){
-      console.log("Selected theme:", selectedTheme);
-      themeStore.subscribeToThemeUpdates(lobbyId).then(() => {
+  if (selectedTheme) {
+    console.log("Selected theme:", selectedTheme);
+    themeStore.subscribeToThemeUpdates(lobbyId).then(() => {
       console.log("Successfully subscribed to theme updates.")
-      });
-    } else {
-      console.error("no theme selected!");
-    }
+    });
+  } else {
+    console.error("no theme selected!");
+  }
 
-      isThemePopupVisible.value = false;
+  isThemePopupVisible.value = false;
 }
 </script>

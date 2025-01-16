@@ -1,10 +1,7 @@
 <script setup lang="ts">
-import router from "@/router";
 import { ModalType } from "@/stores/game/dtd/EModalType";
 import type { IGameDTD } from "@/stores/game/dtd/IGameDTD";
-import { useGameStore } from "@/stores/game/gamestore";
 
-const gameStore = useGameStore();
 
 
 defineProps<{

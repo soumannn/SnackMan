@@ -74,7 +74,7 @@
 
 
 <script setup lang="ts">
-import { ref, computed, type Ref } from 'vue';
+import { ref, computed } from 'vue';
 import router from '@/router';
 import { useRoute } from 'vue-router'
 import { PlayerType } from '@/stores/game/dtd/PlayerType';

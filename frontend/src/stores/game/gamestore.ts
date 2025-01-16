@@ -31,7 +31,6 @@ export const useGameStore = defineStore('gameStore', () => {
   }
 
   async function getJumpAllowed(name: string, lobbyid: string) {
-    const playerName = sessionStorage.getItem('myName')
     const response = await fetch(`${restUrl}/${lobbyid}/jumpAllowed`,{
       method: 'POST',
       headers: {
@@ -254,7 +253,7 @@ export const useGameStore = defineStore('gameStore', () => {
       if (window.closed) {
         if (stompClient.connected) {
           console.log("ich wurde gelöscht");
-          stompClient.deactivate;
+          stompClient.deactivate();
         }
       }
     }

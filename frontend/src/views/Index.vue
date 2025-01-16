@@ -74,7 +74,6 @@
 import Modal from '@/components/Modal.vue';
 import { reactive, ref } from 'vue';
 import { useModalStore } from '@/stores/modalstore';
-import { useGameStore } from '@/stores/game/gamestore';
 import type { IPlayerDTD } from '@/stores/game/dtd/IPlayerDTD';
 import { PlayerType } from '@/stores/game/dtd/PlayerType';
 import router from '@/router';
@@ -82,11 +81,9 @@ import { ModalType } from '@/stores/game/dtd/EModalType';
 import { Playerrole } from '@/stores/game/dtd/EPlayerrole';
 
 const modal = useModalStore()
-const game = useGameStore()
 
 const gameId = ref('');
 
-const inputErrorMessage = ref('');
 
 const newPlayer: IPlayerDTD = reactive({
   name: "",

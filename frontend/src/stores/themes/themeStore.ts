@@ -121,12 +121,3 @@ const themes = ref <IThemes>({
   };
 
 });
-
-/*skybox: {
-        right: "/src/assets/game/christmas/skyBox/sky_yuki_01rt.png",
-        left:  "/src/assets/game/christmas/skyBox/sky_yuki_01lf.png",
-        top:"/src/assets/game/christmas/skyBox/sky_yuki_01up.png",
-        bottom: "/src/assets/game/christmas/skyBox/sky_yuki_01dn.png",
-        front:"/src/assets/game/christmas/skyBox/sky_yuki_01ft.png",
-        back: "/src/assets/game/christmas/skyBox/sky_yuki_01bk.png",
-    },*/

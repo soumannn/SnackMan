@@ -17,7 +17,6 @@ import type { IChickenPositionDTD } from '@/stores/game/dtd/IChickenPositionDTD'
 import Modal from '@/components/Modal.vue'
 import { Playerrole } from '@/stores/game/dtd/EPlayerrole';
 import { useThemeStore } from '@/stores/themes/themeStore';
-import type { GameResponse } from '@/stores/game/responses/GameResponse'
 
 const themeStore = useThemeStore();
 
@@ -46,13 +45,6 @@ let movementSpeed = slowMovementSpeed
 const showSettings = ref(false)
 const musicVolume = ref(50)
 const effectVolume = ref(50)
-
-
-
-//für HuD
-//const life = ref(2) //startlife
-//const maxLife = ref(3)
-//const collectedItems = ref<string[]>([]) //Gesammelte Items
 
 // für springen
 let jumpChargeTime = 0  // Zeit, die die Leertaste gedrückt wurde
@@ -125,10 +117,6 @@ watch(
 const chickenPositions = ref<IChickenPositionDTD[]>([]);
 
 
-function addItem(itemName: string) {
-  collectedItems.value.push(itemName)
-}
-
 function createSceneCameraRendererControlsClockListener() {
   const scene = new THREE.Scene()
 
@@ -151,11 +139,11 @@ function createSceneCameraRendererControlsClockListener() {
 }
 
 function registerListeners(window: Window, renderer: WebGLRenderer) {
-  renderer.domElement.addEventListener('click', (e) => {
+  renderer.domElement.addEventListener('click', () => {
     renderer.domElement.requestPointerLock()
   })
 
-  window.addEventListener('resize', (e) => {
+  window.addEventListener('resize', () => {
     //renderer und somit auch die komplette szene wird auf neuen Browserfenster bereich angepasst
     renderer.setPixelRatio(window.devicePixelRatio)
     renderer.setSize(window.innerWidth, window.innerHeight)
@@ -165,7 +153,7 @@ function registerListeners(window: Window, renderer: WebGLRenderer) {
     camera.updateProjectionMatrix()
   })
 
-  document.addEventListener('pointerlockchange', (e) => {
+  document.addEventListener('pointerlockchange', () => {
     if (!document.pointerLockElement) {
       showSettings.value = true;
     } else {
@@ -269,10 +257,10 @@ function loadMusic() {
 const { scene, camera, renderer, pointerLockControls, clock, listener } =
   createSceneCameraRendererControlsClockListener()
 
-let controllLocked = watch(pointerLockControls, async (oldValue, newValue) => {
-  console.log("CHANGE");
-  newValue.isLocked;
-});
+// const controllLocked = watch(pointerLockControls, async (oldValue, newValue) => {
+//   console.log("CHANGE");
+//   newValue.isLocked;
+// });
 
 registerListeners(window, renderer)
 const [bgMusic, walkingSound, hitSound] = loadMusic()
@@ -286,27 +274,12 @@ watch(effectVolume, (newVolume) => {
 const threeContainer = ref<null | HTMLElement>(null)
 
 
-
-//Ball
-const sphereGeometry = new THREE.SphereGeometry(1, 30, 30)
-const sphereMaterial = new THREE.MeshStandardMaterial({
-  color: 0xffff00,
-  metalness: 0,
-  roughness: 0,
-})
-const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial)
-sphere.position.y = 2
-sphere.position.x = 3
-sphere.position.z = -4
-
-scene.add(sphere)
-
 //lightning
 const ambientLight = new THREE.AmbientLight(0x404040, 10)
 scene.add(ambientLight)
 
 const pointLight = new THREE.PointLight(0xffffff, 1000, 10)
-pointLight.position.set(10, 20, 10) //extra Lightning for the ball
+// pointLight.position.set(10, 20, 10) //extra Lightning for the ball
 scene.add(pointLight)
 
 function animate() {
@@ -641,6 +614,7 @@ function renderCharactersTest(playerPositions: IPlayerPositionDTD[]) {
 }
 
 function renderChicken(chickenPositions: IChickenPositionDTD[]) {
+
   const modelLoader = new GLTFLoader()
   const chickenModelURL = new URL('@/assets/game/realistic/chicken/chicken.gltf', import.meta.url).href;
 
@@ -812,21 +786,6 @@ function loadMap(map: string[],selectedTheme :{ground: string; wall:string}) {
 }
 
 function addSkybox(scene: THREE.Scene, skyBoxPath:string | {right: string; left: string; top: string; bottom: string; front: string; back: string }) {
-  /*const loader = new GLTFLoader();
-  loader.load(
-    skyBox,
-    (gltf) => {
-      console.log("Skybox GLB erfolgreich geladen:", skyBox);
-      const sky = gltf.scene;
-      sky.scale.set(100,100,100);
-      sky.position.set(0,0,0);
-      scene.add(sky);
-    },
-    undefined,
-    (error) => {
-      console.error("Fehler beim Laden der Skybox GLB:", error);
-    }
-  );*/
 
   const loader = new THREE.TextureLoader();
   if (typeof skyBoxPath === 'string'){
@@ -865,20 +824,9 @@ function addSkybox(scene: THREE.Scene, skyBoxPath:string | {right: string; left:
   }
 }
 
-function loadMapFromLocalStorage(): string[] | null {
-  const savedMap = localStorage.getItem(`gameMap-${lobbyId}`);
-  if (savedMap) {
-    try {
-      return JSON.parse(savedMap);
-    } catch (error) {
-      console.error('Error parsing saved map:', error);
-    }
-  }
-  return null;
-}
 
 async function handleCharacters(data: ICharacterDTD[]) {
-  let playerPositions: IPlayerPositionDTD[] = [];
+  const playerPositions: IPlayerPositionDTD[] = [];
   data.forEach(character => {
     if (sessionStorage.getItem('myName') !== character.name) {
       playerPositions.push({
@@ -947,29 +895,7 @@ onMounted(async () => {
     threeContainer.value.appendChild(renderer.domElement)
   }
   map.value= gameStore.gameState.gamedata.playmap?.map;
-  //const map: string[] | undefined = gameStore.gameState.gamedata.playmap?.map
-  // const map = [
-  //   '********************',
-  //   '*    *     *       *',
-  //   '* ** * ***** * *** *',
-  //   '*    *     * *   * *',
-  //   '* ** ***** * *** * *',
-  //   '*    *   * *     * *',
-  //   '* ** * * * ******* *',
-  //   '*    * * *         *',
-  //   '****** * ***********',
-  //   '*      *           *',
-  //   '* **** * ********* *',
-  //   '* *    *         * *',
-  //   '* * ** ********* * *',
-  //   '* *              * *',
-  //   '* * **************  ',
-  //   '* *                *',
-  //   '* **************** *',
-  //   '*                * *',
-  //   '****************** *',
-  //   '********************',
-  // ]
+  
   if (map.value && themeStore.currentTheme) {
     loadMap(map.value,{
       ground: themeStore.currentTheme.ground,
@@ -984,22 +910,7 @@ onMounted(async () => {
   } else {
     console.error("Keine Skybox-Daten im aktuellen Theme gefunden");
   }
-  const mockPositions: IPlayerPositionDTD[] = [
-    {
-      playerName: 'test',
-      x: 1,
-      y: 1,
-      z: 1,
-      angle: Math.PI,
-    },
-    {
-      playerName: 'test',
-      x: 2,
-      y: 2,
-      z: 1,
-      angle: 2 * Math.PI,
-    },
-  ]
+ 
   renderChicken(chickenPositions.value)
   animate()
   console.log(ground)
@@ -1011,9 +922,6 @@ watch(
     if (newTheme) {
       console.log(`Theme geändert zu: ${newTheme}`);
       const currentTheme = themeStore.currentTheme;
-      //console.log(`Ändere Skybox zu: ${themeStore.currentTheme.sky}`);
-      //addSkybox(scene, themeStore.currentTheme.sky); // Dynamisch Skybox ändern
-      //console.log("Skybox-Pfad:", themeStore.currentTheme.sky);
 
       // Map neu laden, falls vorhanden
       if (map.value && currentTheme) {
