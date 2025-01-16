@@ -59,6 +59,10 @@ public class Tile {
                     if(item instanceof FoodItems){
                         snackman.eatSnack((FoodItems)item);
                         logger.info("Snackman eats FoodItem '{}'.", item.getName());
+                        if(item instanceof Egg){
+                            ((Egg) item).setEaten(true);
+                            
+                        }
                     } else if(item instanceof ObjectsItems){
                         snackman.collectObjectItem((ObjectsItems) item);
                     }
