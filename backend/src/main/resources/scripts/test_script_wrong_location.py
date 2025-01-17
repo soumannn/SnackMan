@@ -15,7 +15,7 @@ chicken_index_environment_list = 4
 
 print("Vorherige Chicken Position: ", chickenObj.getPosX(), chickenObj.getPosY())
 
-def left_hand_algo():
+def right_hand_algo():
 
    
     actuell_environment = environmentObj.getEnvironment(chickenObj.getPosX(), chickenObj.getPosY())
@@ -35,9 +35,11 @@ def left_hand_algo():
     current_angle = chickenObj.getAngle()
 
     movement_priority = [
-        (current_angle - 90) % 360,  # Links
         current_angle % 360,         # Geradeaus
         (current_angle + 90) % 360,  # Rechts
+        (current_angle - 90) % 360,  # Links
+        
+        
         (current_angle + 180) % 360  # Hinter mir
     ]
 
@@ -46,22 +48,11 @@ def left_hand_algo():
         chicken_new_position = chicken_index_environment_list + move["check_index"]
 
         if (actuell_environment[chicken_new_position].getType().name() == "SURFACE"):
-            # move_to(move["delta_x"], move["delta_y"], angle, chicken_new_position, actuell_environment)
-            move_to_wall(move, angle, actuell_environment)
+            move_to(move["delta_x"], move["delta_y"], angle, chicken_new_position, actuell_environment)
             return
 
  
-def move_to_wall(move, angle, actuell_environment):
-    while True:
-        chicken_new_position = chicken_index_environment_list + move["check_index"]
 
-        if actuell_environment[chicken_new_position].getType().name() == "SURFACE":
-            move_to(move["delta_x"], move["delta_y"], angle, chicken_new_position, actuell_environment)
-        else:
-            print("Wand erreicht")
-            break
-
-    
 
 def move_to(delta_x, delta_y, change_angle, chicken_new_position, actuell_environment):
 
@@ -70,7 +61,10 @@ def move_to(delta_x, delta_y, change_angle, chicken_new_position, actuell_enviro
     new_pos_x = chickenObj.getPosX() + delta_x
     new_pos_y = chickenObj.getPosY() + delta_y
     # new_angle = chickenObj.getAngle() + change_angle
-    new_angle = (chickenObj.getAngle() + change_angle) % 360
+    # new_angle = (chickenObj.getAngle() + change_angle) % 360
+    new_angle = change_angle 
+    print("Change Angel: ", change_angle)
+    print("Neuer Angle: ", new_angle)
     chickenObj.move(new_pos_x, new_pos_y, new_angle)
     
 
@@ -113,7 +107,7 @@ def print_environment(actuell_environment):
 def run_auto():
     print("run_auto ausgeführt")
     while True:
-        left_hand_algo()
+        right_hand_algo()
         time.sleep(1)
    
 
