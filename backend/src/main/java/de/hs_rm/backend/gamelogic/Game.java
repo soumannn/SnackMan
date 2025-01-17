@@ -313,7 +313,11 @@ public class Game {
     public void leaveGame(Player player) {
         LOGGER.info(String.valueOf(players.size()));
         if (player.getName().contentEquals(gamemaster.getName())) {
-            throw new IllegalStateException("Gamemaster cannot leave the game.");
+            players.remove(player);
+            Random random = new Random();
+            Player newGamemaster = players.get(random.nextInt(players.size()));
+            gamemaster.setName(newGamemaster.getName());
+            LOGGER.info("New gamemaster: {}", gamemaster.getName());
         }
         for (int i = 0; i < players.size(); i++) {
             if (players.get(i).getName().equals(player.getName())) {

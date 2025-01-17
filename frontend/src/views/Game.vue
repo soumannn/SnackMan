@@ -17,6 +17,7 @@ import type { IChickenPositionDTD } from '@/stores/game/dtd/IChickenPositionDTD'
 import Modal from '@/components/Modal.vue'
 import { Playerrole } from '@/stores/game/dtd/EPlayerrole';
 import router from '@/router';
+import type { IPlayerDTD } from '@/stores/game/dtd/IPlayerDTD'
 
 
 const gameStore = useGameStore()
@@ -699,7 +700,7 @@ function loadMap(map: string[]) {
     });
   });
 
-  localStorage.setItem('gameMap-${lobbyId}',JSON.stringify(map));
+  localStorage.setItem('gameMap-${lobbyId}', JSON.stringify(map));
 
   // Add instanced meshes to the scene
   groundMesh.instanceMatrix.needsUpdate = true;
@@ -772,7 +773,7 @@ onMounted(async () => {
 
         if (playerPosition.playerName === sessionStorage.getItem('myName')) {
           console.log(playerPosition)
-          nextPosition.set(playerPosition.posX,playerPosition.posZ,playerPosition.posY)
+          nextPosition.set(playerPosition.posX, playerPosition.posZ, playerPosition.posY)
           moveCamera();
         }
 
@@ -831,6 +832,32 @@ onMounted(async () => {
   renderChicken(chickenPositions.value)
   animate()
 })
+async function leaveGame(lobbyId: string) {
+  try {
+
+    const playerName = sessionStorage.getItem("myName");
+
+    if (!playerName) {
+      console.error("nicht gefunden");
+      return;
+    }
+
+    const leavingPlayer = { name: playerName } as IPlayerDTD;
+
+    if (!leavingPlayer) {
+      console.error("Spieler nicht in der Liste gefunden!");
+      return;
+    }
+
+    const success = await gameStore.leaveGame(lobbyId, leavingPlayer);
+    console.log("Leaving Game succeeded:", success);
+
+
+  } catch (error) {
+    console.log("Fehler beim ausfueren des leaven", error);
+  }
+}
+
 
 </script>
 
@@ -870,35 +897,16 @@ onMounted(async () => {
       {{ effectVolume }}%
       <br>
       <h2 class="text-2xl font-bold mb-4">Adjust Settings {{ showSettings }}</h2>
-      <button @click="lockPointer" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-        Close
-      </button>
-    </div>
-  </div>
-
-
-  <Modal>
-    <template #titel>
-      <h3 class="header-modal-adventure">Lautstärke</h3>
-    </template>
-    <template #content>
-      <div flex flex-col gap-3>
-        Musik <input type="range" class="form-control-range" id="formControlRange" v-model="musicVolume">
-        {{ musicVolume }}%
-        <br>
-        Effekte <input type="range" class="form-control-range" id="formControlRange" v-model="effectVolume">
-        {{ effectVolume }}%
-        <br>
-        <h2 class="text-2xl font-bold mb-4">Adjust Settings {{ showSettings }}</h2>
-        <button @click="lockPointer" class="button-small-adventure">
+      <div class="flex space-x-4">
+        <button @click="lockPointer" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
           Close
         </button>
-        <button  @click="router.push('/index')" class="button-small-adventure">
+        <button @click="leaveGame(lobbyId)" class="mt-4 px-4 py-2 so bg-blue-500 text-white rounded hover:bg-blue-600">
           Return to Lobby
         </button>
       </div>
-    </template>
-  </Modal>
+    </div>
+  </div>
 
 </template>
 
