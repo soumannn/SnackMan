@@ -46,14 +46,25 @@ def left_hand_algo():
         chicken_new_position = chicken_index_environment_list + move["check_index"]
 
         if (actuell_environment[chicken_new_position].getType().name() == "SURFACE"):
-            move_to(move["delta_x"], move["delta_y"], angle, chicken_new_position, actuell_environment)
+            # move_to(move["delta_x"], move["delta_y"], angle, chicken_new_position, actuell_environment)
+            move_to_wall(move, angle, actuell_environment)
             return
 
  
+def move_to_wall(move, angle, actuell_environment):
+    while True:
+        chicken_new_position = chicken_index_environment_list + move["check_index"]
+
+        if actuell_environment[chicken_new_position].getType().name() == "SURFACE":
+            move_to(move["delta_x"], move["delta_y"], angle, chicken_new_position, actuell_environment)
+        else:
+            print("Wand erreicht")
+            break
 
     
 
 def move_to(delta_x, delta_y, change_angle, chicken_new_position, actuell_environment):
+
     actuell_environment[chicken_index_environment_list].removeChicken(chickenObj)
 
     new_pos_x = chickenObj.getPosX() + delta_x
