@@ -329,12 +329,6 @@ public class GameAPIController {
 
             return;
         }
-        response.put("type", "playerPosition");
-        response.put("feedback", currentCharacters.values());
-        response.put("status", "ok");
-        response.put("time", LocalDateTime.now().toString());
-
-        messagingService.sendNewCharacterPosition(lobbyid, response);
 
     }
 

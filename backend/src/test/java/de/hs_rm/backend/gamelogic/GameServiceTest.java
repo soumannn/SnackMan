@@ -66,32 +66,36 @@ public class GameServiceTest {
     @Test // Spieler wird gefunden, aber Bewegung schlägt fehl
     void testMoveMoveFails() {
         when(mockGame.findPlayerByUsername("testPlayer")).thenReturn(mock(Player.class));
-        when(mockGame.move("testPlayer", 2, 2, 1,1))
+        when(mockGame.move("testPlayer", 2, 2, 1, 1))
                 .thenThrow(new IllegalArgumentException("Failed to move Player 'testPlayer'. Tile is a wall"));
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
             gameService.move("testPlayer", 2, 2, 1, 1);
         });
-
-        boolean result = gameService.move("testPlayer", 2, 2, 1, 1);
-
-        assertFalse(result);
-        verify(mockGame).move("testPlayer", 2, 2, 1,1); // Überprüfen, ob move aufgerufen wurde
+        
+        verify(mockGame).move("testPlayer", 2, 2, 1, 1); // Überprüfen, ob move aufgerufen wurde
         assertEquals("Failed to move Player 'testPlayer'. Tile is a wall", exception.getMessage());
     }
 
-    @Test // Spieler wird gefunden, Bewegung gelingt
+    @Test
     void testMoveMoveSucceeds() {
         Player mockPlayer = mock(Player.class);
-        Game mockGame = mock(Game.class); 
-        when(mockGame.findPlayerByUsername("testPlayer")).thenReturn(mockPlayer); 
-        when(mockGame.move("testPlayer", 3, 3, 1,1)).thenReturn(true);
+        Game mockGame = mock(Game.class);
+        PlayMap mockPlayMap = mock(PlayMap.class);
 
-        gameList.put("game1", mockGame); 
+        when(mockGame.getPlaymap()).thenReturn(mockPlayMap);
+        when(mockPlayMap.getWidth()).thenReturn(10); 
+        when(mockPlayMap.getHeight()).thenReturn(10); 
+
+        when(mockGame.findPlayerByUsername("testPlayer")).thenReturn(mockPlayer);
+        when(mockGame.move("testPlayer", 3, 3, 1, 1)).thenReturn(true); 
+
+        gameList.put("game1", mockGame);
 
         boolean result = gameService.move("testPlayer", 3, 3, 1, 1);
 
         assertTrue(result);
-        verify(mockGame).move("testPlayer", 3, 3, 1,1);
+        verify(mockGame).move("testPlayer", 3, 3, 1, 1);
     }
+
 }
