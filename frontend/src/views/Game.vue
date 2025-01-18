@@ -16,6 +16,7 @@ import Modal from '@/components/Modal.vue'
 import { Playerrole } from '@/stores/game/dtd/EPlayerrole';
 import router from '@/router';
 import { useThemeStore } from '@/stores/themes/themeStore';
+import { spritesheetUV } from 'three/webgpu'
 
 const themeStore = useThemeStore();
 
@@ -47,7 +48,8 @@ const effectVolume = ref(50)
 const spawnX = ref(1);
 const spawnZ = ref(2);
 
-
+//für Ingame Spielernamen
+const playerNames = new Map<string, THREE.Sprite>();
 
 //für HuD
 //const life = ref(2) //startlife
@@ -64,6 +66,26 @@ let jumpVelocity = 0 // Vertikale Geschwindigkeit des Sprungs
 const gravity = -9.8 // Schwerkraft
 const minJumpSpeed = 6 // Startgeschwindigkeit des kleinen Sprung
 const maxJumpSpeed = 15 //Geschwindigkeit für großen Sprung
+
+// Controller-Index (wenn ein Controller verbunden ist)
+let controllerIndex: number | null = null;
+
+// Deadzone für die Achsen, um kleine Bewegungen zu ignorieren
+const deadzone = 0.2;
+
+// Event-Listener für Controller-Verbindung
+window.addEventListener("gamepadconnected", (event) => {
+  console.log("Controller verbunden:", event.gamepad.id);
+  controllerIndex = event.gamepad.index;
+});
+
+// Event-Listener für Controller-Trennung
+window.addEventListener("gamepaddisconnected", (event) => {
+  console.log("Controller getrennt:", event.gamepad.id);
+  if (controllerIndex === event.gamepad.index) {
+    controllerIndex = null;
+  }
+});
 
 function lockPointer() {
   pointerLockControls.lock();
@@ -155,7 +177,7 @@ function createSceneCameraRendererControlsClockListener() {
   const scene = new THREE.Scene()
 
   const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.outerWidth, 0.001, 1000)
-  camera.position.set(1, 1, 2)
+  //camera.position.set(1, 1, 2)
   camera.rotation.order = "YXZ"
 
   const listener = new THREE.AudioListener();
@@ -218,9 +240,9 @@ function registerListeners(window: Window, renderer: WebGLRenderer) {
         movingRight = true
         break
       case 'Space':
-          if(gameStore.jumpAllowed){
-              isChargingJump = true;
-          }
+        if (gameStore.jumpAllowed) {
+          isChargingJump = true;
+        }
         break;
     }
   })
@@ -243,6 +265,52 @@ function registerListeners(window: Window, renderer: WebGLRenderer) {
         break
     }
   })
+}
+
+// Funktion zur Abfrage der Gamepad-Eingaben
+function handleGamepadInput(delta: number) {
+  if (controllerIndex !== null) {
+    const gamepad = navigator.getGamepads()[controllerIndex];
+    if (gamepad) {
+      // Rechter Joystick (Axes 2 und 3)
+      const rightStickX = gamepad.axes[2]; // Horizontal (Rotation Y)
+      const rightStickY = gamepad.axes[3]; // Vertikal (Rotation X oder Zoom)
+
+      // Rotation der Kamera (Y-Achse, Horizontal)
+      camera.rotation.y -= rightStickX * delta * 2.5; // Empfindlichkeit anpassen
+
+      // Optional: Vertikale Kamera-Rotation
+      const maxVerticalAngle = Math.PI / 4; // Begrenze vertikale Rotation (z.B. +/- 45°)
+      camera.rotation.x = Math.max(
+        -maxVerticalAngle,
+        Math.min(maxVerticalAngle, camera.rotation.x - rightStickY * delta * 2.5)
+      );
+    }
+  }
+}
+
+
+function updateGamepadInput() {
+  if (controllerIndex === null) return;
+
+  const gamepad = navigator.getGamepads()[controllerIndex];
+  if (!gamepad) return;
+
+  // Bewegungen (linker Stick)
+  const deadzone = 0.2;
+  const leftStickX = gamepad.axes[0]; // Linker Stick X
+  const leftStickY = gamepad.axes[1]; // Linker Stick Y
+
+  movingForward = leftStickY < -deadzone;
+  movingBackward = leftStickY > deadzone;
+  movingLeft = leftStickX < -deadzone;
+  movingRight = leftStickX > deadzone;
+
+  // Springen (X-Taste)
+  isChargingJump = gamepad.buttons[0].pressed; // Button 0 = Kreuz (X auf PS5)
+
+  console.log(`Bewegen: Vor:${movingForward}, Zurück:${movingBackward}, Links:${movingLeft}, Rechts:${movingRight}`);
+  console.log(`Springen: ${isChargingJump}`);
 }
 
 //Diese Funktion lädt die Hintergrundmusik
@@ -339,9 +407,12 @@ function animate() {
     item.rotation.y += 0.01
   })
 
+
   renderer.render(scene, camera)
   const delta = clock.getDelta()
   cameraPositionBewegen(delta)
+      // Gamepad-Eingaben verarbeiten
+      handleGamepadInput(delta);
 }
 
 async function isValidChargeJump(): Promise<boolean> {
@@ -374,6 +445,9 @@ async function isValidChargeJump(): Promise<boolean> {
     return false; // Return false in case of an error
   }
 }
+
+
+
 
 // Funktion, die den Sprung auslöst, wenn die 2 Sekunden um sind
 function triggerJumpAfterChargeTime(delta: number) {
@@ -477,7 +551,7 @@ function updateJumpBar() {
   const jumpBar = document.getElementById("jumpBar");
   const progress = Math.min((jumpChargeTime / maxJumpChargeTime) * 100, 100); // Prozent
 
-  if (jumpBar){
+  if (jumpBar) {
 
     jumpBar.style.width = `${progress}%`; // Breite Balken setzen
 
@@ -511,7 +585,7 @@ function applyJumpLogic(delta: number, nextPosition: THREE.Vector3) {
 function cameraPositionBewegen(delta: number) {
   const cameraViewDirection = new THREE.Vector3();
   camera.getWorldDirection(cameraViewDirection);
-
+  updateGamepadInput()
   // Ignoriere die Y-Komponente, um nur die X-Z-Ebene zu berücksichtigen
   cameraViewDirection.y = 0;
   cameraViewDirection.normalize();
@@ -607,8 +681,8 @@ function renderCharactersTest(playerPositions: IPlayerPositionDTD[]) {
     (playerName) =>
       !playerPositions.map((position) => position.playerName).includes(playerName)
   );
-  const snackmanModel= themeStore.currentTheme?.character.snackman;
-  const ghostModel= themeStore.currentTheme?.character.ghost;
+  const snackmanModel = themeStore.currentTheme?.character.snackman;
+  const ghostModel = themeStore.currentTheme?.character.ghost;
 
   missingPlayers.forEach((player) => {
     const objectId = players.get(player);
@@ -627,54 +701,61 @@ function renderCharactersTest(playerPositions: IPlayerPositionDTD[]) {
       loadingPlayers.set(playerPosition.playerName, true);
       let modelPath;
       const playersList = gameStore.gameState.gamedata?.players;
-      let playerData= undefined;
-      if (playersList){
-        for (const player of playersList){
-          if (player.name == playerPosition.playerName){
-            playerData= player;
+      let playerData = undefined;
+      if (playersList) {
+        for (const player of playersList) {
+          if (player.name == playerPosition.playerName) {
+            playerData = player;
             break;
           }
         }
-      }if (playerData?.playerrole == Playerrole.SNACKMAN) {
-          modelPath = snackmanModel;
+      } if (playerData?.playerrole == Playerrole.SNACKMAN) {
+        modelPath = snackmanModel;
       } else {
-          modelPath = ghostModel;
+        modelPath = ghostModel;
       }
-      if (modelPath){
+      if (modelPath) {
         let loadingPath: string;
         let scaleNumber: number
-        if (typeof modelPath === "string"){
-          loadingPath= modelPath;
-          scaleNumber=0.5;
-        }else{
-          loadingPath=modelPath.path;
-          scaleNumber= modelPath.scale;
+        if (typeof modelPath === "string") {
+          loadingPath = modelPath;
+          scaleNumber = 0.5;
+        } else {
+          loadingPath = modelPath.path;
+          scaleNumber = modelPath.scale;
         }
-      modelLoader.load(loadingPath, (gltf) => {
-        const model = gltf.scene;
-        model.scale.set(scaleNumber, scaleNumber,scaleNumber);
-        players.set(playerPosition.playerName, model.id);
-        scene.add(model);
+        modelLoader.load(loadingPath, (gltf) => {
+          const model = gltf.scene;
+          model.scale.set(scaleNumber, scaleNumber, scaleNumber);
+          players.set(playerPosition.playerName, model.id);
+          scene.add(model);
 
-        model.position.set(playerPosition.x, 1, playerPosition.y);
-        model.rotation.y = (playerPosition.angle * Math.PI * 2)+ adjustAngle;
+          const sprite = createNameSprite(playerPosition.playerName);
+          sprite.position.set(playerPosition.x, scaleNumber + 0.3, playerPosition.y);
+          playerNames.set(playerPosition.playerName, sprite);
+          scene.add(sprite);
 
-        loadingPlayers.delete(playerPosition.playerName);
-      });
-    }else{
-      console.error("Kein Modell gefunden für", playerPosition.playerName);
-    }
+          model.position.set(playerPosition.x, 1, playerPosition.y);
+          model.rotation.y = (playerPosition.angle * Math.PI * 2) + adjustAngle;
+
+          loadingPlayers.delete(playerPosition.playerName);
+        });
+      } else {
+        console.error("Kein Modell gefunden für", playerPosition.playerName);
+      }
     } else {
       //Modell updaten
       const index: number | undefined = players.get(playerPosition.playerName)
       if (index) {
         const model = scene.getObjectById(index)
-        if (model) {
+        const sprite = playerNames.get(playerPosition.playerName)
+        if (model && sprite) {
           const messungsBox = new THREE.Box3()
           const breite = new THREE.Vector3()
           messungsBox.getSize(breite)
           messungsBox.expandByObject(model)
           model.position.set(playerPosition.x - breite.x / 2, playerPosition.z, playerPosition.y)
+          sprite.position.set(playerPosition.x, 2.5, playerPosition.y);
           model.rotation.y = playerPosition.angle + adjustAngle
         }
       }
@@ -697,6 +778,34 @@ function renderChicken(chickenPositions: IChickenPositionDTD[]) {
   })
 }
 
+function createNameSprite(playerName: string) {
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d');
+  const fontSize = 24;
+
+  if (!context) return new THREE.Sprite();
+
+  context.fillStyle = 'rgba(0, 0, 0, 0.6)';
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.font = `bold ${fontSize}px Arial`;
+  context.fillStyle = 'white';
+  context.textAlign = 'center';
+  context.strokeStyle = 'black';
+  context.lineWidth = 6;
+
+  canvas.width = 256;
+  canvas.height = 64;
+  context.fillText(playerName, canvas.width / 2, canvas.height /2);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+  const sprite = new THREE.Sprite(spriteMaterial);
+
+  sprite.scale.set(1.2, 0.5, 1);
+  return sprite;
+}
+
+
 const textureCache = new Map<string, THREE.Texture>();
 
 function getCachedTexture(url: string): THREE.Texture {
@@ -707,7 +816,7 @@ function getCachedTexture(url: string): THREE.Texture {
   return texture;
 }
 
-function loadMap(map: string[],selectedTheme :{ground: string; wall:string}) {
+function loadMap(map: string[], selectedTheme: { ground: string; wall: string }) {
   const groundGeometry = new THREE.BoxGeometry(1, 1, 1);
   const wallGeometry = new THREE.BoxGeometry(1, 1, 1);
   const groundTexture = getCachedTexture(selectedTheme.ground);
@@ -833,7 +942,7 @@ function loadMap(map: string[],selectedTheme :{ground: string; wall:string}) {
   scene.add(wallMesh);
 }
 
-function addSkybox(scene: THREE.Scene, skyBoxPath:string | {right: string; left: string; top: string; bottom: string; front: string; back: string }) {
+function addSkybox(scene: THREE.Scene, skyBoxPath: string | { right: string; left: string; top: string; bottom: string; front: string; back: string }) {
   /*const loader = new GLTFLoader();
   loader.load(
     skyBox,
@@ -851,26 +960,26 @@ function addSkybox(scene: THREE.Scene, skyBoxPath:string | {right: string; left:
   );*/
 
   const loader = new THREE.TextureLoader();
-  if (typeof skyBoxPath === 'string'){
+  if (typeof skyBoxPath === 'string') {
     loader.load(
       skyBoxPath,
-    (texture) => {
-      const sphereGeometry = new THREE.SphereGeometry(500, 64, 64);
-      const sphereMaterial = new THREE.MeshBasicMaterial({
-        map: texture,
-        side: THREE.BackSide,
-      });
+      (texture) => {
+        const sphereGeometry = new THREE.SphereGeometry(500, 64, 64);
+        const sphereMaterial = new THREE.MeshBasicMaterial({
+          map: texture,
+          side: THREE.BackSide,
+        });
 
-      const skySphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-      scene.add(skySphere);
-      console.log("SkySphere erfolgreich hinzugefügt!");
-    },
-    undefined,
-    (error) => {
-      console.error("Fehler beim Laden der SkySphere-Textur:", error);
-    }
-  );
-  }else{
+        const skySphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+        scene.add(skySphere);
+        console.log("SkySphere erfolgreich hinzugefügt!");
+      },
+      undefined,
+      (error) => {
+        console.error("Fehler beim Laden der SkySphere-Textur:", error);
+      }
+    );
+  } else {
     const materials = [
       new THREE.MeshBasicMaterial({ map: loader.load(skyBoxPath.right), side: THREE.BackSide }),
       new THREE.MeshBasicMaterial({ map: loader.load(skyBoxPath.left), side: THREE.BackSide }),
@@ -937,8 +1046,7 @@ function removeItemFromSceneByPosition(posX: number, posY: number) {
 
 watch([spawnX, spawnZ], ([newX, newZ]) => {
       if (camera) {
-        camera.position.z = newZ;
-        camera.position.x = newX;
+        camera.position.set(newX,1,newZ);
       }
     });
 
@@ -946,10 +1054,10 @@ onMounted(async () => {
   try {
     await gameStore.fetchGameStatus()
     const playerName = sessionStorage.getItem('myName');
-        if (playerName) {
-          console.log(playerName)
-          await gameStore.getJumpAllowed(playerName,lobbyId);
-        }
+    if (playerName) {
+      console.log(playerName)
+      await gameStore.getJumpAllowed(playerName, lobbyId);
+    }
 
   } catch (error) {
     console.error('Error fetching game status:', error)
@@ -983,7 +1091,7 @@ onMounted(async () => {
         const playerPosition: any = messageValidation.feedback
 
         if (playerPosition.playerName === sessionStorage.getItem('myName')) {
-          nextPosition.set(playerPosition.posX,playerPosition.posZ,playerPosition.posY)
+          nextPosition.set(playerPosition.posX, playerPosition.posZ, playerPosition.posY)
           moveCamera();
         }
 
@@ -1045,7 +1153,7 @@ onMounted(async () => {
   if (threeContainer.value) {
     threeContainer.value.appendChild(renderer.domElement)
   }
-  map.value= gameStore.gameState.gamedata.playmap?.map;
+  map.value = gameStore.gameState.gamedata.playmap?.map;
   //const map: string[] | undefined = gameStore.gameState.gamedata.playmap?.map
   // const map = [
   //   '********************',
@@ -1070,7 +1178,7 @@ onMounted(async () => {
   //   '********************',
   // ]
   if (map.value && themeStore.currentTheme) {
-    loadMap(map.value,{
+    loadMap(map.value, {
       ground: themeStore.currentTheme.ground,
       wall: themeStore.currentTheme.wall,
     });
@@ -1099,16 +1207,16 @@ onMounted(async () => {
       angle: 2 * Math.PI,
     },
   ]
-  renderChicken(chickenPositions.value)
-  animate()
-  if(spawnPoints !== null){
+  if(spawnPoints != null){
     spawnPoints.forEach(spawnPoint => {
       if(sessionStorage.getItem('myName') == spawnPoint.playerName){
-        spawnX.value = Number(spawnPoint.x);
-        spawnZ.value = Number(spawnPoint.y);
+        spawnX.value = Number(spawnPoint.posX);
+        spawnZ.value = Number(spawnPoint.posY);
       }
     })
   }
+  renderChicken(chickenPositions.value)
+  animate()
 })
 watch(
   () => themeStore.selectedTheme,
@@ -1129,9 +1237,9 @@ watch(
       } else {
         console.error('Keine Map oder kein aktuelles Theme gefunden');
       }
-      if (themeStore.currentTheme.skybox){
+      if (themeStore.currentTheme.skybox) {
         addSkybox(scene, themeStore.currentTheme.skybox);
-      }else{
+      } else {
         console.error("Keine Skybox-Daten im aktuellen Theme gefunden");
       }
     }
@@ -1173,15 +1281,11 @@ watch(
   </div>
 
   <!-- Sprung-Ladebalken -->
-  <div
-    id="jumpBarContainer"
+  <div id="jumpBarContainer"
     class="fixed z-50 bottom-10 left-1/2 transform -translate-x-1/2 flex justify-center items-center w-full max-w-[600px] hidden">
     <!-- Ladebalken -->
     <div class="w-full bg-gray-700 rounded-full h-6 overflow-hidden">
-      <div
-        id="jumpBar"
-        class="bg-red-500 h-full transition-all duration-100 ease-in-out"
-        style="width: 0%;">
+      <div id="jumpBar" class="bg-red-500 h-full transition-all duration-100 ease-in-out" style="width: 0%;">
       </div>
     </div>
   </div>
