@@ -14,6 +14,7 @@ import type { ICharacterDTD } from '@/stores/game/dtd/ICharacterDTD'
 import type { IChickenPositionDTD } from '@/stores/game/dtd/IChickenPositionDTD'
 import Modal from '@/components/Modal.vue'
 import { Playerrole } from '@/stores/game/dtd/EPlayerrole';
+import router from '@/router';
 import { useThemeStore } from '@/stores/themes/themeStore';
 
 const themeStore = useThemeStore();
@@ -85,9 +86,17 @@ const currentCharacter = computed(() => {
   return character;
 });
 
+const collisionMessage = ref<string | null>(null);
+
+function showCollisionMessage(message: string) {
+  collisionMessage.value = message;
+  setTimeout(() => {
+    collisionMessage.value = null; // nach 5 Sekunden weg
+  }, 5000);
+}
 
 // Aktuelles Leben des Charakters
-const life = computed(() => currentCharacter.value?.life ?? 0);
+const snackmanLife = computed(() => currentCharacter.value?.life ?? 0);
 
 watch(
   () => currentCharacter.value?.life,
@@ -98,16 +107,29 @@ watch(
   }
 );
 
+// Ghost-Touches aktualisieren
+const ghostTouch = computed(() => currentCharacter.value?.touchcount ?? 0);
+
+watch(
+  () => currentCharacter.value?.touchcount,
+  (newTouches, oldTouches) => {
+    if (newTouches !== oldTouches) {
+      console.log(`Ghost-Touches changed from ${oldTouches} to ${newTouches}`);
+    }
+  }
+);
+
 // Maximales Leben des Charakters
-const maxLife = computed(() => currentCharacter.value?.maxLife ?? 0);
+const snackmanMaxLife = computed(() => gameStore.gameState.gamedata.snackmanMaxLife ?? 0);
 
 const collectedItems = ref<string[]>([]) //Gesammelte Items
 
 // Maximale Punkte
-const maxPoints = computed(() => gameStore.gameState.gamedata.maxPointsSnackman);
+const snackmanMaxPoints = computed(() => gameStore.gameState.gamedata.maxPointsSnackman ?? 0);
+const requiredPointsToWin = computed(() => snackmanMaxPoints.value / 2);
 
 // Aktuelle Punkte
-const points = computed(() => currentCharacter.value?.currentPoints ?? 0);
+const snackmanPoints = computed(() => currentCharacter.value?.currentPoints ?? 0);
 
 watch(
   () => currentCharacter.value?.currentPoints,
@@ -118,6 +140,8 @@ watch(
     }
   }
 );
+// Role die gewonnen hat
+const winnerRole = computed(() => gameStore.gameState.gamedata.winnerRole ?? null);
 
 // Typ falsch?
 const chickenPositions = ref<IChickenPositionDTD[]>([]);
@@ -309,7 +333,7 @@ scene.add(pointLight)
 function animate() {
   setTimeout(function () {
     requestAnimationFrame(animate)
-  }, 1000 / 60)
+  }, 1000 / 60);
 
   rotatingItems.forEach((item) => {
     item.rotation.y += 0.01
@@ -516,8 +540,31 @@ function cameraPositionBewegen(delta: number) {
   }
 }
 
+function checkCollision(nextPosition: THREE.Vector3): boolean {
+  const collisionDistance = 0.3; // Mindestabstand für Kollision
+  const myName = sessionStorage.getItem("myName");
+
+  for (const [name, character] of Object.entries(gameStore.gameState.gamedata.characters)) {
+    if (name !== myName) {
+      const characterPosition = new THREE.Vector3(character.posX, 1, character.posY);
+      const distance = nextPosition.distanceTo(characterPosition);
+
+      if (distance < collisionDistance) {
+        return true; // Bewegung blockiert
+      }
+    }
+  }
+  return false; // Keine Kollision
+}
+
 function validatePosition(nextPosition: THREE.Vector3) {
   const currentTime: number = Date.now()
+
+
+  if (checkCollision(nextPosition)) {
+    console.log("Movement blocked due to collision.");
+    return;
+  }
 
   if (currentTime - lastSend > 10) {
     const cameraAngle = camera.rotation.y
@@ -720,68 +767,48 @@ function loadMap(map: string[],selectedTheme :{ground: string; wall:string}) {
 
           const itemPaths: { [key: string]: URL[] } = {
             E: [
-              new URL("@/assets/game/items/E/strawberry_shortcake/strawberry_shortcake.glb", import.meta.url),
-              new URL("@/assets/game/items/E/chocolate_bar/chocolate_bar.glb", import.meta.url)
+              new URL("@/assets/game/items/D/cotton_candy/cottoncandy.glb", import.meta.url)
             ],
             D: [
-              new URL("@/assets/game/items/D/cotton_candy/cottoncandy.glb", import.meta.url),
-              new URL("@/assets/game/items/D/popcorn/popcorn.glb", import.meta.url)
+              new URL("@/assets/game/items/C/chips/chips.glb", import.meta.url)
             ],
             C: [
-              new URL("@/assets/game/items/C/candy_cane/candycane.glb", import.meta.url),
-              new URL("@/assets/game/items/C/chips/chips.glb", import.meta.url),
-            ],
-            B: [
-              new URL("@/assets/game/items/B/apple/apple.glb", import.meta.url),
-              new URL("@/assets/game/items/B/banana/banana.glb", import.meta.url),
+              new URL("@/assets/game/items/E/chocolate_bar/chocolatebar.glb", import.meta.url)
+              ],
+              B: [
+              new URL("@/assets/game/items/C/candy_cane/candycane.glb", import.meta.url)
             ],
             A: [
-              new URL("@/assets/game/items/A/ginger/ginger_fixed.glb", import.meta.url),
-              new URL("@/assets/game/items/A/lemon/lemon_remake.glb", import.meta.url)
+              new URL("@/assets/game/items/E/strawberry_shortcake/strawberry_shortcake.glb", import.meta.url)
             ],
           };
 
           const randomModelPath = new URL(
-            itemPaths[tile][Math.random() > 0.5 ? 0 : 1],
+            itemPaths[tile][0],
             import.meta.url
           ).href;
-
+          // ITEMS SIND SPIEGELVERKEHRT
           loadCachedModel(randomModelPath).then((model) => {
             const item = model.clone(); // Clone to avoid modifying the cached model
 
-
-            if (randomModelPath.includes('chocolate_bar')) {
+            if (randomModelPath.includes('chocolatebar')) {
               item.position.set(x, 0.75, z);
-              item.scale.set(0.2, 0.2, 0.2);
+              item.scale.set(0.1, 0.1, 0.1);
             } else if (randomModelPath.includes('strawberry_shortcake')) {
               item.position.set(x, 0.5, z);
-              item.scale.set(0.5, 0.5, 0.5);
-            } else if (randomModelPath.includes('cotton_candy')) {
-              item.position.set(x, 0.5, z);
+              item.scale.set(0.25, 0.25, 0.25);
+            } else if (randomModelPath.includes('cottoncandy')) {
+              item.position.set(x, 0.75, z);
               item.scale.set(0.2, 0.2, 0.2);
             } else if (randomModelPath.includes('popcorn')) {
-              item.position.set(x, 0.5, z);
-              item.scale.set(0.5, 0.5, 0.5);
+              item.position.set(x, 0.75, z);
+              item.scale.set(0.09, 0.09, 0.09);
             } else if (randomModelPath.includes('candy_cane')) {
               item.position.set(x, 0.8, z);
               item.scale.set(0.07, 0.07, 0.07);
             } else if (randomModelPath.includes('chips')) {
               item.position.set(x, 0.8, z);
               item.scale.set(0.1, 0.1, 0.1);
-            } else if (randomModelPath.includes('apple')) {
-              item.position.set(x, 0.75, z);
-              item.scale.set(0.0015, 0.0015, 0.0015);
-            } else if (randomModelPath.includes('banana')) {
-              item.position.set(x, 0.75, z);
-              item.scale.set(0.07, 0.07, 0.07);
-            } else if (randomModelPath.includes('ginger_fixed')) {
-              item.position.set(x, 0.75, z);
-              item.scale.set(0.1, 0.1, 0.1);
-              item.rotateZ(Math.PI / 1.5);
-            } else if (randomModelPath.includes('lemon_remake')) {
-              item.position.set(x, 0.75, z);
-              item.scale.set(0.09, 0.09, 0.09);
-              item.rotateZ(Math.PI / 1.5);
             }
             scene.add(item);
 
@@ -797,7 +824,7 @@ function loadMap(map: string[],selectedTheme :{ground: string; wall:string}) {
     });
   });
 
-  localStorage.setItem('gameMap-${lobbyId}',JSON.stringify(map));
+  localStorage.setItem('gameMap-${lobbyId}', JSON.stringify(map));
 
   // Add instanced meshes to the scene
   groundMesh.instanceMatrix.needsUpdate = true;
@@ -888,6 +915,26 @@ async function handleCharacters(data: ICharacterDTD[]) {
   renderCharactersTest(playerPositions)
 }
 
+function removeItemFromSceneByPosition(posX: number, posY: number) {
+  const itemToRemove = rotatingItems.find(
+    (item) =>
+      Math.abs(item.position.x - posX) <= 0.5 && Math.abs(item.position.z - posY) <= 0.5
+  );
+
+  if (itemToRemove) {
+    // Entferne das Item aus der Szene
+    scene.remove(itemToRemove);
+
+    // Entferne es aus der rotatingItems-Liste
+    const index = rotatingItems.indexOf(itemToRemove);
+    if (index > -1) {
+      rotatingItems.splice(index, 1);
+    }
+  } else {
+    console.warn(`Kein Item an Position {} {}`, posX, posY)
+  }
+}
+
 watch([spawnX, spawnZ], ([newX, newZ]) => {
       if (camera) {
         camera.position.z = newZ;
@@ -943,6 +990,57 @@ onMounted(async () => {
         break
     }
   })
+
+  subscribeTo(`/ingame/PlayerKollision/${lobbyId}`, async (message) => {
+    switch (message.type) {
+
+      case 'collisionValidation': {
+       // tiefe Kopie
+        const previousValues = JSON.parse(JSON.stringify(gameStore.gameState.gamedata.characters));
+        // aktualiesieren
+        gameStore.gameState.gamedata.characters = message.updateCharacters
+        gameStore.gameState.gamedata.winnerRole = message.winnerRole
+
+        // für hit/life feed
+        for (const [name, characterDetails] of Object.entries(gameStore.gameState.gamedata.characters)) {
+          if (name !== currentPlayer.value?.name) {
+            // es soll nur ausgegeben werden wenn sich der wert vom alten unterscheidet und der wert nicht 0 ist
+            if ((characterDetails.life ?? 0) > 0 && (previousValues[name]?.life ?? null) !== characterDetails.life) {
+              showCollisionMessage(`Snackman ${name} has ${characterDetails.life} lifes.`);
+            }
+            if ((characterDetails.touchcount ?? 0) > 0 && (previousValues[name]?.touchcount ?? null) !== characterDetails.touchcount) {
+              showCollisionMessage(`Ghost ${name} has ${characterDetails.touchcount} hits.`);
+            }
+          }
+        }
+        // überprüft, ob es ein gewinner gibt und zeigt die ensprechende ansicht
+          if (winnerRole.value !== null) {
+            router.push({ name: 'GameEnd' });
+          }
+        break;
+      }
+
+      default:
+    console.warn("Unerwarteter Nachrichtentyp:", message.type);
+    break;
+  }
+  });
+
+
+
+  subscribeTo(`/ingame/${lobbyId}/itemUpdates`, async (message: any) => {
+    switch (message.type) {
+      case "itemCollected":
+        console.log(`collected at{} {}`, message.posX, message.positionY)
+        console.log('MESSAGE: ' + message.toString())
+        removeItemFromSceneByPosition(message.positionX, message.positionY);
+        break;
+
+      default:
+        console.warn("Unbekannter Nachrichtentyp:", message.type);
+    }
+  })
+
 
   if (threeContainer.value) {
     threeContainer.value.appendChild(renderer.domElement)
@@ -1054,15 +1152,23 @@ watch(
     </div>
     <div id="hud" class="hud absoute text-white font-bold">
       <div v-if="currentPlayer?.playerrole === Playerrole.SNACKMAN" class="flex gap-2">
-        <div v-for="index in maxLife" :key="index">
-          <img v-if="index <= life" src="../assets/game/realistic/herz.png" alt="Full Heart" width="40" height="40" />
+        <div v-for="index in snackmanMaxLife" :key="index">
+          <img v-if="index <= snackmanLife" src="../assets/game/realistic/herz.png" alt="Full Heart" width="40"
+            height="40" />
           <img v-else src="../assets/game/realistic/emptyHerz.png" alt="Empty Heart" width="40" height="40" />
         </div>
       </div>
       <!-- Punkteanzeige -->
       <div v-if="currentPlayer?.playerrole === Playerrole.SNACKMAN" class="points text-lg mt-2">
-        <p>Points: {{ points }} / {{ maxPoints }}</p>
+        <p>Points: {{ snackmanPoints }} / {{ requiredPointsToWin }}</p>
       </div>
+      <!-- TouchCountanzeige -->
+      <div v-if="currentPlayer?.playerrole === Playerrole.GHOST" class="points text-lg mt-2">
+        <p>Hits: {{ ghostTouch }}</p>
+      </div>
+    </div>
+    <div v-if="collisionMessage" class="fixed bottom-4 left-4 bg-red-400 text-white p-5 rounded-lg shadow-lg z-50">
+      {{ collisionMessage }}
     </div>
   </div>
 
