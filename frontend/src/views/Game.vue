@@ -4,8 +4,6 @@ import * as THREE from 'three'
 import { WebGLRenderer } from 'three'
 import { computed, onMounted, ref, watch } from 'vue'
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js'
-import ground from '@/assets/game/realistic/ground.png'
-import wall from '@/assets/game/realistic/wall.png'
 import { useGameStore } from '@/stores/game/gamestore'
 import type { IMessageDTD } from '@/stores/game/dtd/IMessageDTD'
 import { sendMessage, subscribeTo } from '@/config/stompWebsocket'
@@ -17,7 +15,6 @@ import type { IChickenPositionDTD } from '@/stores/game/dtd/IChickenPositionDTD'
 import Modal from '@/components/Modal.vue'
 import { Playerrole } from '@/stores/game/dtd/EPlayerrole';
 import { useThemeStore } from '@/stores/themes/themeStore';
-import type { GameResponse } from '@/stores/game/responses/GameResponse'
 
 const themeStore = useThemeStore();
 
@@ -46,6 +43,8 @@ let movementSpeed = slowMovementSpeed
 const showSettings = ref(false)
 const musicVolume = ref(50)
 const effectVolume = ref(50)
+const spawnX = ref(1);
+const spawnZ = ref(2);
 
 
 
@@ -83,7 +82,6 @@ const currentCharacter = computed(() => {
   if (!myName) return null;
 
   const character = gameStore.gameState.gamedata?.characters[myName] || null;
-  console.log("Current Character:", character);
   return character;
 });
 
@@ -134,6 +132,7 @@ function createSceneCameraRendererControlsClockListener() {
 
   const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.outerWidth, 0.001, 1000)
   camera.position.set(1, 1, 2)
+  camera.rotation.order = "YXZ"
 
   const listener = new THREE.AudioListener();
   camera.add(listener);
@@ -171,7 +170,6 @@ function registerListeners(window: Window, renderer: WebGLRenderer) {
     } else {
       showSettings.value = false;
     }
-    console.log(showSettings)
   })
 
   window.addEventListener('keydown', (e) => {
@@ -203,7 +201,6 @@ function registerListeners(window: Window, renderer: WebGLRenderer) {
     }
   })
   window.addEventListener('keyup', (e) => {
-    console.log('Losgelasen: ' + e.code)
     switch (e.code) {
       case 'KeyW':
         movingForward = false
@@ -523,12 +520,13 @@ function validatePosition(nextPosition: THREE.Vector3) {
   const currentTime: number = Date.now()
 
   if (currentTime - lastSend > 10) {
+    const cameraAngle = camera.rotation.y
     sendMessage(`/topic/ingame/${lobbyId}/playerPosition`, {
       playerName: sessionStorage.getItem('myName'),
       posX: nextPosition.x,
       posY: nextPosition.z,
       posZ: nextPosition.y,
-      angle: camera.rotation.z,
+      angle: cameraAngle,
     })
     lastSend = currentTime
   }
@@ -555,7 +553,6 @@ function removeModel(object: THREE.Object3D) {
 }
 
 function renderCharactersTest(playerPositions: IPlayerPositionDTD[]) {
-  console.log('INSIDE RENDER: ', playerPositions)
 
   const modelLoader = new GLTFLoader();
   const adjustAngle = Math.PI;
@@ -593,10 +590,8 @@ function renderCharactersTest(playerPositions: IPlayerPositionDTD[]) {
         }
       }if (playerData?.playerrole == Playerrole.SNACKMAN) {
           modelPath = snackmanModel;
-          console.log(`Snackman-Modell wird geladen für ${playerPosition.playerName}`, modelPath);
       } else {
           modelPath = ghostModel;
-          console.log(`Ghost-Modell wird geladen für ${playerPosition.playerName}`, modelPath);
       }
       if (modelPath){
         let loadingPath: string;
@@ -615,7 +610,7 @@ function renderCharactersTest(playerPositions: IPlayerPositionDTD[]) {
         scene.add(model);
 
         model.position.set(playerPosition.x, 1, playerPosition.y);
-        model.rotation.y = playerPosition.angle + adjustAngle;
+        model.rotation.y = (playerPosition.angle * Math.PI * 2)+ adjustAngle;
 
         loadingPlayers.delete(playerPosition.playerName);
       });
@@ -667,7 +662,7 @@ function getCachedTexture(url: string): THREE.Texture {
 
 function loadMap(map: string[],selectedTheme :{ground: string; wall:string}) {
   const groundGeometry = new THREE.BoxGeometry(1, 1, 1);
-  const wallGeometry = new THREE.BoxGeometry(1, 2, 1);
+  const wallGeometry = new THREE.BoxGeometry(1, 1, 1);
   const groundTexture = getCachedTexture(selectedTheme.ground);
   const wallTexture = getCachedTexture(selectedTheme.wall);
   const groundMaterial = new THREE.MeshStandardMaterial({ map: groundTexture });
@@ -706,7 +701,7 @@ function loadMap(map: string[],selectedTheme :{ground: string; wall:string}) {
 
       switch (tile) {
         case '*': // Wall
-          const wallMatrix = new THREE.Matrix4().makeTranslation(x, 1.5, z);
+          const wallMatrix = new THREE.Matrix4().makeTranslation(x, 1, z);
           wallMesh.setMatrixAt(wallIndex++, wallMatrix);
           break;
 
@@ -893,6 +888,13 @@ async function handleCharacters(data: ICharacterDTD[]) {
   renderCharactersTest(playerPositions)
 }
 
+watch([spawnX, spawnZ], ([newX, newZ]) => {
+      if (camera) {
+        camera.position.z = newZ;
+        camera.position.x = newX;
+      }
+    });
+
 onMounted(async () => {
   try {
     await gameStore.fetchGameStatus()
@@ -905,6 +907,8 @@ onMounted(async () => {
   } catch (error) {
     console.error('Error fetching game status:', error)
   }
+  const spawnPoints = gameStore.gameState.gamedata.spawnPoints;
+  console.log("SPAWNS: ", spawnPoints)
 
   if (gameStore.gameState.gamedata.chickens === null) {
     chickenPositions.value = []
@@ -921,20 +925,17 @@ onMounted(async () => {
   subscribeTo(`/ingame/playerPositions/${lobbyId}`, async (message: any) => {
     switch (message.type) {
       case 'playerPosition':
-        console.log('FROM PLAYER POSITON: ', message.feedback)
         await handleCharacters(message.feedback)
         break
     }
   })
 
   subscribeTo(`/ingame/${lobbyId}`, async (messageValidation: IMessageDTD) => {
-    console.log(messageValidation.type)
     switch (messageValidation.type) {
       case 'playerMoveValidation':
         const playerPosition: any = messageValidation.feedback
 
         if (playerPosition.playerName === sessionStorage.getItem('myName')) {
-          console.log(playerPosition)
           nextPosition.set(playerPosition.posX,playerPosition.posZ,playerPosition.posY)
           moveCamera();
         }
@@ -1002,8 +1003,14 @@ onMounted(async () => {
   ]
   renderChicken(chickenPositions.value)
   animate()
-  console.log(ground)
-  console.log (wall)
+  if(spawnPoints !== null){
+    spawnPoints.forEach(spawnPoint => {
+      if(sessionStorage.getItem('myName') == spawnPoint.playerName){
+        spawnX.value = Number(spawnPoint.x);
+        spawnZ.value = Number(spawnPoint.y);
+      }
+    })
+  }
 })
 watch(
   () => themeStore.selectedTheme,
