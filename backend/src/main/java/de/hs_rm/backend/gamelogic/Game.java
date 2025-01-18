@@ -545,7 +545,11 @@ public class Game {
 
 
         // Charakter bewegen
+        if (!curTile.getCharacterList().isEmpty()) {
+            LOGGER.info("REMOVING(davor): {}, ", curTile.getCharacterList());
+        }
         curTile.removeCharacter(curCharacter);
+        LOGGER.info("REMOVING(danach): {}", curTile.getCharacterList());
 
         // posy und posx vertauscht
         curCharacter.move(posY, posX, posZ, angle);

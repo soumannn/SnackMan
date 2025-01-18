@@ -58,7 +58,12 @@ public class Tile {
         }
 
 
-        this.characterList.add(character);
+        if (characterList.contains(character)) {
+            logger.info("Character already on tile.");
+            return false;
+        } else {
+            this.characterList.add(character);
+        }
         checkCharacterCollision(character);
         return true;
     }
