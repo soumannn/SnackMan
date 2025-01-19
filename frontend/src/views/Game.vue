@@ -415,8 +415,8 @@ function animate() {
   renderer.render(scene, camera)
   const delta = clock.getDelta()
   cameraPositionBewegen(delta)
-      // Gamepad-Eingaben verarbeiten
-      handleGamepadInput(delta);
+  // Gamepad-Eingaben verarbeiten
+  handleGamepadInput(delta);
 }
 
 async function isValidChargeJump(): Promise<boolean> {
@@ -820,7 +820,7 @@ function createNameSprite(playerName: string) {
 
   canvas.width = 256;
   canvas.height = 64;
-  context.fillText(playerName, canvas.width / 2, canvas.height /2);
+  context.fillText(playerName, canvas.width / 2, canvas.height / 2);
 
   const texture = new THREE.CanvasTexture(canvas);
   const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
@@ -896,6 +896,10 @@ function loadMap(map: string[], selectedTheme: { ground: string; wall: string })
         case 'C': // Item C
         case 'B': // Item B
         case 'A': // Item A
+        case '1': // Item 1
+        case '2': // Item 2
+        case '3': // Item 3
+        case '4': // Item 4
           const groundItemMatrix = new THREE.Matrix4().makeTranslation(x, 0, z);
           groundMesh.setMatrixAt(groundIndex++, groundItemMatrix);
 
@@ -908,12 +912,24 @@ function loadMap(map: string[], selectedTheme: { ground: string; wall: string })
             ],
             C: [
               new URL("@/assets/game/items/E/chocolate_bar/chocolatebar.glb", import.meta.url)
-              ],
-              B: [
+            ],
+            B: [
               new URL("@/assets/game/items/C/candy_cane/candycane.glb", import.meta.url)
             ],
             A: [
               new URL("@/assets/game/items/E/strawberry_shortcake/strawberry_shortcake.glb", import.meta.url)
+            ],
+            '1': [
+              new URL("@/assets/game/items/1/pedalo.glb", import.meta.url)
+            ],
+            '2': [
+              new URL("@/assets/game/items/2/shields.glb", import.meta.url)
+            ],
+            '3': [
+              new URL("@/assets/game/items/3/doublepoints.glb", import.meta.url)
+            ], 
+            '4': [
+              new URL("@/assets/game/items/4/heart.glb", import.meta.url)
             ],
           };
 
@@ -934,15 +950,25 @@ function loadMap(map: string[], selectedTheme: { ground: string; wall: string })
             } else if (randomModelPath.includes('cottoncandy')) {
               item.position.set(x, 0.75, z);
               item.scale.set(0.2, 0.2, 0.2);
-            } else if (randomModelPath.includes('popcorn')) {
-              item.position.set(x, 0.75, z);
-              item.scale.set(0.09, 0.09, 0.09);
             } else if (randomModelPath.includes('candy_cane')) {
               item.position.set(x, 0.8, z);
               item.scale.set(0.07, 0.07, 0.07);
             } else if (randomModelPath.includes('chips')) {
               item.position.set(x, 0.8, z);
               item.scale.set(0.1, 0.1, 0.1);
+            }else if (randomModelPath.includes('pedalo')) {
+              item.position.set(x, 0.75, z);
+              item.rotateZ(Math.PI / 4);
+              item.scale.set(0.1, 0.1, 0.1);
+            }else if (randomModelPath.includes('shields')) {
+              item.position.set(x, 0.8, z);
+              item.scale.set(0.1, 0.1, 0.1);
+            }else if (randomModelPath.includes('doublepoints')) {
+              item.position.set(x, 0.7, z);
+              item.scale.set(1.5, 1.5, 1.5)
+            }else if (randomModelPath.includes('heart')) {
+              item.position.set(x, 0.65, z);
+              item.scale.set(0.03, 0.03, 0.03)
             }
             scene.add(item);
 
@@ -1070,10 +1096,10 @@ function removeItemFromSceneByPosition(posX: number, posY: number) {
 }
 
 watch([spawnX, spawnZ], ([newX, newZ]) => {
-      if (camera) {
-        camera.position.set(newX,1,newZ);
-      }
-    });
+  if (camera) {
+    camera.position.set(newX, 1, newZ);
+  }
+});
 
 onMounted(async () => {
   try {
@@ -1128,7 +1154,7 @@ onMounted(async () => {
     switch (message.type) {
 
       case 'collisionValidation': {
-       // tiefe Kopie
+        // tiefe Kopie
         const previousValues = JSON.parse(JSON.stringify(gameStore.gameState.gamedata.characters));
         // aktualiesieren
         gameStore.gameState.gamedata.characters = message.updateCharacters
@@ -1147,16 +1173,16 @@ onMounted(async () => {
           }
         }
         // überprüft, ob es ein gewinner gibt und zeigt die ensprechende ansicht
-          if (winnerRole.value !== null) {
-            router.push({ name: 'GameEnd' });
-          }
+        if (winnerRole.value !== null) {
+          router.push({ name: 'GameEnd' });
+        }
         break;
       }
 
       default:
-    console.warn("Unerwarteter Nachrichtentyp:", message.type);
-    break;
-  }
+        console.warn("Unerwarteter Nachrichtentyp:", message.type);
+        break;
+    }
   });
 
 
@@ -1232,9 +1258,9 @@ onMounted(async () => {
       angle: 2 * Math.PI,
     },
   ]
-  if(spawnPoints != null){
+  if (spawnPoints != null) {
     spawnPoints.forEach(spawnPoint => {
-      if(sessionStorage.getItem('myName') == spawnPoint.playerName){
+      if (sessionStorage.getItem('myName') == spawnPoint.playerName) {
         spawnX.value = Number(spawnPoint.posX);
         spawnZ.value = Number(spawnPoint.posY);
       }
