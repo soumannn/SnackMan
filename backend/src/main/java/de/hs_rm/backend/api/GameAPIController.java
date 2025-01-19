@@ -298,10 +298,12 @@ public class GameAPIController {
     @MessageMapping("/topic/ingame/{lobbyid}/playerPosition")
     public void moveCharacter(PlayerPosition position, @DestinationVariable String lobbyid) {
 
-        //Variable die dafür sogt das man eine bestimmten Abstand zu einer Wand hat
+        //Sogt das die Validation mit einer kleinen Verschiebung beginnt
         //Diese wird in der while Schleife benutzt und stätig erhöht
         float offset = 0.01f;
-
+        //Sorgt dafür das nach der valieden Verschiebung nochmal eine kleine Verschiebung gemacht wird damit man nicht
+        //zu nah an der Wand ist
+        float buffer = 0.02f;
 
         HashMap<String, Object> validationResponse = new HashMap<>();
         HashMap<String, Object> response = new HashMap<>();
@@ -342,7 +344,11 @@ public class GameAPIController {
                         float distance = (float) Math.sqrt((Math.pow(correction - position.getPosY(), 2) + Math.pow(position.getPosX() - position.getPosY(), 2)));
                         if (distance < minDistanceX) {
                             minDistanceX = distance;
-                            bestX = correction;
+                            if(correction < position.getPosX()){
+                                bestX = correction - buffer;
+                            }else {
+                                bestX = correction + buffer;
+                            }
                             validMove = true;
                         }
                     }
@@ -357,7 +363,11 @@ public class GameAPIController {
                         float distance = (float) Math.sqrt((Math.pow(position.getPosX() - correction, 2) + Math.pow(position.getPosX() - position.getPosY(), 2)));
                         if (distance < minDistanceY) {
                             minDistanceY = distance;
-                            bestY = correction;
+                            if(correction < position.getPosY()){
+                                bestY = correction - buffer;
+                            }else {
+                                bestY = correction + buffer;
+                            }
                             validMove = true;
                         }
                     }
@@ -371,7 +381,16 @@ public class GameAPIController {
                             float distance = (float) Math.sqrt((Math.pow(correctionX - correctionY, 2) + Math.pow(position.getPosX() - position.getPosY(), 2)));
                             if (distance < minDistanceX && distance < minDistanceY) {
                                 bestX = correctionX;
-                                bestY = correctionY;
+                                if(correctionY < position.getPosY()){
+                                    bestY = correctionY - buffer;
+                                }else {
+                                    bestY = correctionY + buffer;
+                                }
+                                if(correctionX < position.getPosX()){
+                                    bestX = correctionX - buffer;
+                                }else {
+                                    bestX = correctionX + buffer;
+                                }
                                 validMove = true;
                             }
                         }
