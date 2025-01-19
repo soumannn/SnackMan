@@ -156,18 +156,19 @@ public class GameAPIController {
     }
 
     @PostMapping("/{lobbyId}/selectedTheme")
-    public ResponseEntity<Map<String, String>> checkSelectedTheme(@PathVariable String lobbyId){
+    public ResponseEntity<Map<String, String>> checkSelectedTheme(@PathVariable String lobbyId) {
         return ResponseEntity.ok(Map.of("selectedTheme", gameService.getSelectedTheme(lobbyId)));
     }
+
     @MessageMapping("/topic/game/{lobbyId}/setTheme")
     @SendTo("/topic/game/{lobbyId}")
     public Map<String, Object> setTheme(@DestinationVariable String lobbyId, @RequestBody Map<String, String> theme) {
         gameService.setSelectedTheme(lobbyId, theme.get("themeName"));
         messagingService.sendThemeUpdate(lobbyId, theme.get("themeName"));
         return Map.of(
-            "type", "themeUpdate",
-            "status", "ok",
-            "feedback", theme.get("themeName")
+                "type", "themeUpdate",
+                "status", "ok",
+                "feedback", theme.get("themeName")
         );
     }
 
@@ -178,9 +179,9 @@ public class GameAPIController {
             @RequestBody Map<String, String> map) {
         messagingService.sendMapUpdate(lobbyId, map.get("mapName"));
         return Map.of(
-            "type", "mapUpdate",
-            "status", "ok",
-            "feedback", map.get("mapName")
+                "type", "mapUpdate",
+                "status", "ok",
+                "feedback", map.get("mapName")
         );
     }
 
@@ -275,7 +276,7 @@ public class GameAPIController {
 
             // Spieler aus dem Spiel entfernen
             existingGame = gameService.leaveGame(lobbyid, player);
-            if(existingGame == null){
+            if (existingGame == null) {
                 return;
             }
 
@@ -293,13 +294,14 @@ public class GameAPIController {
             messagingService.sendPlayerList(lobbyid, response);
         }
     }
+
     @MessageMapping("/topic/ingame/{lobbyid}/playerPosition")
     public void moveCharacter(PlayerPosition position, @DestinationVariable String lobbyid) {
 
         //Variable die dafür sogt das man eine bestimmten Abstand zu einer Wand hat
-        float offset = 0.005f;
+        //Diese wird in der while Schleife benutzt und stätig erhöht
+        float offset = 0.01f;
 
-        //Zum Testen logik um Spieler zu bewegen fehlt noch
 
         HashMap<String, Object> validationResponse = new HashMap<>();
         HashMap<String, Object> response = new HashMap<>();
@@ -307,39 +309,87 @@ public class GameAPIController {
         HashMap<String, Object> itemUpdateResponse = new HashMap<>();
         Game existingGame = gameService.getGameById(lobbyid);
 
-        if(existingGame.isStarted()){
+        if (existingGame.isStarted()) {
             Map<String, Object> currentCharacters = existingGame.getCharacterDataWithNames();
-            // boolean validMove = existingGame.moveTest(position.getPlayerName(),
-            // position.getPosX(), position.getPosY(), position.getAngle());
+
+            // Überprüfen ob der Spieler sich auf die gewünschte Position bewegen darf
             boolean validMove = existingGame.move(position.getPlayerName(), position.getPosX(), position.getPosY(),
                     position.getPosZ(), position.getAngle());
 
+            //Wenn die Position ungültig ist, probiere einem wachenden offset bis 0.5f
+            while (!validMove && offset <= 0.5f) {
 
-            // logger.info("Requested Player({}) move to: posX({}), posY({}) angle({}),
-            // VALID: {} ", position.getPlayerName(), position.getPosX(),
-            // position.getPosY(), position.getAngle(), validMove);
+                float[] correctionsX = {
+                        (float) position.getPosX() - offset,
+                        (float) position.getPosX() + offset,
+                        (float) position.getPosX()
+                };
 
-            // Wenn Laut Game Bewegung nicht Valide, dann wird es nochmal mit anderen Werten
-            // probiert um den Spieler wieder aus der Wand raus zu schieben (4 Mal für alle
-            // 4 Himmelsrichtungen)
-            if (!validMove) {
-                if (existingGame.move(position.getPlayerName(), Math.round(position.getPosX()), position.getPosY(), position.getPosZ(), position.getAngle())) {
-                    position.setPosX((float) (Math.round(position.getPosX()) + offset));
-                    validMove = true;
-                } else if (existingGame.move(position.getPlayerName(), position.getPosX(), Math.round(position.getPosY()), position.getPosZ(), position.getAngle())) {
-                    position.setPosY((float) (Math.round(position.getPosY()) + offset));
-                    validMove = true;
-                } else if (existingGame.move(position.getPlayerName(), Math.floor(position.getPosX()) - offset, position.getPosY(), position.getPosZ(), position.getAngle())) {
-                    position.setPosX((float) (Math.floor(position.getPosX()) - offset));
-                    validMove = true;
-                } else if (existingGame.move(position.getPlayerName(), position.getPosX(), Math.floor(position.getPosY()) - offset, position.getPosZ(), position.getAngle())) {
-                    position.setPosY((float) (Math.floor(position.getPosY()) - offset));
-                    validMove = true;
+                float[] correctionsY = {
+                        (float) position.getPosY() - offset,
+                        (float) position.getPosY() + offset,
+                        (float) position.getPosY()
+                };
+
+                float minDistanceX = Float.MAX_VALUE;
+                float bestX = (float) position.getPosX();
+                float bestY = (float) position.getPosY();
+
+                // Überprüfen ob der Spieler sich auf die angepasste X Position bewegen darf
+                for (float correction : correctionsX) {
+                    if (existingGame.move(position.getPlayerName(), correction, position.getPosY(), position.getPosZ(), position.getAngle())) {
+                        // Berechnung der Distanz zwischen der eigendlich gewünschten Position und der angepassten Position (c = a^2 + b^2)
+                        float distance = (float) Math.sqrt((Math.pow(correction - position.getPosY(), 2) + Math.pow(position.getPosX() - position.getPosY(), 2)));
+                        if (distance < minDistanceX) {
+                            minDistanceX = distance;
+                            bestX = correction;
+                            validMove = true;
+                        }
+                    }
                 }
+
+                float minDistanceY = Float.MAX_VALUE;
+
+                // Überprüfen ob der Spieler sich auf die angepasste X Position bewegen darf
+                for (float correction : correctionsY) {
+                    if (existingGame.move(position.getPlayerName(), position.getPosX(), correction, position.getPosZ(), position.getAngle())) {
+                        // Berechnung der Distanz zwischen der eigendlich gewünschten Position und der angepassten Position (c = a^2 + b^2)
+                        float distance = (float) Math.sqrt((Math.pow(position.getPosX() - correction, 2) + Math.pow(position.getPosX() - position.getPosY(), 2)));
+                        if (distance < minDistanceY) {
+                            minDistanceY = distance;
+                            bestY = correction;
+                            validMove = true;
+                        }
+                    }
+                }
+
+                // Überprüfen ob der Spieler sich auf die angepasste X und Y Position bewegen darf (Diagonale Verschiebung)
+                for (float correctionX : correctionsX) {
+                    for (float correctionY : correctionsY) {
+                        if (existingGame.move(position.getPlayerName(), correctionX, correctionY, position.getPosZ(), position.getAngle())) {
+                            // Berechnung der Distanz zwischen der eigendlich gewünschten Position und der angepassten Position (c = a^2 + b^2)
+                            float distance = (float) Math.sqrt((Math.pow(correctionX - correctionY, 2) + Math.pow(position.getPosX() - position.getPosY(), 2)));
+                            if (distance < minDistanceX && distance < minDistanceY) {
+                                bestX = correctionX;
+                                bestY = correctionY;
+                                validMove = true;
+                            }
+                        }
+                    }
+                }
+
+
+                if (bestX != position.getPosX() || bestY != position.getPosY()) {
+                    position.setPosX(bestX);
+                    position.setPosY(bestY);
+                }
+
+                offset += 0.01f;
             }
 
+
             if (validMove) {
-                for(Tile tile : gameService.getGameById(lobbyid).getPlaymap().getTilesList()){
+                for (Tile tile : gameService.getGameById(lobbyid).getPlaymap().getTilesList()) {
                     if (tile.isItemWasRecentlyCollected()) {
                         itemUpdateResponse.put("type", "itemCollected");
                         itemUpdateResponse.put("positionX", position.getPosX());
@@ -395,7 +445,6 @@ public class GameAPIController {
 
         return ResponseEntity.ok(Map.of("jumpAllowed", isJumpAllowed));
     }
-
 
 
     // Method to end the game

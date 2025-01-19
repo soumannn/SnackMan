@@ -644,7 +644,7 @@ function validatePosition(nextPosition: THREE.Vector3) {
     return;
   }
 
-  if (currentTime - lastSend > 10) {
+  if (currentTime - lastSend > 5) {
     const cameraAngle = camera.rotation.y
     sendMessage(`/topic/ingame/${lobbyId}/playerPosition`, {
       playerName: sessionStorage.getItem('myName'),
