@@ -275,6 +275,7 @@ public class Game {
     }
 
     public boolean start(PlayMap playMap) {
+        this.started = true;
         LOGGER.info("started: {} gameid: {}", this.started, this.id);
 
         // TODO: hier sollte random name als param übergeben werden
@@ -395,7 +396,6 @@ public class Game {
             // DONE: chicken zu random tile hinzufügen
             randomTile.addChicken(chicken);
         }
-        this.started = true;
         return started;
     }
 
