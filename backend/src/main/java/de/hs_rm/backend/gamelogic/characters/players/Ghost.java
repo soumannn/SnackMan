@@ -1,4 +1,7 @@
 package de.hs_rm.backend.gamelogic.characters.players;
+import java.util.Timer;
+import java.util.TimerTask;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,6 +13,8 @@ public class Ghost extends Character {
     //Initialisierung 
     private int touchcount; 
     private ObjectsItems item;
+    private double speed = 1.0;
+
     
     private static final Logger logger = LoggerFactory.getLogger(Ghost.class);
     
@@ -25,13 +30,6 @@ public class Ghost extends Character {
     public void setTouchcount(int touchcount) {
         this.touchcount = touchcount;
     }
-    
-    //abstrakte Methode zum fortbewegen--> Logik fehlt noch
-    //@Override
-    //public PlayerPosition move(){
-    //    logger.info("the ghost is moving");
-    //    return null;
-    //}
 
     //Reglung bei Kontakt mit Snackman--> Logik fehlt noch
     public void hit(){
@@ -42,12 +40,20 @@ public class Ghost extends Character {
     @Override
     public void useItem(ObjectsItems item) {
         item = getCurrentObjectItem();
-        if (item != null) {
-            logger.info("Snackman uses ObjectItem '{}'.", item.getName());
-            // Hier die Logik für die Verwendung des ObjectItems implementieren
+        if (item.getName().contentEquals("Speed Boost")) {
+            double originalSpeed = this.speed; // Speichere die ursprüngliche Geschwindigkeit
+            Ghost.this.speed = speed * 2; // Geschwindigkeit verdoppeln
+            
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    Ghost.this.speed = originalSpeed; // Geschwindigkeit zurücksetzen
+                }
+            }, 10000); 
+    
+            logger.info("Ghost uses Speed Boost");
             setCurrentObjectItem(null); // Das Item wird nach der Nutzung entfernt
-        } else {
-            logger.warn("No ObjectItem to use.");
         }
     }
+    
 }

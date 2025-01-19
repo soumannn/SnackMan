@@ -59,7 +59,7 @@ public class GameMessagingService {
     }
 
     public void sendPlayerCollision(String lobbyid, Object collisionDetails) {
-        logger.info("Sending player collision details");
+      //  logger.info("Sending player collision details");
         template.convertAndSend("/topic/ingame/PlayerKollision/" + lobbyid, collisionDetails);
     }
 }

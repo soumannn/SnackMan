@@ -225,11 +225,13 @@ function registerListeners(window: Window, renderer: WebGLRenderer) {
   window.addEventListener('keydown', (e) => {
     switch (e.code) {
       case 'ShiftLeft':
-        if (movementSpeed === slowMovementSpeed) {
-          movementSpeed = fastMovementSpeed
-        } else {
-          movementSpeed = slowMovementSpeed
-        }
+        if (currentPlayer.value?.playerrole == Playerrole.SNACKMAN) {
+          if (movementSpeed === slowMovementSpeed) {
+            movementSpeed = fastMovementSpeed
+          } else {
+            movementSpeed = slowMovementSpeed
+          }
+        } else movementSpeed = slowMovementSpeed
         break
       case 'KeyW':
         movingForward = true
@@ -927,7 +929,7 @@ function loadMap(map: string[], selectedTheme: { ground: string; wall: string })
             ],
             '3': [
               new URL("@/assets/game/items/3/doublepoints.glb", import.meta.url)
-            ], 
+            ],
             '4': [
               new URL("@/assets/game/items/4/heart.glb", import.meta.url)
             ],
@@ -956,17 +958,17 @@ function loadMap(map: string[], selectedTheme: { ground: string; wall: string })
             } else if (randomModelPath.includes('chips')) {
               item.position.set(x, 0.8, z);
               item.scale.set(0.1, 0.1, 0.1);
-            }else if (randomModelPath.includes('pedalo')) {
+            } else if (randomModelPath.includes('pedalo')) {
               item.position.set(x, 0.75, z);
               item.rotateZ(Math.PI / 4);
               item.scale.set(0.1, 0.1, 0.1);
-            }else if (randomModelPath.includes('shields')) {
+            } else if (randomModelPath.includes('shields')) {
               item.position.set(x, 0.8, z);
               item.scale.set(0.1, 0.1, 0.1);
-            }else if (randomModelPath.includes('doublepoints')) {
+            } else if (randomModelPath.includes('doublepoints')) {
               item.position.set(x, 0.7, z);
               item.scale.set(1.5, 1.5, 1.5)
-            }else if (randomModelPath.includes('heart')) {
+            } else if (randomModelPath.includes('heart')) {
               item.position.set(x, 0.65, z);
               item.scale.set(0.03, 0.03, 0.03)
             }

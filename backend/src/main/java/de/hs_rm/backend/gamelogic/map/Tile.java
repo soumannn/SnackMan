@@ -53,7 +53,7 @@ public class Tile {
     public boolean addCharacter(Character character) {
         for (int i = 0; i < itemList.size(); i++) {
             Item item = itemList.get(i);
-            logger.info("Checking item: {} for character: {}", item.getName(), character.getClass().getSimpleName());
+           // logger.info("Checking item: {} for character: {}", item.getName(), character.getClass().getSimpleName());
             takeItems(character);
         }
 
@@ -76,21 +76,25 @@ public class Tile {
                         logger.info("Snackman eats FoodItem '{}'.", item.getName());
                         itemWasRecentlyCollected = true;
                     } else if (item instanceof ObjectsItems) {
-                        snackman.collectObjectItem((ObjectsItems) item);
+                        snackman.setCurrentObjectItem((ObjectsItems) item);
+                        snackman.useItem((ObjectsItems) item);
                         itemWasRecentlyCollected = true;
                     }
                     itemsToRemove.add(item);
                 } else if (character instanceof Ghost && item.getType() == PlayerRole.GHOST
                         && item instanceof ObjectsItems) {
                     Ghost ghost = (Ghost) character;
+                    logger.info("So schnell bin  ich greade {}, ",ghost.getSpeed());
                     ghost.collectObjectItem((ObjectsItems) item);
+                    ghost.useItem((ObjectsItems) item);
+                    logger.info("und jz so {}, ",ghost.getSpeed());
                     itemWasRecentlyCollected = true;
                     itemsToRemove.add(item);
                 }
             }
             itemsToRemove.forEach(item -> itemList.remove(item));
             itemsToRemove.clear();
-            logger.debug("Item removed. Remaining items: {}", itemList.size());
+            //logger.debug("Item removed. Remaining items: {}", itemList.size());
         }
 
     }
@@ -118,9 +122,9 @@ public class Tile {
                     if (!snackman.isRecentlyCaught()) { // Prüfen, ob Snackman nicht immun ist
                         snackman.caught();
                         ghost.hit();
-                        logger.info("Collision: Snackman caught by Ghost!");
+                       // logger.info("Collision: Snackman caught by Ghost!");
                     } else {
-                        logger.info("Collision ignored: Snackman is immune.");
+                       // logger.info("Collision ignored: Snackman is immune.");
                     }
                 }
             }
