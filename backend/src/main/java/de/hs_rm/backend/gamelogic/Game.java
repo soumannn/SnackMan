@@ -125,7 +125,7 @@ public class Game {
     // vordefinierten ObjectsItems --> Pos muss geändert werden
     private static final List<ObjectsItems> OBJECTS_ITEMS = List.of(
             new GhostObjectItem("Speed Boost", -1, -1, "Increases movement speed temporarily"),
-            new GhostObjectItem("Shield", -1, -1, "Provides temporary invincibility"),
+            new SnackmanObjectItem("Shield", -1, -1, "Provides temporary invincibility"),
             new SnackmanObjectItem("Double Points", -1, -1, "Doubles points gained for a limited time"),
             new SnackmanObjectItem("Extra Life", -1, -1, "Grants an extra life"));
 
@@ -182,6 +182,7 @@ public class Game {
                 // ausreichend punkte und noch am leben
                 if (snackman.getCurrentPoints() >= maxPointsSnackman/2 && snackman.getLife() > 0) { // es soll die hälte der punkte sein laut PO
                     winnerRole = PlayerRole.SNACKMAN;
+                    end();
                     return;
                 }
             } else if (character instanceof Ghost) {
@@ -189,6 +190,7 @@ public class Game {
                 //snackman lebt nicht mehr und snackman hat nicht seine max punkte erreicht
                 if (snackman.getLife() <= 0 && snackman.getCurrentPoints() < maxPointsSnackman/2) {
                     winnerRole = PlayerRole.GHOST;
+                    end();
                     return;
                 }
             }
@@ -467,10 +469,8 @@ public class Game {
         maxPointsSnackman = total;
     }
 
-    public boolean end() {
+    public void end() {
         this.started = false;
-        LOGGER.info("started: {}", this.started);
-        return started;
     }
 
     // Entfernt einen Spieler aus der Liste, wenn sein uniqueName übereinstimmt
