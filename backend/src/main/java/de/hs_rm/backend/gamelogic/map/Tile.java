@@ -17,7 +17,9 @@ public class Tile {
     ConcurrentHashMap<String, Character> characterList;
     List<Chicken> chickenList;
 
-    boolean itemWasRecentlyCollected = false;
+    // null if no item collected recently, and item name if collected recently
+    String recentlyCollectedItemName = null;
+    boolean eggRecentlyLayed = false;
     Logger logger = LoggerFactory.getLogger(Tile.class);
 
     public Tile(TileType type) {
@@ -76,11 +78,11 @@ public class Tile {
                     if (item instanceof FoodItems) {
                         snackman.eatSnack((FoodItems) item);
                         logger.info("Snackman eats FoodItem '{}'.", item.getName());
-                        itemWasRecentlyCollected = true;
+                        recentlyCollectedItemName = item.getName();
                     } else if (item instanceof ObjectsItems) {
                         snackman.collectObjectItem((ObjectsItems) item);
                         snackman.useItem((ObjectsItems) item);
-                        itemWasRecentlyCollected = true;
+                        recentlyCollectedItemName = item.getName();
                     }
                     itemsToRemove.add(item);
                 } else if (character instanceof Ghost && item.getType() == PlayerRole.GHOST
@@ -88,7 +90,7 @@ public class Tile {
                     Ghost ghost = (Ghost) character;
                     ghost.collectObjectItem((ObjectsItems) item);
                     ghost.useItem((ObjectsItems) item);
-                    itemWasRecentlyCollected = true;
+                    recentlyCollectedItemName = item.getName();
                     itemsToRemove.add(item);
                 }
             }
@@ -132,6 +134,7 @@ public class Tile {
     }
 
     public boolean addChicken(Chicken chicken) {
+        List<Item> itemsToRemove = new ArrayList<>();
         this.chickenList.add(chicken);
         if (!itemList.isEmpty()) {
             // TODO: Item hier nehmen
@@ -139,7 +142,11 @@ public class Tile {
                 if(item instanceof FoodItems){
                     FoodItems foodItem = (FoodItems) item; //cast zu FoodItem
                     Egg egg = chicken.eatSnack(foodItem, chicken.getPosX(), chicken.getPosY());
+                    itemsToRemove.add(foodItem);
+                    this.recentlyCollectedItemName = item.getName();
+
                     if(egg != null){
+                        this.eggRecentlyLayed = true;
                         itemList.remove(item);
                         logger.info("Item '{}' removed from tile", item.getName());
                         //Ei wird hier zum Tile hinzugefügt
@@ -150,6 +157,8 @@ public class Tile {
 
                 }
             }
+            itemsToRemove.forEach(item -> itemList.remove(item));
+            itemsToRemove.clear();
         }
         return true;
     }
@@ -204,12 +213,12 @@ public class Tile {
         this.characterList = characterList;
     }
 
-    public boolean isItemWasRecentlyCollected() {
-        return itemWasRecentlyCollected;
+    public String getRecentlyCollectedItemName() {
+        return recentlyCollectedItemName;
     }
 
-    public void setItemWasRecentlyCollected(boolean itemWasRecentlyCollected) {
-        this.itemWasRecentlyCollected = itemWasRecentlyCollected;
+    public void setRecentlyCollectedItemName(String recentlyCollectedItemName) {
+        this.recentlyCollectedItemName = recentlyCollectedItemName;
     }
 
     public List<Chicken> getChickenList() {
@@ -220,6 +229,11 @@ public class Tile {
         this.chickenList = chickenList;
     }
 
+    public boolean isEggRecentlyLayed() {
+        return eggRecentlyLayed;
+    }
 
-
+    public void setEggRecentlyLayed(boolean eggRecentlyLayed) {
+        this.eggRecentlyLayed = eggRecentlyLayed;
+    }
 }

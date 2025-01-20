@@ -1,6 +1,5 @@
 package de.hs_rm.backend.gamelogic;
 
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -16,6 +15,8 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.springframework.beans.factory.annotation.Value;
+
 import de.hs_rm.backend.gamelogic.characters.players.Character;
 import de.hs_rm.backend.gamelogic.characters.chicken.Chicken;
 import de.hs_rm.backend.gamelogic.characters.players.FoodItems;
@@ -28,8 +29,6 @@ import de.hs_rm.backend.gamelogic.characters.players.PlayerPosition;
 import de.hs_rm.backend.gamelogic.characters.players.PlayerRole;
 import de.hs_rm.backend.gamelogic.characters.players.Snackman;
 import de.hs_rm.backend.gamelogic.characters.players.SnackmanObjectItem;
-import de.hs_rm.backend.gamelogic.characters.chicken.Chicken;
-import de.hs_rm.backend.gamelogic.characters.players.Character;
 import de.hs_rm.backend.gamelogic.map.PlayMap;
 import de.hs_rm.backend.gamelogic.map.Tile;
 import de.hs_rm.backend.gamelogic.map.TileType;
@@ -61,10 +60,15 @@ public class Game {
     private boolean privateLobby;
     private String password;
 
+    private static final int SPRINT_PER_500MS_COST = 5;
     private static final int CHARGE_JUMP_COST = 100;
+    private static final int NORMAL_JUMP_COST = 10;
 
     private Map<String, Character> characters; // for game (after game start), strinng for username
     private List<PlayerPosition> spawnPoints;
+
+    @Value("${egg.caloriesbonus}")
+    private int CALORIESBONUS_EGG;
 
     public List<PlayerPosition> getSpawnPoints() {
         return spawnPoints;
@@ -86,6 +90,7 @@ public class Game {
     public void setSelectedTheme(String selectedTheme) {
         this.selectedTheme = selectedTheme;
     }
+
 
     public Map<String, Object> getCharacterDataWithNames() {
         Map<String, Object> characterData = new HashMap<>();
@@ -124,7 +129,7 @@ public class Game {
             new FoodItems("cottoncandy", -1, -1, NutriScore.E));
     // vordefinierten ObjectsItems --> Pos muss geändert werden
     private static final List<ObjectsItems> OBJECTS_ITEMS = List.of(
-            new GhostObjectItem("Speed Boost", -1, -1, "Increases movement speed temporarily"),
+            new GhostObjectItem("Speed Boost", -1, -1, "Increases movement speed temporarily for all ghosts"),
             new SnackmanObjectItem("Shield", -1, -1, "Provides temporary invincibility"),
             new SnackmanObjectItem("Double Points", -1, -1, "Doubles points gained for a limited time"),
             new SnackmanObjectItem("Extra Life", -1, -1, "Grants an extra life"));
@@ -498,9 +503,7 @@ public class Game {
 
     public void leaveGame(Player player) {
         LOGGER.info(String.valueOf(players.size()));
-        // if (player.getName().contentEquals(gamemaster.getName())) {
-        //     throw new IllegalStateException("Gamemaster cannot leave the game.");
-        // }
+    
         for (int i = 0; i < players.size(); i++) {
             if (players.get(i).getName().equals(player.getName())) {
                 LOGGER.info("Hier der kickende Spieler " + player.getName());
@@ -552,6 +555,10 @@ public class Game {
     public synchronized boolean move(String username, double posX, double posY, double posZ, double angle) {
         Character curCharacter = characters.get(username);
 
+        if(CALORIESBONUS_EGG == 0){
+            CALORIESBONUS_EGG = 400;
+        }
+
         int roundedPosX = (int) Math.floor(posX);
         int roundedPosY = (int) Math.floor(posY);
 
@@ -573,6 +580,15 @@ public class Game {
             return false;
         }
         Tile targetTile = playmap.getTilesList().get(targetIndex);
+
+        for(Chicken chicken: targetTile.getChickenList()){
+            LOGGER.info("Chicken aktuelle CAL {}", chicken.getCurrentCalorie());
+            if(chicken.getCurrentCalorie() >= CALORIESBONUS_EGG){
+                LOGGER.info("Kollision mit einem fetten Chicken: Zielkoordinaten posX={}, posY={}", posX, posY);
+                LOGGER.info("Chicken aktuelle Cal {} maxCal {}", chicken.getCurrentCalorie(), CALORIESBONUS_EGG);
+                return false;
+            }
+        }
 
         // Ziel-Tile prüfen
         if (targetTile.getType() == TileType.WALL && curCharacter.getPosZ() < 3) {
@@ -598,15 +614,35 @@ public class Game {
         return false;
     }
 
-    public boolean isValidChargeJump(String playerId) {
+    public boolean isValidJump(String playerId, String jumpType) {
         boolean isValid = false;
         Character potentialJumper = characters.get(playerId);
         if (potentialJumper instanceof Snackman player) {
             int nutriScore = player.getCurrentPoints();
-            if (nutriScore >= CHARGE_JUMP_COST) {
-                isValid = true;
-                player.setCurrentPoints(Math.max(nutriScore - CHARGE_JUMP_COST, 0));
+            if (jumpType.equals("charge")) {
+                if (nutriScore >= CHARGE_JUMP_COST) {
+                    isValid = true;
+                    player.setCurrentPoints(nutriScore - CHARGE_JUMP_COST);
+                }
+            } else if (jumpType.equals("normal")) {
+                if (nutriScore >= NORMAL_JUMP_COST) {
+                    isValid = true;
+                    player.setCurrentPoints(nutriScore - NORMAL_JUMP_COST);
+                }
             }
+        }
+        return isValid;
+    }
+
+    public boolean isValidSprint(String playerId) {
+        boolean isValid = false;
+        Character potentialRunner = characters.get(playerId);
+        if (potentialRunner instanceof Snackman player) {
+            int nutriScore = player.getCurrentPoints();
+                if (nutriScore >= SPRINT_PER_500MS_COST) {
+                    isValid = true;
+                    player.setCurrentPoints(nutriScore - SPRINT_PER_500MS_COST);
+                }
         }
         return isValid;
     }

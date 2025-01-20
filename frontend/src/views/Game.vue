@@ -2,11 +2,11 @@
 /*Basic Configuration for Scene(=Container), Camera and Rendering for Playground*/
 import * as THREE from 'three'
 import {PointLight, PointLightHelper, WebGLRenderer} from 'three'
-import {computed, onMounted, ref, watch} from 'vue'
+import {computed, onMounted, onUnmounted, ref, watch} from 'vue'
 import {PointerLockControls} from 'three/addons/controls/PointerLockControls.js'
 import {useGameStore} from '@/stores/game/gamestore'
 import type {IMessageDTD} from '@/stores/game/dtd/IMessageDTD'
-import {sendMessage, subscribeTo} from '@/config/stompWebsocket'
+import { sendMessage, stompClient, subscribeTo } from '@/config/stompWebsocket'
 import {useRoute} from 'vue-router'
 import type {IPlayerPositionDTD} from '@/stores/game/dtd/IPlayerPositionDTD'
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js'
@@ -26,6 +26,7 @@ const themeStore = useThemeStore();
 import type { IChickenDTD } from '@/stores/game/dtd/IChickenDTD'
 import type { Message } from 'postcss'
 
+const restUrl: string = '/api/game';
 const gameStore = useGameStore()
 const route = useRoute()
 const lobbyId = route.params.id.toString()
@@ -39,13 +40,14 @@ const players = new Map<string, number>(); // Spieler mit Namen als Key auf Char
 const loadingPlayers = new Map<string, boolean>(); // Spielername -> Ladevorgang
 const rotatingItems: THREE.Object3D[] = []; // Items, die sich drehen
 const map = ref<string[] | undefined>(undefined);
-
+const soundList: THREE.Audio[] = []
 
 //Movement
 let movingForward: boolean,
     movingBackward: boolean,
     movingLeft: boolean,
     movingRight: boolean = false
+let sprintIntervalId: number | null = null;
 const slowMovementSpeed = 2
 const fastMovementSpeed = 4
 let movementSpeed = slowMovementSpeed
@@ -69,7 +71,7 @@ let jumpChargeTime = 0  // Zeit, die die Leertaste gedrückt wurde
 const maxJumpChargeTime = 1.5 // Maximale Ladezeit für großen Sprung in Sekunden
 let isChargingJump = false // Ob der Spieler einen Sprung auflädt
 let isJumping = false // Verhindert doppeltes Springen
-let isValidatingChargeJump = false
+let isValidatingJump = false
 let jumpVelocity = 0 // Vertikale Geschwindigkeit des Sprungs
 const gravity = -9.8 // Schwerkraft
 const minJumpSpeed = 5 // Startgeschwindigkeit des kleinen Sprung
@@ -162,13 +164,13 @@ const requiredPointsToWin = computed(() => snackmanMaxPoints.value / 2);
 const snackmanPoints = computed(() => currentCharacter.value?.currentPoints ?? 0);
 
 watch(
-    () => currentCharacter.value?.currentPoints,
-    (newPoints, oldPoints) => {
-      if (newPoints !== oldPoints) {
-        console.log(`Points changed from ${oldPoints} to ${newPoints}`);
-        // Zusätzliche Logik, z. B. Punkte-Animationen
-      }
+  () => currentCharacter.value?.currentPoints,
+  (newPoints, oldPoints) => {
+    if (newPoints !== oldPoints) {
+      console.log(`Points changed from ${oldPoints} to ${newPoints}`);
+      // Zusätzliche Logik, z. B. Punkte-Animationen
     }
+  }
 );
 // Role die gewonnen hat
 const winnerRole = computed(() => gameStore.gameState.gamedata.winnerRole ?? null);
@@ -201,20 +203,69 @@ function createSceneCameraRendererControlsClockListener() {
   return {scene, camera, renderer, pointerLockControls, clock, listener}
 }
 
+function handleKeyUpEvent (e: KeyboardEvent) {
+  switch (e.code) {
+    case 'ShiftLeft':
+      switchSprint()
+      break
+    case 'KeyW':
+      movingForward = true
+      break
+    case 'KeyA':
+      movingLeft = true
+      break
+    case 'KeyS':
+      movingBackward = true
+      break
+    case 'KeyD':
+      movingRight = true
+      break
+    case 'Space':
+      if (gameStore.jumpAllowed) {
+        isChargingJump = true;
+      }
+      break;
+  }
+}
+
+function handleResize() {
+  //renderer und somit auch die komplette szene wird auf neuen Browserfenster bereich angepasst
+  renderer.setPixelRatio(window.devicePixelRatio)
+  renderer.setSize(window.innerWidth, window.innerHeight)
+
+  //Durch das Anpassen der ".aspect" bleibt die FOV auch bei Änderung der Fenstergröße konstant
+  camera.aspect = window.innerWidth / window.innerHeight
+  camera.updateProjectionMatrix()
+}
+
+function handleKeyDownEvent(e : KeyboardEvent){
+  switch (e.code) {
+    case 'KeyW':
+      movingForward = false
+      break
+    case 'KeyA':
+      movingLeft = false
+      break
+    case 'KeyS':
+      movingBackward = false
+      break
+    case 'KeyD':
+      movingRight = false
+      break
+    case 'Space':
+      isChargingJump = false;
+      break
+  }
+}
+
 function registerListeners(window: Window, renderer: WebGLRenderer) {
   renderer.domElement.addEventListener('click', (e) => {
     renderer.domElement.requestPointerLock()
   })
 
-  window.addEventListener('resize', (e) => {
-    //renderer und somit auch die komplette szene wird auf neuen Browserfenster bereich angepasst
-    renderer.setPixelRatio(window.devicePixelRatio)
-    renderer.setSize(window.innerWidth, window.innerHeight)
 
-    //Durch das Anpassen der ".aspect" bleibt die FOV auch bei Änderung der Fenstergröße konstant
-    camera.aspect = window.innerWidth / window.innerHeight
-    camera.updateProjectionMatrix()
-  })
+
+  window.addEventListener('resize', handleResize)
 
   document.addEventListener('pointerlockchange', (e) => {
     if (!document.pointerLockElement) {
@@ -224,53 +275,8 @@ function registerListeners(window: Window, renderer: WebGLRenderer) {
     }
   })
 
-  window.addEventListener('keydown', (e) => {
-    switch (e.code) {
-      case 'ShiftLeft':
-        if (movementSpeed === slowMovementSpeed) {
-          movementSpeed = fastMovementSpeed
-        } else {
-          movementSpeed = slowMovementSpeed
-        }
-        break
-      case 'KeyW':
-        movingForward = true
-        break
-      case 'KeyA':
-        movingLeft = true
-        break
-      case 'KeyS':
-        movingBackward = true
-        break
-      case 'KeyD':
-        movingRight = true
-        break
-      case 'Space':
-        if (gameStore.jumpAllowed) {
-          isChargingJump = true;
-        }
-        break;
-    }
-  })
-  window.addEventListener('keyup', (e) => {
-    switch (e.code) {
-      case 'KeyW':
-        movingForward = false
-        break
-      case 'KeyA':
-        movingLeft = false
-        break
-      case 'KeyS':
-        movingBackward = false
-        break
-      case 'KeyD':
-        movingRight = false
-        break
-      case 'Space':
-        isChargingJump = false;
-        break
-    }
-  })
+  window.addEventListener('keydown', handleKeyUpEvent)
+  window.addEventListener('keyup', handleKeyDownEvent)
 }
 
 // Funktion zur Abfrage der Gamepad-Eingaben
@@ -279,8 +285,11 @@ function handleGamepadInput(delta: number) {
     const gamepad = navigator.getGamepads()[controllerIndex];
     if (gamepad) {
       // Rechter Joystick (Axes 2 und 3)
-      const rightStickX = gamepad.axes[2]; // Horizontal (Rotation Y)
-      const rightStickY = gamepad.axes[3]; // Vertikal (Rotation X oder Zoom)
+      let rightStickX = gamepad.axes[2]; // Horizontal (Rotation Y)
+      let rightStickY = gamepad.axes[3]; // Vertikal (Rotation X oder Zoom)
+
+      if (Math.abs(rightStickX) < deadzone) rightStickX = 0;
+      if (Math.abs(rightStickY) < deadzone) rightStickY = 0;
 
       // Rotation der Kamera (Y-Achse, Horizontal)
       camera.rotation.y -= rightStickX * delta * 2.5; // Empfindlichkeit anpassen
@@ -288,8 +297,8 @@ function handleGamepadInput(delta: number) {
       // Optional: Vertikale Kamera-Rotation
       const maxVerticalAngle = Math.PI / 4; // Begrenze vertikale Rotation (z.B. +/- 45°)
       camera.rotation.x = Math.max(
-          -maxVerticalAngle,
-          Math.min(maxVerticalAngle, camera.rotation.x - rightStickY * delta * 2.5)
+        -maxVerticalAngle,
+        Math.min(maxVerticalAngle, camera.rotation.x - rightStickY * delta * 2.5)
       );
     }
   }
@@ -323,27 +332,12 @@ function updateGamepadInput() {
 function loadMusic() {
   const audioLoader = new THREE.AudioLoader();
 
-  // Liste der Sound-Dateien
-  const soundFilenames = ['bg-music.mp3', 'walking.mp3', 'hit.mp3'];
-  const soundList: THREE.Audio[] = []
-
-  const bgSound = new THREE.Audio(listener);
-  const bgSoundURL = new URL(`@/assets/game/realistic/sounds/bg-music.mp3`, import.meta.url).href;
-
-  audioLoader.load(bgSoundURL, function (buffer) {
-    bgSound.setBuffer(buffer);
-    bgSound.setLoop(true);
-    bgSound.setVolume(musicVolume.value / 100);
-    bgSound.play()
-  });
-  soundList.push(bgSound);
-
   const walkingSound = new THREE.Audio(listener);
   const walkingSoundURL = new URL(`@/assets/game/realistic/sounds/walking.mp3`, import.meta.url).href;
 
   audioLoader.load(walkingSoundURL, function (buffer) {
     walkingSound.setBuffer(buffer);
-    walkingSound.setLoop(true);
+    walkingSound.setLoop(false);
     walkingSound.setVolume(effectVolume.value / 100);
   });
   soundList.push(walkingSound);
@@ -353,28 +347,39 @@ function loadMusic() {
 
   audioLoader.load(hitSoundURL, function (buffer) {
     hitSound.setBuffer(buffer);
-    hitSound.setLoop(true);
+    hitSound.setLoop(false);
     hitSound.setVolume(effectVolume.value / 100);
   });
   soundList.push(hitSound);
+
+  const jumpSound = new THREE.Audio(listener);
+  const jumpSoundURL = new URL(`@/assets/game/realistic/sounds/jumpo.mp3`, import.meta.url).href;
+
+  audioLoader.load(jumpSoundURL, function (buffer) {
+    jumpSound.setBuffer(buffer);
+    jumpSound.setLoop(false);
+    jumpSound.setVolume(effectVolume.value / 100);
+  });
+  soundList.push(jumpSound);
 
   return soundList
 }
 
 const {scene, camera, renderer, pointerLockControls, clock, listener} =
-    createSceneCameraRendererControlsClockListener()
+  createSceneCameraRendererControlsClockListener()
 
+/*
 let controllLocked = watch(pointerLockControls, async (oldValue, newValue) => {
   console.log("CHANGE");
   newValue.isLocked;
-});
+}); */
 
 registerListeners(window, renderer)
-const [bgMusic, walkingSound, hitSound] = loadMusic()
-watch(musicVolume, (newVolume) => bgMusic.setVolume(newVolume / 100))
+let [walkingSound, hitSound, jumpSound] = loadMusic()
 watch(effectVolume, (newVolume) => {
   walkingSound.setVolume(newVolume / 100);
-  hitSound.setVolume(newVolume / 100)
+  hitSound.setVolume(newVolume / 100);
+  jumpSound.setVolume(newVolume / 100);
 })
 
 
@@ -382,7 +387,7 @@ const threeContainer = ref<null | HTMLElement>(null)
 
 
 //Ball
-const sphereGeometry = new THREE.SphereGeometry(1, 30, 30)
+const sphereGeometry = new THREE.SphereGeometry(0.5, 30, 30)
 const sphereMaterial = new THREE.MeshStandardMaterial({
   color: 0xffff00,
   metalness: 0,
@@ -424,42 +429,104 @@ function animate() {
   handleGamepadInput(delta);
 }
 
-async function isValidChargeJump(): Promise<boolean> {
-  const restUrl: string = '/api/game';
+async function validateJump(checkChargeJump: boolean): Promise<boolean> {
   const playerId: string = currentPlayer.value?.name ?? "";
+  const jumpCheckUrl: string = checkChargeJump ? 'isValidJump/charge' : 'isValidJump/normal';
 
   if (playerId === "") {
-    console.error('Error: Unable to validate charging jump, player ID is missing');
+    console.error('Error: Unable to validate jump, player ID is missing');
     return false;
   }
 
   try {
     // Perform the fetch request
-    const response: Response = await fetch(`${restUrl}/ingame/${lobbyId}/${playerId}/isValidChargeJump`);
+    const response: Response = await fetch(`${restUrl}/ingame/${lobbyId}/${playerId}/${jumpCheckUrl}`);
 
     // Check if the response is successful
     if (!response.ok) {
-      console.error('Error: Unable to validate charging jump', response.statusText);
+      console.error('Error: Unable to validate jump', response.statusText);
       return false; // Return false if the backend call fails
     }
 
     // Parse the JSON response
     const isValid: boolean = await response.json();
-    console.log('Charging jump backend validation:', isValid);
+    console.log('Jump backend validation:', isValid);
 
     // Return the parsed value
     return isValid;
   } catch (error) {
-    console.error('Error while validating charging jump:', error);
+    console.error('Error while validating jump:', error);
     return false; // Return false in case of an error
+  }
+}
+
+async function switchSprint() {
+  if (isSprinting()) {
+    stopSprinting()
+  } else {
+    const sprintIsValid = await validateSprint()
+    if (sprintIsValid) {
+      movementSpeed = fastMovementSpeed
+
+      sprintIntervalId = setInterval(async () => {
+        const sprintIsValid = await validateSprint()
+        if (!sprintIsValid) {
+          stopSprinting()
+        }
+      }, 500)
+    }
+  }
+}
+
+async function validateSprint(): Promise<boolean> {
+  const playerId: string = currentPlayer.value?.name ?? "";
+
+  if (playerId === "") {
+    console.error('Error: Unable to validate sprint, player ID is missing');
+    return false;
+  }
+
+  try {
+    // Perform the fetch request
+    const response: Response = await fetch(`${restUrl}/ingame/${lobbyId}/${playerId}/isValidSprint`);
+
+    // Check if the response is successful
+    if (!response.ok) {
+      console.error('Error: Unable to validate sprint', response.statusText);
+      return false; // Return false if the backend call fails
+    }
+
+    // Parse the JSON response
+    const isValid: boolean = await response.json();
+    console.log('Sprint backend validation:', isValid);
+
+    // Return the parsed value
+    return isValid;
+  } catch (error) {
+    console.error('Error while validating sprint:', error);
+    return false; // Return false in case of an error
+  }
+}
+
+function isSprinting() {
+  return movementSpeed === fastMovementSpeed
+}
+
+function stopSprinting() {
+  movementSpeed = slowMovementSpeed
+
+  if (sprintIntervalId) {
+    clearInterval(sprintIntervalId)
+    sprintIntervalId = null
   }
 }
 
 
 // Funktion, die den Sprung auslöst, wenn die 2 Sekunden um sind
-function triggerJumpAfterChargeTime(delta: number) {
+function triggerHighJumpAfterChargeTime(delta: number) {
+  if (isValidatingJump) return
+
   if (isChargingJump) {
-    if (isValidatingChargeJump) return
     // Wenn die Leertaste gedrückt wird, erhöhe die Ladezeit
 
     jumpChargeTime += delta; // Ladezeit hochzählen
@@ -472,35 +539,43 @@ function triggerJumpAfterChargeTime(delta: number) {
 
 
     if (jumpChargeTime >= maxJumpChargeTime) {
-      isValidatingChargeJump = true;
-      isValidChargeJump().then((valid) => {
+      isValidatingJump = true;
+      validateJump(true).then((valid) => {
         jumpChargeTime = 0; // Ladezeit zurücksetzen
         isChargingJump = false; // Leertaste kann losgelassen werden
         if (valid) {
           // Wenn die Ladezeit 2 Sekunden überschreitet, führe den Sprung aus
           jumpVelocity = maxJumpSpeed;  // Erhöhe die Sprunggeschwindigkeit für den großen Sprung
           isJumping = true; // Der Spieler springt jetzt
+          walkingSound.stop()
+          jumpSound.play()
           console.log(" Großer Sprung ausgelöst mit Geschwindigkeit:", jumpVelocity);
         }
-        isValidatingChargeJump = false;
+        isValidatingJump = false;
       })
     }
   } else if (jumpChargeTime > 0 && jumpChargeTime < maxJumpChargeTime && !isJumping) {
-    jumpChargeTime = 0;
-    jumpVelocity = minJumpSpeed;  // Setze die Geschwindigkeit für den kleinen Sprung
-    isJumping = true; // Sprung aktivieren
-    console.log("Kleiner Sprung ausgelöst mit Geschwindigkeit:", jumpVelocity);
+    isValidatingJump = true;
+    validateJump(false).then((valid) => {
+      jumpChargeTime = 0;
+      walkingSound.stop()
+      jumpSound.play()
+      if (valid) {
+        jumpVelocity = minJumpSpeed;  // Setze die Geschwindigkeit für den kleinen Sprung
+        isJumping = true; // Sprung aktivieren
+        console.log("Kleiner Sprung ausgelöst mit Geschwindigkeit:", jumpVelocity);
+      }
+      isValidatingJump = false;
+    })
   }
   // Wichtig für den Sprung Ladebalken
   updateJumpBar();
-
-
 }
 
 function calculateMovementDirection(
-    cameraViewDirection: THREE.Vector3,
-    yPlaneVector: THREE.Vector3,
-    delta: number
+  cameraViewDirection: THREE.Vector3,
+  yPlaneVector: THREE.Vector3,
+  delta: number
 ): THREE.Vector3 {
   const movementVector = new THREE.Vector3();
 
@@ -508,46 +583,46 @@ function calculateMovementDirection(
   if (movingForward && !movingBackward) {
     if (movingRight && !movingLeft) {
       movementVector.addScaledVector(
-          cameraViewDirection.clone().applyAxisAngle(yPlaneVector, (7 * Math.PI) / 4),
-          movementSpeed * delta
+        cameraViewDirection.clone().applyAxisAngle(yPlaneVector, (7 * Math.PI) / 4),
+        movementSpeed * delta
       );
     } else if (movingLeft && !movingRight) {
       movementVector.addScaledVector(
-          cameraViewDirection.clone().applyAxisAngle(yPlaneVector, Math.PI / 4),
-          movementSpeed * delta
+        cameraViewDirection.clone().applyAxisAngle(yPlaneVector, Math.PI / 4),
+        movementSpeed * delta
       );
     } else {
       movementVector.addScaledVector(
-          cameraViewDirection.clone().applyAxisAngle(yPlaneVector, 2 * Math.PI),
-          movementSpeed * delta
+        cameraViewDirection.clone().applyAxisAngle(yPlaneVector, 2 * Math.PI),
+        movementSpeed * delta
       );
     }
   } else if (movingBackward && !movingForward) {
     if (movingRight && !movingLeft) {
       movementVector.addScaledVector(
-          cameraViewDirection.clone().applyAxisAngle(yPlaneVector, (5 * Math.PI) / 4),
-          movementSpeed * delta
+        cameraViewDirection.clone().applyAxisAngle(yPlaneVector, (5 * Math.PI) / 4),
+        movementSpeed * delta
       );
     } else if (movingLeft && !movingRight) {
       movementVector.addScaledVector(
-          cameraViewDirection.clone().applyAxisAngle(yPlaneVector, (3 * Math.PI) / 4),
-          movementSpeed * delta
+        cameraViewDirection.clone().applyAxisAngle(yPlaneVector, (3 * Math.PI) / 4),
+        movementSpeed * delta
       );
     } else {
       movementVector.addScaledVector(
-          cameraViewDirection.clone().applyAxisAngle(yPlaneVector, Math.PI),
-          movementSpeed * delta
+        cameraViewDirection.clone().applyAxisAngle(yPlaneVector, Math.PI),
+        movementSpeed * delta
       );
     }
   } else if (movingRight && !movingLeft) {
     movementVector.addScaledVector(
-        cameraViewDirection.clone().applyAxisAngle(yPlaneVector, (3 * Math.PI) / 2),
-        movementSpeed * delta
+      cameraViewDirection.clone().applyAxisAngle(yPlaneVector, (3 * Math.PI) / 2),
+      movementSpeed * delta
     );
   } else if (movingLeft && !movingRight) {
     movementVector.addScaledVector(
-        cameraViewDirection.clone().applyAxisAngle(yPlaneVector, Math.PI / 2),
-        movementSpeed * delta
+      cameraViewDirection.clone().applyAxisAngle(yPlaneVector, Math.PI / 2),
+      movementSpeed * delta
     );
   }
 
@@ -585,7 +660,7 @@ function applyJumpLogic(delta: number, nextPosition: THREE.Vector3) {
       jumpChargeTime = 0;
     }
   } else {
-    triggerJumpAfterChargeTime(delta);
+    triggerHighJumpAfterChargeTime(delta);
   }
 }
 
@@ -685,8 +760,8 @@ function renderCharactersTest(playerPositions: IPlayerPositionDTD[]) {
   const modelLoader = new GLTFLoader();
   const adjustAngle = Math.PI;
   const missingPlayers = Array.from(players.keys()).filter(
-      (playerName) =>
-          !playerPositions.map((position) => position.playerName).includes(playerName)
+    (playerName) =>
+      !playerPositions.map((position) => position.playerName).includes(playerName)
   );
   const snackmanModel = themeStore.currentTheme?.character.snackman;
   const ghostModel = themeStore.currentTheme?.character.ghost;
@@ -729,8 +804,8 @@ function renderCharactersTest(playerPositions: IPlayerPositionDTD[]) {
         if (typeof modelPath === 'string') {
           loadingPath = modelPath
           scaleNumber = getAppropriateScaleNumberThemeCharacter(
-              playerData?.playerrole,
-              themeStore.selectedTheme.toString(),
+            playerData?.playerrole,
+            themeStore.selectedTheme.toString(),
           )
         } else {
           loadingPath = modelPath.path;
@@ -753,13 +828,13 @@ function renderCharactersTest(playerPositions: IPlayerPositionDTD[]) {
           scene.add(sprite);
 
           model.position.set(
-              playerPosition.x,
-              1 +
-              getAppropriateYoffsetForThemeCharacter(
-                  playerData?.playerrole,
-                  themeStore.selectedTheme.toString(),
-              ),
-              playerPosition.y,
+            playerPosition.x,
+            1 +
+            getAppropriateYoffsetForThemeCharacter(
+              playerData?.playerrole,
+              themeStore.selectedTheme.toString(),
+            ),
+            playerPosition.y,
           )
           model.rotation.y = (playerPosition.angle * Math.PI * 2) + adjustAngle;
 
@@ -780,13 +855,13 @@ function renderCharactersTest(playerPositions: IPlayerPositionDTD[]) {
           messungsBox.getSize(breite)
           messungsBox.expandByObject(model)
           model.position.set(
-              playerPosition.x - breite.x / 2,
-              playerPosition.z +
-              getAppropriateYoffsetForThemeCharacter(
-                  playerData?.playerrole,
-                  themeStore.selectedTheme.toString(),
-              ),
-              playerPosition.y,
+            playerPosition.x - breite.x / 2,
+            playerPosition.z +
+            getAppropriateYoffsetForThemeCharacter(
+              playerData?.playerrole,
+              themeStore.selectedTheme.toString(),
+            ),
+            playerPosition.y,
           )
           sprite.position.set(playerPosition.x, 1.5, playerPosition.y);
           model.rotation.y = playerPosition.angle + adjustAngle
@@ -834,6 +909,26 @@ function getCachedTexture(url: string): THREE.Texture {
   return texture;
 }
 
+function surpriseChicken(posX: number, posY : number) {
+    const loader = new GLTFLoader();
+    const supriseEgg = new URL("@/assets/game/items/kinder_surprise_egg/surprise_egg.glb", import.meta.url).href;
+    loader.load(supriseEgg, (gltf) => {
+      const model= gltf.scene;
+      model.position.set(posX,1,posY);
+      model.scale.set(1, 1, 1)
+      scene.add(model);
+      rotatingItems.push(model);
+      model.traverse((child) =>{
+        if(child instanceof THREE.Mesh){
+          child.castShadow = true;
+        }
+      })
+      console.log("Surprise egg added at (${posX}, ${posY})");
+    }
+    );
+    console.log("Surprise egg added at",posX, " ",posY);
+}
+
 function loadMap(map: string[], selectedTheme: { ground: string; wall: string }) {
   const groundGeometry = new THREE.BoxGeometry(1, 1, 1);
   const wallGeometry = new THREE.BoxGeometry(1, 1, 1);
@@ -860,18 +955,18 @@ function loadMap(map: string[], selectedTheme: { ground: string; wall: string })
     if (!modelCache.has(url)) {
       modelCache.set(url, new Promise((resolve, reject) => {
         new GLTFLoader().load(
-            url,
-            (gltf) => {
-              const model = gltf.scene;
-              model.traverse((child) => {
-                if (child instanceof THREE.Mesh) {
-                  child.castShadow = true;
-                }
-              });
-              resolve(model);
-            },
-            undefined,
-            (error) => reject(error)
+          url,
+          (gltf) => {
+            const model = gltf.scene;
+            model.traverse((child) => {
+              if (child instanceof THREE.Mesh) {
+                child.castShadow = true;
+              }
+            });
+            resolve(model);
+          },
+          undefined,
+          (error) => reject(error)
         );
       }));
     }
@@ -936,12 +1031,15 @@ function loadMap(map: string[], selectedTheme: { ground: string; wall: string })
             '4': [
               new URL("@/assets/game/items/4/hearts.glb", import.meta.url)
             ],
+            'kinderSupriseEgg':[
+              new URL("@assets/game/items/kinder_surprise_egg/kinder_surprise_egg.glb", import.meta.url)
+            ],
 
           };
 
           const randomModelPath = new URL(
-              itemPaths[tile][0],
-              import.meta.url
+            itemPaths[tile][0],
+            import.meta.url
           ).href;
           loadCachedModel(randomModelPath).then((model) => {
             const item = model.clone(); // Clone to avoid modifying the cached model
@@ -974,6 +1072,9 @@ function loadMap(map: string[], selectedTheme: { ground: string; wall: string })
             } else if (randomModelPath.includes('hearts')) {
               item.position.set(x, 0.65, z);
               item.scale.set(0.03, 0.03, 0.03)
+            }else if(randomModelPath.includes('supriseEgg')){
+              item.scale.set(0.03, 0.03, 0.03)
+              item.position.set(x, 0.6, z);
             }
             scene.add(item);
 
@@ -1025,22 +1126,22 @@ function addSkybox(scene: THREE.Scene, skyBoxPath: string | {
   const loader = new THREE.TextureLoader();
   if (typeof skyBoxPath === 'string') {
     loader.load(
-        skyBoxPath,
-        (texture) => {
-          const sphereGeometry = new THREE.SphereGeometry(500, 64, 64);
-          const sphereMaterial = new THREE.MeshBasicMaterial({
-            map: texture,
-            side: THREE.BackSide,
-          });
+      skyBoxPath,
+      (texture) => {
+        const sphereGeometry = new THREE.SphereGeometry(500, 64, 64);
+        const sphereMaterial = new THREE.MeshBasicMaterial({
+          map: texture,
+          side: THREE.BackSide,
+        });
 
-          const skySphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-          scene.add(skySphere);
-          console.log("SkySphere erfolgreich hinzugefügt!");
-        },
-        undefined,
-        (error) => {
-          console.error("Fehler beim Laden der SkySphere-Textur:", error);
-        }
+        const skySphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+        scene.add(skySphere);
+        console.log("SkySphere erfolgreich hinzugefügt!");
+      },
+      undefined,
+      (error) => {
+        console.error("Fehler beim Laden der SkySphere-Textur:", error);
+      }
     );
   } else {
     const materials = [
@@ -1083,7 +1184,7 @@ function renderChicken(chickenData:  IChickenDTD[]){
     if (!chickens.has(chicken.id)&&!loadingChickens .has(chicken.id)) {
       loadingChickens .add(chicken.id);
       console.log(`Neues Chicken wird erstellt für die ID: ${chicken.id}`);
-      const chickenModelURL =new URL('@/assets/chicken/chicken.glb', import.meta.url).href;
+      const chickenModelURL =new URL('@/assets/chicken/newerchicken.glb', import.meta.url).href;
       console.log("Chcieken url", chickenModelURL);
       console.log("Neues Chicken wird erstellt:", chicken.id);
       loader.load(chickenModelURL, (gltf: { scene: THREE.Group }) => {
@@ -1104,24 +1205,24 @@ function renderChicken(chickenData:  IChickenDTD[]){
         undefined,(error) => {
             console.error("Fehler beim Laden des Chicken-Modells:", error);
         }
-
       );
-    }else{
+    } else {
       console.log("Chicken bereits vorhanden. Aktualisiere Position:", chicken.id);
-        const existingChickenModel = chickens.get(chicken.id)
-        if(existingChickenModel ){
-          moveChicken(existingChickenModel , chicken);
-          console.log(`Position des Chickens aktualisiert: ID=${chicken.id}, Position=${chicken.posX},${chicken.posY}`);
+      const existingChickenModel = chickens.get(chicken.id)
+      if (existingChickenModel) {
+        moveChicken(existingChickenModel, chicken);
+        console.log(`Position des Chickens aktualisiert: ID=${chicken.id}, Position=${chicken.posX},${chicken.posY}`);
 
-        }
+      }
     }
   })
 
 }
 
 function moveChicken(modellChicken: THREE.Object3D, chickenData: IChickenDTD) {
-  const targetPosition = new THREE.Vector3(chickenData.posY + 0.5,.5,chickenData.posX + 0.5);
-  const currentPosition= modellChicken.position;
+  const targetPosition = new THREE.Vector3(chickenData.posY + 0.5, .5, chickenData.posX + 0.5);
+  const currentPosition = modellChicken.position;
+  modellChicken.rotation.y = (chickenData.angle / 360) * (Math.PI * 2);
 
   console.log("Aktuelle Position:", currentPosition);
   console.log("Zielposition:", targetPosition);
@@ -1129,7 +1230,7 @@ function moveChicken(modellChicken: THREE.Object3D, chickenData: IChickenDTD) {
 
   const direction = targetPosition.clone().sub(currentPosition).normalize();
   const chickenSpeed = 1; // Geschwindigkeit des Chickens (Einheiten/Sekunde)
-  const delta= clock.getDelta();
+  const delta = clock.getDelta();
 
 
   console.log('Richtung:', direction);
@@ -1138,10 +1239,10 @@ function moveChicken(modellChicken: THREE.Object3D, chickenData: IChickenDTD) {
 
   if (currentPosition.distanceTo(targetPosition) < chickenSpeed * delta) {
     const movement = direction.multiplyScalar(chickenSpeed * delta);
-  modellChicken.position.add(movement);
-  console.log('Bewegung:', movement);
-  console.log('Bewegt zu:', modellChicken.position);
-  }else{
+    modellChicken.position.add(movement);
+    console.log('Bewegung:', movement);
+    console.log('Bewegt zu:', modellChicken.position);
+  } else {
     modellChicken.position.set(targetPosition.x, .5, targetPosition.z);
     console.log('Ziel erreicht. Wechsel zu nächstem Punkt:', targetPosition);
   }
@@ -1195,13 +1296,31 @@ async function handleCharacters(data: ICharacterDTD[]) {
   renderCharactersTest(playerPositions)
 }
 
-function removeItemFromSceneByPosition(posX: number, posY: number) {
+function removeItemFromSceneByPosition(posX: number, posY: number, itemName?: string) {
   const itemToRemove = rotatingItems.find(
-      (item) =>
-          Math.abs(item.position.x - posX) <= 0.5 && Math.abs(item.position.z - posY) <= 0.5
+    (item) =>
+      Math.abs(item.position.x - posX) <= 0.5 && Math.abs(item.position.z - posY) <= 0.5
   );
 
   if (itemToRemove) {
+    console.log("Item to remove: ", itemName);
+    if (itemName == "Speed Boost") {
+      // increase speed boost for ghosts only for 10 seconds
+      if (currentPlayer.value?.playerrole == Playerrole.GHOST) {
+        console.log("Speed Boost collected by Ghost, increasing speed");
+        movementSpeed = fastMovementSpeed
+
+        if (sprintIntervalId) {
+          clearInterval(sprintIntervalId)
+        }
+        sprintIntervalId = setInterval(async () => {
+          const sprintIsValid = await validateSprint()
+          if (!sprintIsValid) {
+            stopSprinting()
+          }
+        }, 5000)
+      }
+    }
     // Entferne das Item aus der Szene
     scene.remove(itemToRemove);
 
@@ -1224,7 +1343,7 @@ watch([spawnX, spawnZ], ([newX, newZ]) => {
 
 async function handleChickenPositions(data: IChickenDTD[]) {
   console.log("Processing Chicken Positions:", data);
-  let chickenPositions: IChickenDTD[]= [];
+  let chickenPositions: IChickenDTD[] = [];
   data.forEach(chicken => {
     console.log(`Chicken-Daten: ID=${chicken.id}, X=${chicken.posX}, Y=${chicken.posY}`);
 
@@ -1236,14 +1355,28 @@ async function handleChickenPositions(data: IChickenDTD[]) {
       eggList: chicken.eggList || [],
       currentCalorie: chicken.currentCalorie
     });
+    removeItemFromSceneByPosition(chicken.posY, chicken.posX);
     console.log(`Position X=${chicken.posX}, Y=${chicken.posY}`);
   });
   renderChicken(chickenPositions)
 }
 
+onUnmounted(async () => {
+  console.log("UNMOUNTED UNMOUNTED")
+  window.removeEventListener('keyup', handleKeyUpEvent);
+  window.removeEventListener('keydown',handleKeyDownEvent);
+  window.removeEventListener('resize', handleResize);
+  renderer.dispose();
+  jumpSound.disconnect();
+  hitSound.disconnect();
+  walkingSound.disconnect();
+  camera.remove(listener);
+})
+
+
 onMounted(async () => {
   try {
-    await gameStore.fetchGameStatus()
+    await gameStore.fetchGameStatus(lobbyId)
     const playerName = sessionStorage.getItem('myName');
     if (playerName) {
       console.log(playerName)
@@ -1306,7 +1439,10 @@ onMounted(async () => {
         }
         // überprüft, ob es ein gewinner gibt und zeigt die ensprechende ansicht
           if (winnerRole.value !== null) {
-            setTimeout(() => router.push({ name: 'GameEnd' }), 500);
+            setTimeout(() => {
+              router.push({ name: 'GameEnd' });
+              stompClient.deactivate()
+            }, 500);
           }
         break;
       }
@@ -1323,7 +1459,7 @@ onMounted(async () => {
       case "itemCollected":
         console.log(`collected at{} {}`, message.posX, message.positionY)
         console.log('MESSAGE: ' + message.toString())
-        removeItemFromSceneByPosition(message.positionX, message.positionY);
+        removeItemFromSceneByPosition(message.positionX, message.positionY, message.itemName);
         break;
 
       default:
@@ -1331,10 +1467,17 @@ onMounted(async () => {
     }
   })
 
+  subscribeTo(`/ingame/${lobbyId}/chicken/eggUpdate`, async (message: any) =>{
+    surpriseChicken(3,5);
+    console.log("Hier die Koordinaten" , message.positionY, message.positionX);
+    console.log("ASAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+    console.log("Egg Update: ", message);
+  })
+
   subscribeTo(`/ingame/chickenPosition/${lobbyId}`, async (message: any) => {
-        console.log("FROM CHICKEN POSITIONS: ", message);
-        await handleChickenPositions(message);
-    });
+    console.log("FROM CHICKEN POSITIONS: ", message);
+    await handleChickenPositions(message);
+  });
 
   if (threeContainer.value) {
     threeContainer.value.appendChild(renderer.domElement)
@@ -1378,7 +1521,7 @@ onMounted(async () => {
     console.error("Keine Skybox-Daten im aktuellen Theme gefunden");
   }
 
-  if(spawnPoints != null){
+  if (spawnPoints != null) {
     spawnPoints.forEach(spawnPoint => {
       if (sessionStorage.getItem('myName') == spawnPoint.playerName) {
         spawnX.value = Number(spawnPoint.posX);
@@ -1386,49 +1529,52 @@ onMounted(async () => {
       }
     })
   }
-animate()
+  animate()
 })
 
+/*
 watch(
-    () => themeStore.selectedTheme,
-    (newTheme) => {
-      if (newTheme) {
-        console.log(`Theme geändert zu: ${newTheme}`);
-        const currentTheme = themeStore.currentTheme;
-        //console.log(`Ändere Skybox zu: ${themeStore.currentTheme.sky}`);
-        //addSkybox(scene, themeStore.currentTheme.sky); // Dynamisch Skybox ändern
-        //console.log("Skybox-Pfad:", themeStore.currentTheme.sky);
+  () => themeStore.selectedTheme,
+  (newTheme) => {
+    if (newTheme) {
+      console.log(`Theme geändert zu: ${newTheme}`);
+      const currentTheme = themeStore.currentTheme;
+      //console.log(`Ändere Skybox zu: ${themeStore.currentTheme.sky}`);
+      //addSkybox(scene, themeStore.currentTheme.sky); // Dynamisch Skybox ändern
+      //console.log("Skybox-Pfad:", themeStore.currentTheme.sky);
 
-        // Map neu laden, falls vorhanden
-        if (map.value && currentTheme) {
-          loadMap(map.value, {
-            ground: currentTheme.ground,
-            wall: currentTheme.wall,
-          });
-        } else {
-          console.error('Keine Map oder kein aktuelles Theme gefunden');
-        }
-        if (themeStore.currentTheme.skybox) {
-          addSkybox(scene, themeStore.currentTheme.skybox);
-        } else {
-          console.error("Keine Skybox-Daten im aktuellen Theme gefunden");
-        }
+      // Map neu laden, falls vorhanden
+      if (map.value && currentTheme) {
+        loadMap(map.value, {
+          ground: currentTheme.ground,
+          wall: currentTheme.wall,
+        });
+      } else {
+        console.error('Keine Map oder kein aktuelles Theme gefunden');
+      }
+      if (themeStore.currentTheme.skybox) {
+        addSkybox(scene, themeStore.currentTheme.skybox);
+      } else {
+        console.error("Keine Skybox-Daten im aktuellen Theme gefunden");
       }
     }
+  }
 );
+*/
+
 
 </script>
 
 <template>
   <div ref="threeContainer" id="app" class="gameContainer relative z-20"></div>
   <div class="absolute z-50 top-0 flex justify-between w-full items-center p-8">
-    <div id="items" class="ml-4 p-8 bg-black text-white border-2 border-white rounded-lg shadow-lg z-20 w-45 h-45">
-      <!-- Items anzeigen, wenn vorhanden -->
-      <div v-if="collectedItems.length > 0">
-        {{ collectedItems.join(', ') }}
-      </div>
-      <div v-else></div>
-    </div>
+
+    <!-- <div id="items" class="ml-4 p-8 bg-black text-white border-2 border-white rounded-lg shadow-lg z-20 w-45 h-45">
+       <div v-if="collectedItems.length > 0">
+         {{ collectedItems.join(', ') }}
+       </div>
+       <div v-else></div>
+     </div> -->
     <div id="hud" class="hud absoute text-white font-bold">
       <div v-if="currentPlayer?.playerrole === Playerrole.SNACKMAN" class="flex gap-2">
         <div v-for="index in snackmanMaxLife" :key="index">
@@ -1439,7 +1585,7 @@ watch(
       </div>
       <!-- Punkteanzeige -->
       <div v-if="currentPlayer?.playerrole === Playerrole.SNACKMAN" class="points text-lg mt-2">
-        <p>Points: {{ snackmanPoints }} / {{ requiredPointsToWin }}</p>
+        <p>Nutriscore: {{ snackmanPoints }} / {{ requiredPointsToWin }}</p>
       </div>
       <!-- TouchCountanzeige -->
       <div v-if="currentPlayer?.playerrole === Playerrole.GHOST" class="points text-lg mt-2">
@@ -1464,42 +1610,15 @@ watch(
   <div v-if="showSettings" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
     <div class="bg-white p-6 rounded-lg shadow-lg w-96">
       <h3 class="text-2xl font-bold mb-4">Lautstärke</h3>
-      Musik <input type="range" class="form-control-range" id="formControlRange" v-model="musicVolume"> {{
-        musicVolume
-      }}%
-      <br>
       Effekte <input type="range" class="form-control-range" id="formControlRange" v-model="effectVolume">
       {{ effectVolume }}%
       <br>
-      <h2 class="text-2xl font-bold mb-4">Adjust Settings {{ showSettings }}</h2>
       <button @click="lockPointer" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
         Close
       </button>
     </div>
   </div>
 
-
-  <Modal>
-    <template #titel>
-      <h3 class="header-modal-adventure">Lautstärke</h3>
-    </template>
-    <template #content>
-      <div flex flex-col gap-3>
-        Musik <input type="range" class="form-control-range" id="formControlRange" v-model="musicVolume">
-        {{ musicVolume }}%
-        <br>
-        Effekte <input type="range" class="form-control-range" id="formControlRange" v-model="effectVolume">
-        {{ effectVolume }}%
-        <br>
-        <h2 class="text-2xl font-bold mb-4">Adjust Settings {{ showSettings }}</h2>
-        <button @click="lockPointer" class="button-small-adventure">
-          Close
-        </button>
-      </div>
-    </template>
-  </Modal>
-
 </template>
 
 <style scoped></style>
-
