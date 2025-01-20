@@ -1,21 +1,21 @@
 <script setup lang="ts">
 /*Basic Configuration for Scene(=Container), Camera and Rendering for Playground*/
 import * as THREE from 'three'
-import {PointLight, PointLightHelper, WebGLRenderer} from 'three'
-import {computed, onMounted, ref, watch} from 'vue'
-import {PointerLockControls} from 'three/addons/controls/PointerLockControls.js'
-import {useGameStore} from '@/stores/game/gamestore'
-import type {IMessageDTD} from '@/stores/game/dtd/IMessageDTD'
-import {sendMessage, subscribeTo} from '@/config/stompWebsocket'
-import {useRoute} from 'vue-router'
-import type {IPlayerPositionDTD} from '@/stores/game/dtd/IPlayerPositionDTD'
-import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js'
-import type {ICharacterDTD} from '@/stores/game/dtd/ICharacterDTD'
-import type {IChickenPositionDTD} from '@/stores/game/dtd/IChickenPositionDTD'
+import { PointLight, PointLightHelper, WebGLRenderer } from 'three'
+import { computed, onMounted, ref, watch } from 'vue'
+import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js'
+import { useGameStore } from '@/stores/game/gamestore'
+import type { IMessageDTD } from '@/stores/game/dtd/IMessageDTD'
+import { sendMessage, subscribeTo } from '@/config/stompWebsocket'
+import { useRoute } from 'vue-router'
+import type { IPlayerPositionDTD } from '@/stores/game/dtd/IPlayerPositionDTD'
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
+import type { ICharacterDTD } from '@/stores/game/dtd/ICharacterDTD'
+import type { IChickenPositionDTD } from '@/stores/game/dtd/IChickenPositionDTD'
 import Modal from '@/components/Modal.vue'
-import {Playerrole} from '@/stores/game/dtd/EPlayerrole';
+import { Playerrole } from '@/stores/game/dtd/EPlayerrole';
 import router from '@/router';
-import {useThemeStore} from '@/stores/themes/themeStore';
+import { useThemeStore } from '@/stores/themes/themeStore';
 import {
   getAppropriateScaleNumberThemeCharacter,
   getAppropriateYoffsetForThemeCharacter,
@@ -25,6 +25,7 @@ import {
 const themeStore = useThemeStore();
 import type { IChickenDTD } from '@/stores/game/dtd/IChickenDTD'
 import type { Message } from 'postcss'
+import type { IPlayerDTD } from '@/stores/game/dtd/IPlayerDTD'
 
 const gameStore = useGameStore()
 const route = useRoute()
@@ -43,9 +44,9 @@ const map = ref<string[] | undefined>(undefined);
 
 //Movement
 let movingForward: boolean,
-    movingBackward: boolean,
-    movingLeft: boolean,
-    movingRight: boolean = false
+  movingBackward: boolean,
+  movingLeft: boolean,
+  movingRight: boolean = false
 const slowMovementSpeed = 2
 const fastMovementSpeed = 4
 let movementSpeed = slowMovementSpeed
@@ -129,24 +130,24 @@ function showCollisionMessage(message: string) {
 const snackmanLife = computed(() => currentCharacter.value?.life ?? 0);
 
 watch(
-    () => currentCharacter.value?.life,
-    (newLife, oldLife) => {
-      if (newLife !== oldLife) {
-        console.log(`Life changed from ${oldLife} to ${newLife}`);
-      }
+  () => currentCharacter.value?.life,
+  (newLife, oldLife) => {
+    if (newLife !== oldLife) {
+      console.log(`Life changed from ${oldLife} to ${newLife}`);
     }
+  }
 );
 
 // Ghost-Touches aktualisieren
 const ghostTouch = computed(() => currentCharacter.value?.touchcount ?? 0);
 
 watch(
-    () => currentCharacter.value?.touchcount,
-    (newTouches, oldTouches) => {
-      if (newTouches !== oldTouches) {
-        console.log(`Ghost-Touches changed from ${oldTouches} to ${newTouches}`);
-      }
+  () => currentCharacter.value?.touchcount,
+  (newTouches, oldTouches) => {
+    if (newTouches !== oldTouches) {
+      console.log(`Ghost-Touches changed from ${oldTouches} to ${newTouches}`);
     }
+  }
 );
 
 // Maximales Leben des Charakters
@@ -162,13 +163,13 @@ const requiredPointsToWin = computed(() => snackmanMaxPoints.value / 2);
 const snackmanPoints = computed(() => currentCharacter.value?.currentPoints ?? 0);
 
 watch(
-    () => currentCharacter.value?.currentPoints,
-    (newPoints, oldPoints) => {
-      if (newPoints !== oldPoints) {
-        console.log(`Points changed from ${oldPoints} to ${newPoints}`);
-        // Zusätzliche Logik, z. B. Punkte-Animationen
-      }
+  () => currentCharacter.value?.currentPoints,
+  (newPoints, oldPoints) => {
+    if (newPoints !== oldPoints) {
+      console.log(`Points changed from ${oldPoints} to ${newPoints}`);
+      // Zusätzliche Logik, z. B. Punkte-Animationen
     }
+  }
 );
 // Role die gewonnen hat
 const winnerRole = computed(() => gameStore.gameState.gamedata.winnerRole ?? null);
@@ -198,7 +199,7 @@ function createSceneCameraRendererControlsClockListener() {
   pointerLockControls.pointerSpeed = 1
 
   const clock = new THREE.Clock()
-  return {scene, camera, renderer, pointerLockControls, clock, listener}
+  return { scene, camera, renderer, pointerLockControls, clock, listener }
 }
 
 function registerListeners(window: Window, renderer: WebGLRenderer) {
@@ -288,8 +289,8 @@ function handleGamepadInput(delta: number) {
       // Optional: Vertikale Kamera-Rotation
       const maxVerticalAngle = Math.PI / 4; // Begrenze vertikale Rotation (z.B. +/- 45°)
       camera.rotation.x = Math.max(
-          -maxVerticalAngle,
-          Math.min(maxVerticalAngle, camera.rotation.x - rightStickY * delta * 2.5)
+        -maxVerticalAngle,
+        Math.min(maxVerticalAngle, camera.rotation.x - rightStickY * delta * 2.5)
       );
     }
   }
@@ -361,8 +362,8 @@ function loadMusic() {
   return soundList
 }
 
-const {scene, camera, renderer, pointerLockControls, clock, listener} =
-    createSceneCameraRendererControlsClockListener()
+const { scene, camera, renderer, pointerLockControls, clock, listener } =
+  createSceneCameraRendererControlsClockListener()
 
 let controllLocked = watch(pointerLockControls, async (oldValue, newValue) => {
   console.log("CHANGE");
@@ -498,9 +499,9 @@ function triggerJumpAfterChargeTime(delta: number) {
 }
 
 function calculateMovementDirection(
-    cameraViewDirection: THREE.Vector3,
-    yPlaneVector: THREE.Vector3,
-    delta: number
+  cameraViewDirection: THREE.Vector3,
+  yPlaneVector: THREE.Vector3,
+  delta: number
 ): THREE.Vector3 {
   const movementVector = new THREE.Vector3();
 
@@ -508,46 +509,46 @@ function calculateMovementDirection(
   if (movingForward && !movingBackward) {
     if (movingRight && !movingLeft) {
       movementVector.addScaledVector(
-          cameraViewDirection.clone().applyAxisAngle(yPlaneVector, (7 * Math.PI) / 4),
-          movementSpeed * delta
+        cameraViewDirection.clone().applyAxisAngle(yPlaneVector, (7 * Math.PI) / 4),
+        movementSpeed * delta
       );
     } else if (movingLeft && !movingRight) {
       movementVector.addScaledVector(
-          cameraViewDirection.clone().applyAxisAngle(yPlaneVector, Math.PI / 4),
-          movementSpeed * delta
+        cameraViewDirection.clone().applyAxisAngle(yPlaneVector, Math.PI / 4),
+        movementSpeed * delta
       );
     } else {
       movementVector.addScaledVector(
-          cameraViewDirection.clone().applyAxisAngle(yPlaneVector, 2 * Math.PI),
-          movementSpeed * delta
+        cameraViewDirection.clone().applyAxisAngle(yPlaneVector, 2 * Math.PI),
+        movementSpeed * delta
       );
     }
   } else if (movingBackward && !movingForward) {
     if (movingRight && !movingLeft) {
       movementVector.addScaledVector(
-          cameraViewDirection.clone().applyAxisAngle(yPlaneVector, (5 * Math.PI) / 4),
-          movementSpeed * delta
+        cameraViewDirection.clone().applyAxisAngle(yPlaneVector, (5 * Math.PI) / 4),
+        movementSpeed * delta
       );
     } else if (movingLeft && !movingRight) {
       movementVector.addScaledVector(
-          cameraViewDirection.clone().applyAxisAngle(yPlaneVector, (3 * Math.PI) / 4),
-          movementSpeed * delta
+        cameraViewDirection.clone().applyAxisAngle(yPlaneVector, (3 * Math.PI) / 4),
+        movementSpeed * delta
       );
     } else {
       movementVector.addScaledVector(
-          cameraViewDirection.clone().applyAxisAngle(yPlaneVector, Math.PI),
-          movementSpeed * delta
+        cameraViewDirection.clone().applyAxisAngle(yPlaneVector, Math.PI),
+        movementSpeed * delta
       );
     }
   } else if (movingRight && !movingLeft) {
     movementVector.addScaledVector(
-        cameraViewDirection.clone().applyAxisAngle(yPlaneVector, (3 * Math.PI) / 2),
-        movementSpeed * delta
+      cameraViewDirection.clone().applyAxisAngle(yPlaneVector, (3 * Math.PI) / 2),
+      movementSpeed * delta
     );
   } else if (movingLeft && !movingRight) {
     movementVector.addScaledVector(
-        cameraViewDirection.clone().applyAxisAngle(yPlaneVector, Math.PI / 2),
-        movementSpeed * delta
+      cameraViewDirection.clone().applyAxisAngle(yPlaneVector, Math.PI / 2),
+      movementSpeed * delta
     );
   }
 
@@ -685,8 +686,8 @@ function renderCharactersTest(playerPositions: IPlayerPositionDTD[]) {
   const modelLoader = new GLTFLoader();
   const adjustAngle = Math.PI;
   const missingPlayers = Array.from(players.keys()).filter(
-      (playerName) =>
-          !playerPositions.map((position) => position.playerName).includes(playerName)
+    (playerName) =>
+      !playerPositions.map((position) => position.playerName).includes(playerName)
   );
   const snackmanModel = themeStore.currentTheme?.character.snackman;
   const ghostModel = themeStore.currentTheme?.character.ghost;
@@ -729,8 +730,8 @@ function renderCharactersTest(playerPositions: IPlayerPositionDTD[]) {
         if (typeof modelPath === 'string') {
           loadingPath = modelPath
           scaleNumber = getAppropriateScaleNumberThemeCharacter(
-              playerData?.playerrole,
-              themeStore.selectedTheme.toString(),
+            playerData?.playerrole,
+            themeStore.selectedTheme.toString(),
           )
         } else {
           loadingPath = modelPath.path;
@@ -753,13 +754,13 @@ function renderCharactersTest(playerPositions: IPlayerPositionDTD[]) {
           scene.add(sprite);
 
           model.position.set(
-              playerPosition.x,
-              1 +
-              getAppropriateYoffsetForThemeCharacter(
-                  playerData?.playerrole,
-                  themeStore.selectedTheme.toString(),
-              ),
-              playerPosition.y,
+            playerPosition.x,
+            1 +
+            getAppropriateYoffsetForThemeCharacter(
+              playerData?.playerrole,
+              themeStore.selectedTheme.toString(),
+            ),
+            playerPosition.y,
           )
           model.rotation.y = (playerPosition.angle * Math.PI * 2) + adjustAngle;
 
@@ -780,13 +781,13 @@ function renderCharactersTest(playerPositions: IPlayerPositionDTD[]) {
           messungsBox.getSize(breite)
           messungsBox.expandByObject(model)
           model.position.set(
-              playerPosition.x - breite.x / 2,
-              playerPosition.z +
-              getAppropriateYoffsetForThemeCharacter(
-                  playerData?.playerrole,
-                  themeStore.selectedTheme.toString(),
-              ),
-              playerPosition.y,
+            playerPosition.x - breite.x / 2,
+            playerPosition.z +
+            getAppropriateYoffsetForThemeCharacter(
+              playerData?.playerrole,
+              themeStore.selectedTheme.toString(),
+            ),
+            playerPosition.y,
           )
           sprite.position.set(playerPosition.x, 1.5, playerPosition.y);
           model.rotation.y = playerPosition.angle + adjustAngle
@@ -816,7 +817,7 @@ function createNameSprite(playerName: string) {
   context.fillText(playerName, canvas.width / 2, canvas.height / 2);
 
   const texture = new THREE.CanvasTexture(canvas);
-  const spriteMaterial = new THREE.SpriteMaterial({map: texture});
+  const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
   const sprite = new THREE.Sprite(spriteMaterial);
 
   sprite.scale.set(1.2, 0.5, 1);
@@ -839,8 +840,8 @@ function loadMap(map: string[], selectedTheme: { ground: string; wall: string })
   const wallGeometry = new THREE.BoxGeometry(1, 1, 1);
   const groundTexture = getCachedTexture(selectedTheme.ground);
   const wallTexture = getCachedTexture(selectedTheme.wall);
-  const groundMaterial = new THREE.MeshStandardMaterial({map: groundTexture});
-  const wallMaterial = new THREE.MeshStandardMaterial({map: wallTexture});
+  const groundMaterial = new THREE.MeshStandardMaterial({ map: groundTexture });
+  const wallMaterial = new THREE.MeshStandardMaterial({ map: wallTexture });
 
   const mapOffset = 0.5;
 
@@ -860,18 +861,18 @@ function loadMap(map: string[], selectedTheme: { ground: string; wall: string })
     if (!modelCache.has(url)) {
       modelCache.set(url, new Promise((resolve, reject) => {
         new GLTFLoader().load(
-            url,
-            (gltf) => {
-              const model = gltf.scene;
-              model.traverse((child) => {
-                if (child instanceof THREE.Mesh) {
-                  child.castShadow = true;
-                }
-              });
-              resolve(model);
-            },
-            undefined,
-            (error) => reject(error)
+          url,
+          (gltf) => {
+            const model = gltf.scene;
+            model.traverse((child) => {
+              if (child instanceof THREE.Mesh) {
+                child.castShadow = true;
+              }
+            });
+            resolve(model);
+          },
+          undefined,
+          (error) => reject(error)
         );
       }));
     }
@@ -940,8 +941,8 @@ function loadMap(map: string[], selectedTheme: { ground: string; wall: string })
           };
 
           const randomModelPath = new URL(
-              itemPaths[tile][0],
-              import.meta.url
+            itemPaths[tile][0],
+            import.meta.url
           ).href;
           loadCachedModel(randomModelPath).then((model) => {
             const item = model.clone(); // Clone to avoid modifying the cached model
@@ -1025,31 +1026,31 @@ function addSkybox(scene: THREE.Scene, skyBoxPath: string | {
   const loader = new THREE.TextureLoader();
   if (typeof skyBoxPath === 'string') {
     loader.load(
-        skyBoxPath,
-        (texture) => {
-          const sphereGeometry = new THREE.SphereGeometry(500, 64, 64);
-          const sphereMaterial = new THREE.MeshBasicMaterial({
-            map: texture,
-            side: THREE.BackSide,
-          });
+      skyBoxPath,
+      (texture) => {
+        const sphereGeometry = new THREE.SphereGeometry(500, 64, 64);
+        const sphereMaterial = new THREE.MeshBasicMaterial({
+          map: texture,
+          side: THREE.BackSide,
+        });
 
-          const skySphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-          scene.add(skySphere);
-          console.log("SkySphere erfolgreich hinzugefügt!");
-        },
-        undefined,
-        (error) => {
-          console.error("Fehler beim Laden der SkySphere-Textur:", error);
-        }
+        const skySphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+        scene.add(skySphere);
+        console.log("SkySphere erfolgreich hinzugefügt!");
+      },
+      undefined,
+      (error) => {
+        console.error("Fehler beim Laden der SkySphere-Textur:", error);
+      }
     );
   } else {
     const materials = [
-      new THREE.MeshBasicMaterial({map: loader.load(skyBoxPath.right), side: THREE.BackSide}),
-      new THREE.MeshBasicMaterial({map: loader.load(skyBoxPath.left), side: THREE.BackSide}),
-      new THREE.MeshBasicMaterial({map: loader.load(skyBoxPath.top), side: THREE.BackSide}),
-      new THREE.MeshBasicMaterial({map: loader.load(skyBoxPath.bottom), side: THREE.BackSide}),
-      new THREE.MeshBasicMaterial({map: loader.load(skyBoxPath.front), side: THREE.BackSide}),
-      new THREE.MeshBasicMaterial({map: loader.load(skyBoxPath.back), side: THREE.BackSide}),
+      new THREE.MeshBasicMaterial({ map: loader.load(skyBoxPath.right), side: THREE.BackSide }),
+      new THREE.MeshBasicMaterial({ map: loader.load(skyBoxPath.left), side: THREE.BackSide }),
+      new THREE.MeshBasicMaterial({ map: loader.load(skyBoxPath.top), side: THREE.BackSide }),
+      new THREE.MeshBasicMaterial({ map: loader.load(skyBoxPath.bottom), side: THREE.BackSide }),
+      new THREE.MeshBasicMaterial({ map: loader.load(skyBoxPath.front), side: THREE.BackSide }),
+      new THREE.MeshBasicMaterial({ map: loader.load(skyBoxPath.back), side: THREE.BackSide }),
     ];
 
     const skyboxGeometry = new THREE.BoxGeometry(500, 500, 500); // Größe des Skybox-Würfels
@@ -1070,58 +1071,58 @@ function loadMapFromLocalStorage(): string[] | null {
   }
   return null;
 }
-function renderChicken(chickenData:  IChickenDTD[]){
+function renderChicken(chickenData: IChickenDTD[]) {
   console.log("INSIDE RENDER: ", chickenData);
-  const loader =new GLTFLoader();//@/assets/game/realistic/snackman/snackman.glb
+  const loader = new GLTFLoader();//@/assets/game/realistic/snackman/snackman.glb
   //Überprüfung ob es eine chicken id gibt wenn nicht wird ein erstellt und wenn ja wir die position aktualsiert
-  chickenData.forEach((chicken)=>{
+  chickenData.forEach((chicken) => {
     console.log(`Chicken-Daten: ID=${chicken.id}, X=${chicken.posX}, Y=${chicken.posY}`);
     if (!chicken.id) {
       console.warn("Chicken hat keine ID:", chicken.id);
       return; // Weiterverarbeitung abbrechen
     }
-    if (!chickens.has(chicken.id)&&!loadingChickens .has(chicken.id)) {
-      loadingChickens .add(chicken.id);
+    if (!chickens.has(chicken.id) && !loadingChickens.has(chicken.id)) {
+      loadingChickens.add(chicken.id);
       console.log(`Neues Chicken wird erstellt für die ID: ${chicken.id}`);
-      const chickenModelURL =new URL('@/assets/chicken/chicken.glb', import.meta.url).href;
+      const chickenModelURL = new URL('@/assets/chicken/chicken.glb', import.meta.url).href;
       console.log("Chcieken url", chickenModelURL);
       console.log("Neues Chicken wird erstellt:", chicken.id);
       loader.load(chickenModelURL, (gltf: { scene: THREE.Group }) => {
         const model = gltf.scene;
-          model.traverse((child) => {
-            if (child instanceof THREE.Mesh) {
-              child.castShadow = true;
-            }
-          });
-          model.scale.set(0.5, 0.5, 0.5);
+        model.traverse((child) => {
+          if (child instanceof THREE.Mesh) {
+            child.castShadow = true;
+          }
+        });
+        model.scale.set(0.5, 0.5, 0.5);
         model.name = chicken.id;
         chickens.set(chicken.id, model);
         scene.add(model);
         model.position.set(chicken.posX, 1, chicken.posY);
         console.log(`Neues Chicken hinzugefügt: ID=${chicken.id}, Position=${chicken.posX},${chicken.posY}`);
-        loadingChickens .delete(chicken.id);
+        loadingChickens.delete(chicken.id);
       },
-        undefined,(error) => {
-            console.error("Fehler beim Laden des Chicken-Modells:", error);
+        undefined, (error) => {
+          console.error("Fehler beim Laden des Chicken-Modells:", error);
         }
 
       );
-    }else{
+    } else {
       console.log("Chicken bereits vorhanden. Aktualisiere Position:", chicken.id);
-        const existingChickenModel = chickens.get(chicken.id)
-        if(existingChickenModel ){
-          moveChicken(existingChickenModel , chicken);
-          console.log(`Position des Chickens aktualisiert: ID=${chicken.id}, Position=${chicken.posX},${chicken.posY}`);
+      const existingChickenModel = chickens.get(chicken.id)
+      if (existingChickenModel) {
+        moveChicken(existingChickenModel, chicken);
+        console.log(`Position des Chickens aktualisiert: ID=${chicken.id}, Position=${chicken.posX},${chicken.posY}`);
 
-        }
+      }
     }
   })
 
 }
 
 function moveChicken(modellChicken: THREE.Object3D, chickenData: IChickenDTD) {
-  const targetPosition = new THREE.Vector3(chickenData.posY + 0.5,.5,chickenData.posX + 0.5);
-  const currentPosition= modellChicken.position;
+  const targetPosition = new THREE.Vector3(chickenData.posY + 0.5, .5, chickenData.posX + 0.5);
+  const currentPosition = modellChicken.position;
 
   console.log("Aktuelle Position:", currentPosition);
   console.log("Zielposition:", targetPosition);
@@ -1129,7 +1130,7 @@ function moveChicken(modellChicken: THREE.Object3D, chickenData: IChickenDTD) {
 
   const direction = targetPosition.clone().sub(currentPosition).normalize();
   const chickenSpeed = 1; // Geschwindigkeit des Chickens (Einheiten/Sekunde)
-  const delta= clock.getDelta();
+  const delta = clock.getDelta();
 
 
   console.log('Richtung:', direction);
@@ -1138,10 +1139,10 @@ function moveChicken(modellChicken: THREE.Object3D, chickenData: IChickenDTD) {
 
   if (currentPosition.distanceTo(targetPosition) < chickenSpeed * delta) {
     const movement = direction.multiplyScalar(chickenSpeed * delta);
-  modellChicken.position.add(movement);
-  console.log('Bewegung:', movement);
-  console.log('Bewegt zu:', modellChicken.position);
-  }else{
+    modellChicken.position.add(movement);
+    console.log('Bewegung:', movement);
+    console.log('Bewegt zu:', modellChicken.position);
+  } else {
     modellChicken.position.set(targetPosition.x, .5, targetPosition.z);
     console.log('Ziel erreicht. Wechsel zu nächstem Punkt:', targetPosition);
   }
@@ -1197,8 +1198,8 @@ async function handleCharacters(data: ICharacterDTD[]) {
 
 function removeItemFromSceneByPosition(posX: number, posY: number) {
   const itemToRemove = rotatingItems.find(
-      (item) =>
-          Math.abs(item.position.x - posX) <= 0.5 && Math.abs(item.position.z - posY) <= 0.5
+    (item) =>
+      Math.abs(item.position.x - posX) <= 0.5 && Math.abs(item.position.z - posY) <= 0.5
   );
 
   if (itemToRemove) {
@@ -1224,7 +1225,7 @@ watch([spawnX, spawnZ], ([newX, newZ]) => {
 
 async function handleChickenPositions(data: IChickenDTD[]) {
   console.log("Processing Chicken Positions:", data);
-  let chickenPositions: IChickenDTD[]= [];
+  let chickenPositions: IChickenDTD[] = [];
   data.forEach(chicken => {
     console.log(`Chicken-Daten: ID=${chicken.id}, X=${chicken.posX}, Y=${chicken.posY}`);
 
@@ -1239,6 +1240,32 @@ async function handleChickenPositions(data: IChickenDTD[]) {
     console.log(`Position X=${chicken.posX}, Y=${chicken.posY}`);
   });
   renderChicken(chickenPositions)
+}
+
+async function leaveGame(lobbyId: string) {
+  try {
+
+    const playerName = sessionStorage.getItem("myName");
+
+    if (!playerName) {
+      console.error("nicht gefunden");
+      return;
+    }
+
+    const leavingPlayer = { name: playerName } as IPlayerDTD;
+
+    if (!leavingPlayer) {
+      console.error("Spieler nicht in der Liste gefunden!");
+      return;
+    }
+
+    const success = await gameStore.leaveGame(lobbyId, leavingPlayer);
+    console.log("Leaving Game succeeded:", success);
+
+
+  } catch (error) {
+    console.log("Fehler beim ausfueren des leaven", error);
+  }
 }
 
 onMounted(async () => {
@@ -1305,9 +1332,9 @@ onMounted(async () => {
           }
         }
         // überprüft, ob es ein gewinner gibt und zeigt die ensprechende ansicht
-          if (winnerRole.value !== null) {
-            setTimeout(() => router.push({ name: 'GameEnd' }), 500);
-          }
+        if (winnerRole.value !== null) {
+          setTimeout(() => router.push({ name: 'GameEnd' }), 500);
+        }
         break;
       }
 
@@ -1332,9 +1359,9 @@ onMounted(async () => {
   })
 
   subscribeTo(`/ingame/chickenPosition/${lobbyId}`, async (message: any) => {
-        console.log("FROM CHICKEN POSITIONS: ", message);
-        await handleChickenPositions(message);
-    });
+    console.log("FROM CHICKEN POSITIONS: ", message);
+    await handleChickenPositions(message);
+  });
 
   if (threeContainer.value) {
     threeContainer.value.appendChild(renderer.domElement)
@@ -1378,7 +1405,7 @@ onMounted(async () => {
     console.error("Keine Skybox-Daten im aktuellen Theme gefunden");
   }
 
-  if(spawnPoints != null){
+  if (spawnPoints != null) {
     spawnPoints.forEach(spawnPoint => {
       if (sessionStorage.getItem('myName') == spawnPoint.playerName) {
         spawnX.value = Number(spawnPoint.posX);
@@ -1386,35 +1413,35 @@ onMounted(async () => {
       }
     })
   }
-animate()
+  animate()
 })
 
 watch(
-    () => themeStore.selectedTheme,
-    (newTheme) => {
-      if (newTheme) {
-        console.log(`Theme geändert zu: ${newTheme}`);
-        const currentTheme = themeStore.currentTheme;
-        //console.log(`Ändere Skybox zu: ${themeStore.currentTheme.sky}`);
-        //addSkybox(scene, themeStore.currentTheme.sky); // Dynamisch Skybox ändern
-        //console.log("Skybox-Pfad:", themeStore.currentTheme.sky);
+  () => themeStore.selectedTheme,
+  (newTheme) => {
+    if (newTheme) {
+      console.log(`Theme geändert zu: ${newTheme}`);
+      const currentTheme = themeStore.currentTheme;
+      //console.log(`Ändere Skybox zu: ${themeStore.currentTheme.sky}`);
+      //addSkybox(scene, themeStore.currentTheme.sky); // Dynamisch Skybox ändern
+      //console.log("Skybox-Pfad:", themeStore.currentTheme.sky);
 
-        // Map neu laden, falls vorhanden
-        if (map.value && currentTheme) {
-          loadMap(map.value, {
-            ground: currentTheme.ground,
-            wall: currentTheme.wall,
-          });
-        } else {
-          console.error('Keine Map oder kein aktuelles Theme gefunden');
-        }
-        if (themeStore.currentTheme.skybox) {
-          addSkybox(scene, themeStore.currentTheme.skybox);
-        } else {
-          console.error("Keine Skybox-Daten im aktuellen Theme gefunden");
-        }
+      // Map neu laden, falls vorhanden
+      if (map.value && currentTheme) {
+        loadMap(map.value, {
+          ground: currentTheme.ground,
+          wall: currentTheme.wall,
+        });
+      } else {
+        console.error('Keine Map oder kein aktuelles Theme gefunden');
+      }
+      if (themeStore.currentTheme.skybox) {
+        addSkybox(scene, themeStore.currentTheme.skybox);
+      } else {
+        console.error("Keine Skybox-Daten im aktuellen Theme gefunden");
       }
     }
+  }
 );
 
 </script>
@@ -1433,8 +1460,8 @@ watch(
       <div v-if="currentPlayer?.playerrole === Playerrole.SNACKMAN" class="flex gap-2">
         <div v-for="index in snackmanMaxLife" :key="index">
           <img v-if="index <= snackmanLife" src="../assets/game/realistic/herz.png" alt="Full Heart" width="40"
-               height="40"/>
-          <img v-else src="../assets/game/realistic/emptyHerz.png" alt="Empty Heart" width="40" height="40"/>
+            height="40" />
+          <img v-else src="../assets/game/realistic/emptyHerz.png" alt="Empty Heart" width="40" height="40" />
         </div>
       </div>
       <!-- Punkteanzeige -->
@@ -1453,7 +1480,7 @@ watch(
 
   <!-- Sprung-Ladebalken -->
   <div id="jumpBarContainer"
-       class="fixed z-50 bottom-10 left-1/2 transform -translate-x-1/2 flex justify-center items-center w-full max-w-[600px] hidden">
+    class="fixed z-50 bottom-10 left-1/2 transform -translate-x-1/2 flex justify-center items-center w-full max-w-[600px] hidden">
     <!-- Ladebalken -->
     <div class="w-full bg-gray-700 rounded-full h-6 overflow-hidden">
       <div id="jumpBar" class="bg-red-500 h-full transition-all duration-100 ease-in-out" style="width: 0%;">
@@ -1471,35 +1498,18 @@ watch(
       Effekte <input type="range" class="form-control-range" id="formControlRange" v-model="effectVolume">
       {{ effectVolume }}%
       <br>
-      <h2 class="text-2xl font-bold mb-4">Adjust Settings {{ showSettings }}</h2>
-      <button @click="lockPointer" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-        Close
-      </button>
+      <div class="flex space-x-4">
+        <button @click="lockPointer" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+          Close
+        </button>
+        <button @click="leaveGame(lobbyId)" class="mt-4 px-4 py-2 so bg-blue-500 text-white rounded hover:bg-blue-600">
+          Return to Lobby
+        </button>
+      </div>
     </div>
   </div>
 
 
-  <Modal>
-    <template #titel>
-      <h3 class="header-modal-adventure">Lautstärke</h3>
-    </template>
-    <template #content>
-      <div flex flex-col gap-3>
-        Musik <input type="range" class="form-control-range" id="formControlRange" v-model="musicVolume">
-        {{ musicVolume }}%
-        <br>
-        Effekte <input type="range" class="form-control-range" id="formControlRange" v-model="effectVolume">
-        {{ effectVolume }}%
-        <br>
-        <h2 class="text-2xl font-bold mb-4">Adjust Settings {{ showSettings }}</h2>
-        <button @click="lockPointer" class="button-small-adventure">
-          Close
-        </button>
-      </div>
-    </template>
-  </Modal>
-
 </template>
 
 <style scoped></style>
-
