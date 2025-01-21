@@ -401,27 +401,12 @@ watch(effectVolume, (newVolume) => {
 const threeContainer = ref<null | HTMLElement>(null)
 
 
-//Ball
-const sphereGeometry = new THREE.SphereGeometry(0.5, 30, 30)
-const sphereMaterial = new THREE.MeshStandardMaterial({
-  color: 0xffff00,
-  metalness: 0,
-  roughness: 0,
-})
-const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial)
-sphere.position.y = 2
-sphere.position.x = 3
-sphere.position.z = -4
-
-scene.add(sphere)
-
 //lightning
 const ambientLight = new THREE.AmbientLight(0x404040, 10)
 scene.add(ambientLight)
 
 const pointLight = new THREE.PointLight(0xffffff, 500, 10000)
 pointLight.position.set(25, 20, 5) //extra Lightning for the ball
-pointLight.lookAt(sphere.position)
 pointLight.castShadow = true;
 pointLight.shadow.mapSize.width = 2048;
 pointLight.shadow.mapSize.height = 2048;
@@ -1045,10 +1030,7 @@ function loadMap(map: string[], selectedTheme: { ground: string; wall: string })
             ],
             '4': [
               new URL("@/assets/game/items/4/hearts.glb", import.meta.url)
-            ],
-            'kinderSupriseEgg':[
-              new URL("@assets/game/items/kinder_surprise_egg/kinder_surprise_egg.glb", import.meta.url)
-            ],
+            ]
 
           };
 
@@ -1068,7 +1050,7 @@ function loadMap(map: string[], selectedTheme: { ground: string; wall: string })
             } else if (randomModelPath.includes('cottoncandy')) {
               item.position.set(x, 0.75, z);
               item.scale.set(0.2, 0.2, 0.2);
-            } else if (randomModelPath.includes('candy_cane')) {
+            } else if (randomModelPath.includes('candycane')) {
               item.position.set(x, 0.8, z);
               item.scale.set(0.07, 0.07, 0.07);
             } else if (randomModelPath.includes('chips')) {
@@ -1090,6 +1072,10 @@ function loadMap(map: string[], selectedTheme: { ground: string; wall: string })
             } else if (randomModelPath.includes('supriseEgg')) {
               item.scale.set(0.03, 0.03, 0.03)
               item.position.set(x, 0.6, z);
+            }
+            else{
+              item.position.set(x, 0.75, z);
+              item.scale.set(0.1, 0.1, 0.1);
             }
             scene.add(item);
 
