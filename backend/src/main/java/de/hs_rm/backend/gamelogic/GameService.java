@@ -114,8 +114,8 @@ public class GameService {
         game.leaveGame(player);
 
         if(game.getPlayers().isEmpty()){
+            game.end();
             gameList.remove(gameId);
-            game = null;
             return new ArrayList<>();
         }
         return game.getPlayers();
@@ -141,7 +141,7 @@ public class GameService {
 
     }
 
-    public Game joinGame(String gameId, Player player){
+    public List<Player> joinGame(String gameId, Player player){
         Game game = gameList.get(gameId);
 
         if(game == null){
@@ -163,7 +163,7 @@ public class GameService {
             throw new GameJoinException("Name already in Lobby!");
         }
 
-        return game;
+        return game.getPlayers();
     }
 
     public Game setRole(String gameId, String nameOfPlayerToSetRole, String role) {
