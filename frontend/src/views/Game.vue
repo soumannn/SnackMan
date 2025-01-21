@@ -916,7 +916,7 @@ function surpriseChicken(posX: number, posY: number) {
       model.position.set(posX, 1, posY + 0.5);
       model.scale.set(1, 1, 1)
       scene.add(model);
-      rotatingItems.push(model);
+      //rotatingItems.push(model);
       model.traverse((child) => {
         if (child instanceof THREE.Mesh) {
           child.castShadow = true;
