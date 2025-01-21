@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /*Basic Configuration for Scene(=Container), Camera and Rendering for Playground*/
 import * as THREE from 'three'
-import {PointLight, PointLightHelper, WebGLRenderer} from 'three'
+import {WebGLRenderer} from 'three'
 import {computed, onMounted, onUnmounted, ref, watch} from 'vue'
 import {PointerLockControls} from 'three/addons/controls/PointerLockControls.js'
 import {useGameStore} from '@/stores/game/gamestore'
@@ -11,8 +11,6 @@ import {useRoute} from 'vue-router'
 import type {IPlayerPositionDTD} from '@/stores/game/dtd/IPlayerPositionDTD'
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js'
 import type {ICharacterDTD} from '@/stores/game/dtd/ICharacterDTD'
-import type {IChickenPositionDTD} from '@/stores/game/dtd/IChickenPositionDTD'
-import Modal from '@/components/Modal.vue'
 import {Playerrole} from '@/stores/game/dtd/EPlayerrole';
 import router from '@/router';
 import {useThemeStore} from '@/stores/themes/themeStore';
@@ -24,7 +22,6 @@ import {
 
 const themeStore = useThemeStore();
 import type {IChickenDTD} from '@/stores/game/dtd/IChickenDTD'
-import type {Message} from 'postcss'
 
 const restUrl: string = '/api/game';
 const gameStore = useGameStore()
@@ -32,10 +29,8 @@ const route = useRoute()
 const lobbyId = route.params.id.toString()
 const loadingChickens = new Set<string>(); // Tracke laufende Ladevorgänge
 const chickens = new Map<string, THREE.Object3D>(); // ChickenID als Key und Model-ID als Value
-const cameraOffset = new THREE.Vector3(0, 5, -10); // Offset der Kamera relativ zum Chicken
 let nextPosition: THREE.Vector3
 let lastSend: number = 0
-//let lastMoveValid = false;
 const players = new Map<string, number>(); // Spieler mit Namen als Key auf Character Model
 const loadingPlayers = new Map<string, boolean>(); // Spielername -> Ladevorgang
 const rotatingItems: THREE.Object3D[] = []; // Items, die sich drehen
@@ -53,18 +48,12 @@ const fastMovementSpeed = 4
 let movementSpeed = slowMovementSpeed
 
 const showSettings = ref(false)
-const musicVolume = ref(50)
 const effectVolume = ref(50)
 const spawnX = ref(1);
 const spawnZ = ref(2);
 
 //für Ingame Spielernamen
 const playerNames = new Map<string, THREE.Sprite>();
-
-//für HuD
-//const life = ref(2) //startlife
-//const maxLife = ref(3)
-//const collectedItems = ref<string[]>([]) //Gesammelte Items
 
 // für springen
 let jumpChargeTime = 0  // Zeit, die die Leertaste gedrückt wurde
@@ -82,6 +71,26 @@ let controllerIndex: number | null = null;
 
 // Deadzone für die Achsen, um kleine Bewegungen zu ignorieren
 const deadzone = 0.2;
+
+//tutorial
+const showHelpHint = ref(true);
+const showTutorial = ref(false);
+const showWASDOverlay = ref(true);
+const showControllerOverlay = ref(false);
+
+const showController = () => {
+  showControllerOverlay.value =! showControllerOverlay.value;
+  setTimeout(() => {
+    showControllerOverlay.value = false;
+  }, 20000);
+};
+
+const closeTutorial = () => {
+  showTutorial.value =false
+};
+const closeControllerOverlay = () => {
+  showControllerOverlay.value = false;
+};
 
 // Event-Listener für Controller-Verbindung
 window.addEventListener("gamepadconnected", (event) => {
@@ -167,7 +176,7 @@ watch(
   () => currentCharacter.value?.currentPoints,
   (newPoints, oldPoints) => {
     if (newPoints !== oldPoints) {
-      console.log(`Points changed from ${oldPoints} to ${newPoints}`);
+      // console.log(`Points changed from ${oldPoints} to ${newPoints}`);
       // Zusätzliche Logik, z. B. Punkte-Animationen
     }
   }
@@ -255,6 +264,12 @@ function handleKeyDownEvent(e : KeyboardEvent){
     case 'Space':
       isChargingJump = false;
       break
+    case 'KeyH':
+      showTutorial.value =! showTutorial.value;
+      break;
+    case 'KeyC':
+      showController();
+      break;
   }
 }
 
@@ -324,8 +339,8 @@ function updateGamepadInput() {
   // Springen (X-Taste)
   isChargingJump = gamepad.buttons[0].pressed; // Button 0 = Kreuz (X auf PS5)
 
-  console.log(`Bewegen: Vor:${movingForward}, Zurück:${movingBackward}, Links:${movingLeft}, Rechts:${movingRight}`);
-  console.log(`Springen: ${isChargingJump}`);
+  // console.log(`Bewegen: Vor:${movingForward}, Zurück:${movingBackward}, Links:${movingLeft}, Rechts:${movingRight}`);
+  // console.log(`Springen: ${isChargingJump}`);
 }
 
 //Diese Funktion lädt die Hintergrundmusik
@@ -450,12 +465,12 @@ async function validateJump(checkChargeJump: boolean): Promise<boolean> {
 
     // Parse the JSON response
     const isValid: boolean = await response.json();
-    console.log('Jump backend validation:', isValid);
+    // console.log('Jump backend validation:', isValid);
 
     // Return the parsed value
     return isValid;
   } catch (error) {
-    console.error('Error while validating jump:', error);
+    // console.error('Error while validating jump:', error);
     return false; // Return false in case of an error
   }
 }
@@ -498,7 +513,7 @@ async function validateSprint(): Promise<boolean> {
 
     // Parse the JSON response
     const isValid: boolean = await response.json();
-    console.log('Sprint backend validation:', isValid);
+    // console.log('Sprint backend validation:', isValid);
 
     // Return the parsed value
     return isValid;
@@ -718,7 +733,7 @@ function validatePosition(nextPosition: THREE.Vector3) {
 
 
   if (checkCollision(nextPosition)) {
-    console.log("Movement blocked due to collision.");
+    // console.log("Movement blocked due to collision.");
     return;
   }
 
@@ -923,10 +938,10 @@ function surpriseChicken(posX: number, posY: number) {
           child.castShadow = true;
         }
       })
-      console.log("Surprise egg added at (${posX}, ${posY})");
+      // console.log("Surprise egg added at (${posX}, ${posY})");
     }
   );
-  console.log("Surprise egg added at", posX, " ", posY);
+  // console.log("Surprise egg added at", posX, " ", posY);
 }
 
 function loadMap(map: string[], selectedTheme: { ground: string; wall: string }) {
@@ -1173,21 +1188,21 @@ function loadMapFromLocalStorage(): string[] | null {
 }
 
 function renderChicken(chickenData: IChickenDTD[]) {
-  console.log("INSIDE RENDER: ", chickenData);
+  // console.log("INSIDE RENDER: ", chickenData);
   const loader = new GLTFLoader();//@/assets/game/realistic/snackman/snackman.glb
   //Überprüfung ob es eine chicken id gibt wenn nicht wird ein erstellt und wenn ja wir die position aktualsiert
   chickenData.forEach((chicken) => {
-    console.log(`Chicken-Daten: ID=${chicken.id}, X=${chicken.posX}, Y=${chicken.posY}`);
+    // console.log(`Chicken-Daten: ID=${chicken.id}, X=${chicken.posX}, Y=${chicken.posY}`);
     if (!chicken.id) {
-      console.warn("Chicken hat keine ID:", chicken.id);
+      // console.warn("Chicken hat keine ID:", chicken.id);
       return; // Weiterverarbeitung abbrechen
     }
     if (!chickens.has(chicken.id) && !loadingChickens.has(chicken.id)) {
       loadingChickens.add(chicken.id);
-      console.log(`Neues Chicken wird erstellt für die ID: ${chicken.id}`);
+      // console.log(`Neues Chicken wird erstellt für die ID: ${chicken.id}`);
       const chickenModelURL = new URL('@/assets/chicken/newerchicken.glb', import.meta.url).href;
-      console.log("Chcieken url", chickenModelURL);
-      console.log("Neues Chicken wird erstellt:", chicken.id);
+      // console.log("Chicken url", chickenModelURL);
+      // console.log("Neues Chicken wird erstellt:", chicken.id);
       loader.load(chickenModelURL, (gltf: { scene: THREE.Group }) => {
           const model = gltf.scene;
           model.traverse((child) => {
@@ -1200,7 +1215,7 @@ function renderChicken(chickenData: IChickenDTD[]) {
           chickens.set(chicken.id, model);
           scene.add(model);
           model.position.set(chicken.posX, 1, chicken.posY);
-          console.log(`Neues Chicken hinzugefügt: ID=${chicken.id}, Position=${chicken.posX},${chicken.posY}`);
+          // console.log(`Neues Chicken hinzugefügt: ID=${chicken.id}, Position=${chicken.posX},${chicken.posY}`);
           loadingChickens.delete(chicken.id);
         },
         undefined, (error) => {
@@ -1208,7 +1223,7 @@ function renderChicken(chickenData: IChickenDTD[]) {
         }
       );
     } else {
-      console.log("Chicken bereits vorhanden. Aktualisiere Position:", chicken.id);
+      // console.log("Chicken bereits vorhanden. Aktualisiere Position:", chicken.id);
       const existingChickenModel = chickens.get(chicken.id)
       if (existingChickenModel) {
         if(chicken.currentCalorie !== undefined && chicken.currentCalorie >= 0 && chicken.currentCalorie < 100) {
@@ -1228,7 +1243,7 @@ function renderChicken(chickenData: IChickenDTD[]) {
         }
 
         moveChicken(existingChickenModel, chicken);
-        console.log(`Position des Chickens aktualisiert: ID=${chicken.id}, Position=${chicken.posX},${chicken.posY}`);
+        // console.log(`Position des Chickens aktualisiert: ID=${chicken.id}, Position=${chicken.posX},${chicken.posY}`);
 
       }
     }
@@ -1241,8 +1256,8 @@ function moveChicken(modellChicken: THREE.Object3D, chickenData: IChickenDTD) {
   const currentPosition = modellChicken.position;
   modellChicken.rotation.y = (chickenData.angle / 360) * (Math.PI * 2);
 
-  console.log("Aktuelle Position:", currentPosition);
-  console.log("Zielposition:", targetPosition);
+  // console.log("Aktuelle Position:", currentPosition);
+  // console.log("Zielposition:", targetPosition);
   // Bewegung in Richtung Zielpunkt
 
   const direction = targetPosition.clone().sub(currentPosition).normalize();
@@ -1250,41 +1265,20 @@ function moveChicken(modellChicken: THREE.Object3D, chickenData: IChickenDTD) {
   const delta = clock.getDelta();
 
 
-  console.log('Richtung:', direction);
-
-  console.log("Neue Position des Chicken-Modells:", modellChicken.position);
+  // console.log('Richtung:', direction);
+  // console.log("Neue Position des Chicken-Modells:", modellChicken.position);
 
   if (currentPosition.distanceTo(targetPosition) < chickenSpeed * delta) {
     const movement = direction.multiplyScalar(chickenSpeed * delta);
     modellChicken.position.add(movement);
-    console.log('Bewegung:', movement);
-    console.log('Bewegt zu:', modellChicken.position);
+    // console.log('Bewegung:', movement);
+    // console.log('Bewegt zu:', modellChicken.position);
   } else {
     modellChicken.position.set(targetPosition.x, .5, targetPosition.z);
-    console.log('Ziel erreicht. Wechsel zu nächstem Punkt:', targetPosition);
+    // console.log('Ziel erreicht. Wechsel zu nächstem Punkt:', targetPosition);
   }
 
-
-  /*const targetRotation = THREE.MathUtils.degToRad(chickenData[nextIndex].angle);
-  const currentRotation = THREE.MathUtils.degToRad(chickenData[currentIndex].angle);
-
-  let lerpFactor = 0; // Standardmäßig keine Interpolation
-  if (currentDistance > totalDistance * 0.75) {
-    // Erste 1/4 der Strecke: Bleibt bei der aktuellen Rotation
-    lerpFactor = 0;
-  } else if (currentDistance < totalDistance * 0.25) {
-    // Letzte 1/4 der Strecke: Zielrotation erreicht
-    lerpFactor = 1;
-  } else {
-    // Zwischen 1/4 und 3/4 der Strecke: Interpolation
-    const progress = (totalDistance - currentDistance) / totalDistance; // Fortschritt zwischen 0 und 1
-    lerpFactor = (progress - 0.25) / 0.5; // Normierung auf den Bereich 0.25 bis 0.75
-  }
-
-  // Interpoliere die Rotation basierend auf lerpFactor
-  modellChicken.rotation.y = THREE.MathUtils.lerp(currentRotation, targetRotation, lerpFactor);*/
-
-  console.log("Aktuelle Rotation (in Grad):", THREE.MathUtils.radToDeg(modellChicken.rotation.y));
+  // console.log("Aktuelle Rotation (in Grad):", THREE.MathUtils.radToDeg(modellChicken.rotation.y));
 }
 
 function updateChickenRotation( angleInDegree: number, chickenModel: THREE.Object3D){
@@ -1293,7 +1287,7 @@ function updateChickenRotation( angleInDegree: number, chickenModel: THREE.Objec
   const rotationOffset = - Math.PI / 2;
   chickenModel.rotation.y = angleInRadians + rotationOffset;
 
-  console.log(`Chicken dreht sich auf Y-Achse: ${angleInDegree}° (${angleInRadians} rad)`);
+  // console.log(`Chicken dreht sich auf Y-Achse: ${angleInDegree}° (${angleInRadians} rad)`);
 }
 
 function followChicken(camera: THREE.Camera, chicken: THREE.Group, offset: THREE.Vector3) {
@@ -1302,7 +1296,7 @@ function followChicken(camera: THREE.Camera, chicken: THREE.Group, offset: THREE
     const targetPosition = chicken.position.clone().add(offset);
     camera.position.lerp(targetPosition, 0.1); // Sanfte Bewegung der Kamera
     camera.lookAt(chicken.position); // Kamera auf das Chicken ausrichten
-    console.log("Kamera folgt Chicken:", chicken.position);
+    // console.log("Kamera folgt Chicken:", chicken.position);
   }
 }
 
@@ -1329,11 +1323,11 @@ function removeItemFromSceneByPosition(posX: number, posY: number, itemName?: st
   );
 
   if (itemToRemove) {
-    console.log("Item to remove: ", itemName);
+    // console.log("Item to remove: ", itemName);
     if (itemName == "Speed Boost") {
       // increase speed boost for ghosts only for 10 seconds
       if (currentPlayer.value?.playerrole == Playerrole.GHOST) {
-        console.log("Speed Boost collected by Ghost, increasing speed");
+        // console.log("Speed Boost collected by Ghost, increasing speed");
         movementSpeed = fastMovementSpeed
 
         if (sprintIntervalId) {
@@ -1356,7 +1350,7 @@ function removeItemFromSceneByPosition(posX: number, posY: number, itemName?: st
       rotatingItems.splice(index, 1);
     }
   } else {
-    console.warn(`Kein Item an Position {} {}`, posX, posY)
+    // console.warn(`Kein Item an Position {} {}`, posX, posY)
   }
 }
 
@@ -1368,10 +1362,10 @@ watch([spawnX, spawnZ], ([newX, newZ]) => {
 
 
 async function handleChickenPositions(data: IChickenDTD[]) {
-  console.log("Processing Chicken Positions:", data);
+  // console.log("Processing Chicken Positions:", data);
   let chickenPositions: IChickenDTD[] = [];
   data.forEach(chicken => {
-    console.log(`Chicken-Daten: ID=${chicken.id}, X=${chicken.posX}, Y=${chicken.posY}`);
+    // console.log(`Chicken-Daten: ID=${chicken.id}, X=${chicken.posX}, Y=${chicken.posY}`);
 
     chickenPositions.push({
       id: chicken.id,
@@ -1382,13 +1376,13 @@ async function handleChickenPositions(data: IChickenDTD[]) {
       currentCalorie: chicken.currentCalorie
     });
     removeItemFromSceneByPosition(chicken.posY, chicken.posX);
-    console.log(`Position X=${chicken.posX}, Y=${chicken.posY}`);
+    // console.log(`Position X=${chicken.posX}, Y=${chicken.posY}`);
   });
   renderChicken(chickenPositions)
 }
 
 onUnmounted(async () => {
-  console.log("UNMOUNTED UNMOUNTED")
+  // console.log("UNMOUNTED UNMOUNTED")
   window.removeEventListener('keyup', handleKeyUpEvent);
   window.removeEventListener('keydown',handleKeyDownEvent);
   window.removeEventListener('resize', handleResize);
@@ -1401,11 +1395,20 @@ onUnmounted(async () => {
 
 
 onMounted(async () => {
+
+  //Tastenhinweis nur 8sek
+  setTimeout(()=> {
+    showWASDOverlay.value =false;
+  }, 4000);
+  setTimeout(() => {
+    showHelpHint.value =false;
+  }, 10000);
+
   try {
     await gameStore.fetchGameStatus(lobbyId)
     const playerName = sessionStorage.getItem('myName');
     if (playerName) {
-      console.log(playerName)
+      // console.log(playerName)
       await gameStore.getJumpAllowed(playerName, lobbyId);
     }
 
@@ -1413,7 +1416,7 @@ onMounted(async () => {
     console.error('Error fetching game status:', error)
   }
   const spawnPoints = gameStore.gameState.gamedata.spawnPoints;
-  console.log("SPAWNS: ", spawnPoints)
+  // console.log("SPAWNS: ", spawnPoints)
 
 
   //const chickenList = gameStore.gameState.gamedata.chickens
@@ -1483,8 +1486,8 @@ onMounted(async () => {
   subscribeTo(`/ingame/${lobbyId}/itemUpdates`, async (message: any) => {
     switch (message.type) {
       case "itemCollected":
-        console.log(`collected at{} {}`, message.posX, message.positionY)
-        console.log('MESSAGE: ' + message.toString())
+        // console.log(`collected at{} {}`, message.posX, message.positionY)
+        // console.log('MESSAGE: ' + message.toString())
         removeItemFromSceneByPosition(message.positionX, message.positionY, message.itemName);
         break;
 
@@ -1498,12 +1501,12 @@ subscribeTo(`/ingame/${lobbyId}/chicken/eggUpdate`, async (message: any) => {
   const posY = message.positionY;
   setTimeout(() => {
     surpriseChicken(posX, posY);
-    console.log("Egg Update: ", message);
+    // console.log("Egg Update: ", message);
   }, 2000);
 })
 
   subscribeTo(`/ingame/chickenPosition/${lobbyId}`, async (message: any) => {
-    console.log("FROM CHICKEN POSITIONS: ", message);
+    // console.log("FROM CHICKEN POSITIONS: ", message);
     await handleChickenPositions(message);
   });
 
@@ -1544,7 +1547,7 @@ subscribeTo(`/ingame/${lobbyId}/chicken/eggUpdate`, async (message: any) => {
   }
   if (themeStore.currentTheme.skybox) {
     addSkybox(scene, themeStore.currentTheme.skybox);
-    console.log("Skybox-Pfade:", themeStore.currentTheme.skybox);
+    // console.log("Skybox-Pfade:", themeStore.currentTheme.skybox);
   } else {
     console.error("Keine Skybox-Daten im aktuellen Theme gefunden");
   }
@@ -1601,6 +1604,107 @@ subscribeTo(`/ingame/${lobbyId}/chicken/eggUpdate`, async (message: any) => {
     <div class="w-full bg-gray-700 rounded-full h-6 overflow-hidden">
       <div id="jumpBar" class="bg-red-500 h-full transition-all duration-100 ease-in-out" style="width: 0%;">
       </div>
+    </div>
+  </div>
+
+  <!-- Overlay für WASD-Steuerung -->
+  <div v-if="showWASDOverlay" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-10 z-50 pointer-events-none">
+    <div class="flex flex-col items-center bg-white p-4 rounded-lg shadow-lg w-56 opacity-70">
+
+      <div class="mb-4 text-center">
+        <span class="text-sm font-bold">W</span>
+        <div class="text-xs text-gray-600">Vorwärts</div>
+      </div>
+      <div class="flex justify-between w-full">
+        <div class="text-center">
+          <span class="text-sm font-bold">A</span>
+          <div class="text-xs text-gray-600">Links</div>
+        </div>
+        <div class="text-center">
+          <span class="text-sm font-bold">D</span>
+          <div class="text-xs text-gray-600">Rechts</div>
+        </div>
+      </div>
+      <div class="mt-4 text-center">
+        <span class="text-sm font-bold">S</span>
+        <div class="text-xs text-gray-600">Rückwärts</div>
+      </div>
+    </div>
+  </div>
+
+  <!--Tutorial-->
+  <div v-if="showTutorial" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+      <h3 class="text-2xl font-bold mb-4">Spielehinweise</h3>
+      <ul class="text-left mb-6">
+        <li class="mb-2">
+          Snackman sammelt Items, um Kalorien zu erhalten, die für das Springen benötigt werden!
+        </li>
+        <li class="mb-2">
+          Leichter Sprung: <strong>10 Kalorien</strong>
+        </li>
+        <li class="mb-2">
+          Schwerer Sprung: <strong>100 Kalorien</strong>
+        </li>
+        <li class="mb-2">
+          Rennen verbraucht <strong>10 Kalorien/sekunde</strong>
+        </li>
+        <li class="mb-2">
+          Drücke <strong>Leertaste</strong> zum Springen, halte sie gedrückt, um die Sprungkraft einzustellen
+        </li>
+        <li class="mb-2">
+          Drücke <strong>Shift</strong> um als Snackman schneller zu laufen
+        </li>
+        <li class="mb-2">
+          Geister fügen Schaden zu, wenn sie mit Snackman kollidieren
+        </li>
+        <li class="mb-2">
+          Sammle als Snackman Herzen, um Leben zu regenerieren
+        </li>
+        <li class="mb-2">
+          Schilder machen Snackman für <strong>5 Sekunden unverwundbar</strong>
+        </li>
+        <li class="mb-2">
+          Kurze Sprünge erlauben es, über Wände zu sehen, lange Sprünge bieten Weitsicht
+        </li>
+      </ul>
+      <button @click="closeTutorial" class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-700">
+        Schließen
+      </button>
+    </div>
+  </div>
+
+  <!-- Controller Overlay -->
+  <div v-if="showControllerOverlay" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+      <h3 class="text-2xl font-bold mb-4">Controller Steuerung</h3>
+      <div class="flex flex-col items-center">
+        <img src="/src/assets/joystick.png" alt="Controller Steuerung" class="w-32 mb-4" />
+        <ul class="text-left">
+          <li class="mb-2">
+            <strong>Linker Joystick:</strong> Bewegung
+          </li>
+          <li class="mb-2">
+            <strong>Rechter Joystick:</strong> Kamera-Winkel
+          </li>
+          <li class="mb-2">
+            <strong>X:</strong> Springen
+          </li>
+        </ul>
+        <!-- Schließen Button -->
+        <button @click="closeControllerOverlay" class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-700 mt-4">
+          Schließen
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- oben Bildschirm hilfe Hinweise für Tutorial -->
+  <div v-if="showHelpHint" class="absolute top-4 left-1/2 transform -translate-x-1/2 flex gap-4 p-2 z-50">
+    <div class="border-2 border-black text-center text-white bg-opacity-50 bg-black rounded-lg">
+      Press <strong>C</strong> for Controller Help
+    </div>
+    <div class="border-2 border-black text-center text-white bg-opacity-50 bg-black rounded-lg">
+      Press <strong>H</strong> for Help
     </div>
   </div>
 
