@@ -8,4 +8,5 @@ export interface IChickenDTD {
   angle: number;
   eggList: IItemDTD[];
   currentCalorie?: number | undefined;
+  tooFat: boolean;
 }

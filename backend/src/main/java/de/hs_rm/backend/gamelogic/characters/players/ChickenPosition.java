@@ -11,13 +11,16 @@ public class ChickenPosition {
     private List<Egg> eggList;
     private int currentCalorie;
 
-    public ChickenPosition(String id, int posX, int posY, int angle, List<Egg> eggList, int currentCalorie){
+    private boolean tooFat = false;
+
+    public ChickenPosition(String id, int posX, int posY, int angle, List<Egg> eggList, int currentCalorie, boolean isTooFat){
         this.id = id;
         this.posX = posX;
         this.posY = posY;
         this.angle = angle;
         this.eggList = eggList;
         this.currentCalorie = currentCalorie;
+        this.tooFat = isTooFat;
     }
 
     public int getPosX() {
@@ -66,6 +69,14 @@ public class ChickenPosition {
 
     public void setCurrentCalorie(int currentCalorie) {
         this.currentCalorie = currentCalorie;
+    }
+
+    public boolean isTooFat() {
+        return tooFat;
+    }
+
+    public void setTooFat(boolean tooFat) {
+        this.tooFat = tooFat;
     }
 
     @Override

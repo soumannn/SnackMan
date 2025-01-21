@@ -133,15 +133,18 @@ public class Tile {
     }
 
     public boolean addChicken(Chicken chicken) {
+        if (chicken.isTooFat()) {
+            chicken.setTooFat(false);
+        }
         List<Item> itemsToRemove = new ArrayList<>();
         this.chickenList.add(chicken);
         if (!itemList.isEmpty()) {
             for (Item item : itemList) {
                 if(item instanceof FoodItems && !(item instanceof Egg)){
+                    this.recentlyCollectedItemName = item.getName();
                     FoodItems foodItem = (FoodItems) item; //cast zu FoodItem
                     Egg egg = chicken.eatSnack(foodItem, chicken.getPosX(), chicken.getPosY());
                     itemsToRemove.add(foodItem);
-                    this.recentlyCollectedItemName = item.getName();
 
                     if(egg != null) {
                         this.eggRecentlyLayed = true;

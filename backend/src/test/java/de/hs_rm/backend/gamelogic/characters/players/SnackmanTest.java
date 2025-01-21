@@ -61,25 +61,25 @@ public class SnackmanTest {
     public void testCaughtWithInvincibilityFrames() throws InterruptedException {
        // Erster:
     snackman.caught();
-    System.out.println("After first hit: Life = " + snackman.getLife() + ", Invincible = " + snackman.isInvincible());
+    System.out.println("After first hit: Life = " + snackman.getLife() + ", Invincible = " + snackman.isRecentlyCaught());
     assertEquals(2, snackman.getLife(), "Life should be 2 after the first hit.");
-    assertTrue(snackman.isInvincible(), "nackman should be invincible after the first hit.");
+    assertTrue(snackman.isRecentlyCaught(), "nackman should be invincible after the first hit.");
 
     // Zweiter: während der Invincibility
     snackman.caught();
-    System.out.println("During invincibility: Life = " + snackman.getLife() + ", Invincible = " + snackman.isInvincible());
+    System.out.println("During invincibility: Life = " + snackman.getLife() + ", Invincible = " + snackman.isRecentlyCaught());
     assertEquals(2, snackman.getLife(), "Life should remain the same during invincibility.");
 
     // Warten, bis die Invincibility Frames ablaufen
-    Thread.sleep(snackman.invincibilityDuration.toMillis() + 100);
+    Thread.sleep(7000);
 
     // Prüfen, dass Invincibility vorbei ist
-    assertFalse(snackman.isInvincible(), "Snackman should no longer be invincible.");
+    assertFalse(snackman.isRecentlyCaught(), "Snackman should no longer be invincible.");
 
     // Dritter: nach Ablauf der Invincibility
     snackman.caught();
-    System.out.println("After third hit: Life = " + snackman.getLife() + ", Invincible = " + snackman.isInvincible());
+    System.out.println("After third hit: Life = " + snackman.getLife() + ", Invincible = " + snackman.isRecentlyCaught());
     assertEquals(1, snackman.getLife(), "Life should be 1 after the third hit.");
-    assertTrue(snackman.isInvincible(), "Snackman should be invincible again after the third hit.");
+    assertTrue(snackman.isRecentlyCaught(), "Snackman should be invincible again after the third hit.");
     }
 }
