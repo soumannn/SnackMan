@@ -13,16 +13,16 @@ defineProps<{
 </script>
 
 <template>
-    <td class="px-6 py-3 text-gray-600">
+    <td class="px-6 py-5 text-gray-100">
         <span class="font-medium px-6 py-3"></span> {{ game.id }}
     </td>
-    <td class="px-6 py-3 text-gray-600">
+    <td class="px-6 py-5 text-gray-100">
         <span class="font-medium px-6 py-3"></span> {{ game.gamemaster?.name || 'Unknown' }}
     </td>
     <td class="px-6 py-3">
         <button
             @click="$emit('open-modal',ModalType.JOIN_GAME, game.id)"
-            class="rounded-lg bg-gray-300 opacity-50 hover:bg-gray-400 p-3 px-6 py-3 card"
+            class="rounded-lg text-black bg-gray-100 opacity-50 hover:bg-gray-400 p-3 px-6 py-3 card"
         >
         Join
         </button>
