@@ -1030,10 +1030,7 @@ function loadMap(map: string[], selectedTheme: { ground: string; wall: string })
             ],
             '4': [
               new URL("@/assets/game/items/4/hearts.glb", import.meta.url)
-            ],
-            'kinderSupriseEgg':[
-              new URL("@assets/game/items/kinder_surprise_egg/kinder_surprise_egg.glb", import.meta.url)
-            ],
+            ]
 
           };
 
@@ -1053,7 +1050,7 @@ function loadMap(map: string[], selectedTheme: { ground: string; wall: string })
             } else if (randomModelPath.includes('cottoncandy')) {
               item.position.set(x, 0.75, z);
               item.scale.set(0.2, 0.2, 0.2);
-            } else if (randomModelPath.includes('candy_cane')) {
+            } else if (randomModelPath.includes('candycane')) {
               item.position.set(x, 0.8, z);
               item.scale.set(0.07, 0.07, 0.07);
             } else if (randomModelPath.includes('chips')) {
@@ -1077,7 +1074,7 @@ function loadMap(map: string[], selectedTheme: { ground: string; wall: string })
               item.position.set(x, 0.6, z);
             }
             else{
-              item.position.set(x, 0.5, z);
+              item.position.set(x, 0.75, z);
               item.scale.set(0.1, 0.1, 0.1);
             }
             scene.add(item);

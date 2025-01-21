@@ -91,7 +91,7 @@ onMounted(() => {
       <source src="@/assets/BackgroundVideo.mp4" type="video/mp4">
     </video>
     <div class="flex items-center justify-center min-h-screen">
-      <div class="bg-black/70 border-2 border-yellow-400 backdrop-blur rounded-xl p-6 w-full max-w-md">
+      <div class="bg-black/70 border-2 border-yellow-400 backdrop-blur rounded-xl p-6  w-auto">
       <table class="table-auto w-full border-rounded-lg border-collapse border border-yellow-400">
         <thead>
           <tr class="bg-gray-100 opacity-60">

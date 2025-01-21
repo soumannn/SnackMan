@@ -2,7 +2,7 @@
   <video autoplay loop muted class="fixed blur-sm top-0 left-0 w-full h-full object-cover -z-10">
    <source src="@/assets/BackgroundVideo.mp4" type="video/webm">
   </video>
-  <div class="flex items-center justify-center min-h-screen">
+  <div class="flex items-center justify-center">
     <div class="bg-black/70 border-2 border-yellow-400 backdrop-blur rounded-xl p-6 w-full max-w-md">
     <h1 class="text-2xl text-white font-semibold mb-4 text-center ">Map Creator</h1>
 
