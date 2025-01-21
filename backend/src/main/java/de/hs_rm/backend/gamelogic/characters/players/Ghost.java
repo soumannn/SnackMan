@@ -30,13 +30,6 @@ public class Ghost extends Character {
         this.touchcount = touchcount;
     }
 
-    // abstrakte Methode zum fortbewegen--> Logik fehlt noch
-    // @Override
-    // public PlayerPosition move(){
-    // logger.info("the ghost is moving");
-    // return null;
-    // }
-
     // Reglung bei Kontakt mit Snackman--> Logik fehlt noch
     public void hit() {
         this.touchcount++;

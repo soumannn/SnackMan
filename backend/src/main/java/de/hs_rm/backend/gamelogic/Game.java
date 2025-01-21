@@ -50,7 +50,6 @@ public class Game {
     private double snackmanSpeed;
     private double ghostSpeed;
     private int itemsPerSurfaceRatio;
-    private int nutriscore;
     private String pathToChickenBot;
 
     private int itemsNum;
