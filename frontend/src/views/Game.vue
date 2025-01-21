@@ -279,7 +279,6 @@ function registerListeners(window: Window, renderer: WebGLRenderer) {
   })
 
 
-
   window.addEventListener('resize', handleResize)
 
   document.addEventListener('pointerlockchange', (e) => {
@@ -1213,18 +1212,18 @@ function renderChicken(chickenData: IChickenDTD[]) {
       const existingChickenModel = chickens.get(chicken.id)
       if (existingChickenModel) {
         console.log("TOOOOO FAAAAAAAAAAAAAAT: " + chicken.tooFat);
-        if(chicken.currentCalorie !== undefined && chicken.currentCalorie >= 0 && chicken.currentCalorie < 100 && !chicken.tooFat) {
+        if (chicken.currentCalorie !== undefined && chicken.currentCalorie >= 0 && chicken.currentCalorie < 100 && !chicken.tooFat) {
           existingChickenModel.scale.set(0.5, 0.5, 0.5);
         } else if (chicken.currentCalorie !== undefined && chicken.currentCalorie >= 100 && chicken.currentCalorie < 200) {
           existingChickenModel.scale.set(0.7, 0.6, 0.6);
-        } else if (chicken.currentCalorie !== undefined && chicken.currentCalorie >= 200  && chicken.currentCalorie < 300) {
-          existingChickenModel.scale.set(1.0, 0.8 , 0.8);
-        } else if (chicken.currentCalorie !== undefined && chicken.currentCalorie >= 300  && chicken.currentCalorie < 400) {
-          existingChickenModel.scale.set(1.2, 1.0 , 1.0);
-        } else if (chicken.currentCalorie !== undefined && chicken.currentCalorie >= 400  && chicken.currentCalorie < 500) {
-          existingChickenModel.scale.set(1.5, 1.2 , 1.2);
-        } else if (chicken.currentCalorie !== undefined && chicken.currentCalorie >= 500  && chicken.currentCalorie < 600) {
-          existingChickenModel.scale.set(1.8, 1.4 , 1.4);
+        } else if (chicken.currentCalorie !== undefined && chicken.currentCalorie >= 200 && chicken.currentCalorie < 300) {
+          existingChickenModel.scale.set(1.0, 0.8, 0.8);
+        } else if (chicken.currentCalorie !== undefined && chicken.currentCalorie >= 300 && chicken.currentCalorie < 400) {
+          existingChickenModel.scale.set(1.2, 1.0, 1.0);
+        } else if (chicken.currentCalorie !== undefined && chicken.currentCalorie >= 400 && chicken.currentCalorie < 500) {
+          existingChickenModel.scale.set(1.5, 1.2, 1.2);
+        } else if (chicken.currentCalorie !== undefined && chicken.currentCalorie >= 500 && chicken.currentCalorie < 600) {
+          existingChickenModel.scale.set(1.8, 1.4, 1.4);
         } else if (chicken.currentCalorie !== undefined && chicken.currentCalorie >= 600) {
           existingChickenModel.scale.set(2.0, 1.5, 1.5);
         }
@@ -1268,10 +1267,10 @@ function moveChicken(modellChicken: THREE.Object3D, chickenData: IChickenDTD) {
   // console.log("Aktuelle Rotation (in Grad):", THREE.MathUtils.radToDeg(modellChicken.rotation.y));
 }
 
-function updateChickenRotation( angleInDegree: number, chickenModel: THREE.Object3D){
+function updateChickenRotation(angleInDegree: number, chickenModel: THREE.Object3D) {
   const angleInRadians = THREE.MathUtils.degToRad(angleInDegree);
 
-  const rotationOffset = - Math.PI / 2;
+  const rotationOffset = -Math.PI / 2;
   chickenModel.rotation.y = angleInRadians + rotationOffset;
 
   // console.log(`Chicken dreht sich auf Y-Achse: ${angleInDegree}° (${angleInRadians} rad)`);
@@ -1364,6 +1363,7 @@ async function handleChickenPositions(data: IChickenDTD[]) {
       tooFat: chicken.tooFat
     });
     // console.log(`Position X=${chicken.posX}, Y=${chicken.posY}`);
+    removeItemFromSceneByPosition(chicken.posY, chicken.posX, "chicken");
   });
   console.log("Chicken Positions:", chickenPositions);
   renderChicken(chickenPositions)
@@ -1372,7 +1372,7 @@ async function handleChickenPositions(data: IChickenDTD[]) {
 onUnmounted(async () => {
   // console.log("UNMOUNTED UNMOUNTED")
   window.removeEventListener('keyup', handleKeyUpEvent);
-  window.removeEventListener('keydown',handleKeyDownEvent);
+  window.removeEventListener('keydown', handleKeyDownEvent);
   window.removeEventListener('resize', handleResize);
   renderer.dispose();
   jumpSound.disconnect();
@@ -1455,12 +1455,12 @@ onMounted(async () => {
           }
         }
         // überprüft, ob es ein gewinner gibt und zeigt die ensprechende ansicht
-          if (winnerRole.value !== null) {
-            setTimeout(() => {
-              router.push({ name: 'GameEnd' });
-              stompClient.deactivate()
-            }, 500);
-          }
+        if (winnerRole.value !== null) {
+          setTimeout(() => {
+            router.push({name: 'GameEnd'});
+            stompClient.deactivate()
+          }, 500);
+        }
         break;
       }
 
@@ -1484,14 +1484,14 @@ onMounted(async () => {
     }
   })
 
-subscribeTo(`/ingame/${lobbyId}/chicken/eggUpdate`, async (message: any) => {
-  const posX = message.positionX;
-  const posY = message.positionY;
-  setTimeout(() => {
-    surpriseChicken(posX, posY);
-    // console.log("Egg Update: ", message);
-  }, 4000);
-})
+  subscribeTo(`/ingame/${lobbyId}/chicken/eggUpdate`, async (message: any) => {
+    const posX = message.positionX;
+    const posY = message.positionY;
+    setTimeout(() => {
+      surpriseChicken(posX, posY);
+      // console.log("Egg Update: ", message);
+    }, 4000);
+  })
 
   subscribeTo(`/ingame/chickenPosition/${lobbyId}`, async (message: any) => {
     await handleChickenPositions(message);
