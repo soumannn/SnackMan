@@ -48,6 +48,10 @@ public class Snackman extends Character {
         return currentPoints;
     }
 
+    public long getlastCaughtTime(){
+        return lastCaughtTime;
+    } 
+
     public void setCurrentPoints(int currentPoints) {
         this.currentPoints = currentPoints;
     }
@@ -56,17 +60,9 @@ public class Snackman extends Character {
         return this.recentlyCaught;
     }
 
-    // abstrakte Methode zum fortbewegen--> Logik fehlt noch
-    // @Override
-    // public PlayerPosition move(){
-    // System.out.println("Snackman is moving");
-    // return null;
-    // }
-
     // Methode: Aufnehmen von FoodItems
     public void eatSnack(FoodItems foodItem) {
         currentPoints += foodItem.getNutriScore().getCalorieBonus() * bonusFactor;
-        // LOGGER.info("FoodItem '{}' consumed: Current Calories = {}", foodItem.getName(), currentPoints);
     }
 
     @Override
