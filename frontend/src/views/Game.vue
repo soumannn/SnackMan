@@ -1200,7 +1200,8 @@ function renderChicken(chickenData: IChickenDTD[]) {
       // console.log("Chicken bereits vorhanden. Aktualisiere Position:", chicken.id);
       const existingChickenModel = chickens.get(chicken.id)
       if (existingChickenModel) {
-        if(chicken.currentCalorie !== undefined && chicken.currentCalorie >= 0 && chicken.currentCalorie < 100 && !chicken.isTooFat) {
+        console.log("TOOOOO FAAAAAAAAAAAAAAT: " + chicken.tooFat);
+        if(chicken.currentCalorie !== undefined && chicken.currentCalorie >= 0 && chicken.currentCalorie < 100 && !chicken.tooFat) {
           existingChickenModel.scale.set(0.5, 0.5, 0.5);
         } else if (chicken.currentCalorie !== undefined && chicken.currentCalorie >= 100 && chicken.currentCalorie < 200) {
           existingChickenModel.scale.set(0.7, 0.6, 0.6);
@@ -1347,11 +1348,12 @@ async function handleChickenPositions(data: IChickenDTD[]) {
       posY: chicken.posY,
       angle: chicken.angle,
       eggList: chicken.eggList || [],
-      currentCalorie: chicken.currentCalorie
+      currentCalorie: chicken.currentCalorie,
+      tooFat: chicken.tooFat
     });
-    removeItemFromSceneByPosition(chicken.posY, chicken.posX);
     // console.log(`Position X=${chicken.posX}, Y=${chicken.posY}`);
   });
+  console.log("Chicken Positions:", chickenPositions);
   renderChicken(chickenPositions)
 }
 
@@ -1467,11 +1469,10 @@ subscribeTo(`/ingame/${lobbyId}/chicken/eggUpdate`, async (message: any) => {
   setTimeout(() => {
     surpriseChicken(posX, posY);
     // console.log("Egg Update: ", message);
-  }, 2000);
+  }, 4000);
 })
 
   subscribeTo(`/ingame/chickenPosition/${lobbyId}`, async (message: any) => {
-    // console.log("FROM CHICKEN POSITIONS: ", message);
     await handleChickenPositions(message);
   });
 
