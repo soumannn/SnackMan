@@ -133,6 +133,9 @@ public class Tile {
     }
 
     public boolean addChicken(Chicken chicken) {
+        if (chicken.isTooFat()) {
+            chicken.setTooFat(false);
+        }
         List<Item> itemsToRemove = new ArrayList<>();
         this.chickenList.add(chicken);
         if (!itemList.isEmpty()) {

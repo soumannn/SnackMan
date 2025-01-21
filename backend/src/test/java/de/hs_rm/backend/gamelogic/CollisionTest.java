@@ -45,7 +45,7 @@ public class CollisionTest {
         snackman = new Snackman(1.0, 0, 0, 3, 3);
         ghost = new Ghost(1.0, 0, 0);
         foodItem = new FoodItems("Banana", 0, 0, NutriScore.A);
-        chicken = new Chicken(5, 5, null);
+        chicken = new Chicken(5, 5, null, null, "");
         itemList = new ArrayList<>();
         surfaceTile.setItemList(itemList);
         objectItem = mock(ObjectsItems.class);

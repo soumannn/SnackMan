@@ -1200,7 +1200,7 @@ function renderChicken(chickenData: IChickenDTD[]) {
       // console.log("Chicken bereits vorhanden. Aktualisiere Position:", chicken.id);
       const existingChickenModel = chickens.get(chicken.id)
       if (existingChickenModel) {
-        if(chicken.currentCalorie !== undefined && chicken.currentCalorie >= 0 && chicken.currentCalorie < 100) {
+        if(chicken.currentCalorie !== undefined && chicken.currentCalorie >= 0 && chicken.currentCalorie < 100 && !chicken.isTooFat) {
           existingChickenModel.scale.set(0.5, 0.5, 0.5);
         } else if (chicken.currentCalorie !== undefined && chicken.currentCalorie >= 100 && chicken.currentCalorie < 200) {
           existingChickenModel.scale.set(0.7, 0.6, 0.6);

@@ -16,7 +16,7 @@ class ChickenTest {
     @BeforeEach
     void setUp() {
         // Initialize a Chicken object with initial position
-        chicken = new Chicken(0, 0, null);
+        chicken = new Chicken(0, 0, null, null, "");
 
         // Set the value of CALORIESBONUS_EGG via ReflectionTestUtils
         ReflectionTestUtils.setField(chicken, "CALORIESBONUS_EGG", 50);

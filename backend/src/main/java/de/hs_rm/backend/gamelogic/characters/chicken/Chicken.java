@@ -30,6 +30,7 @@ public class Chicken {
     private static final Logger LOGGER = LoggerFactory.getLogger(Chicken.class);
     private PythonInterpreter pyInterpreter;
     private ChickenEnvironmentApi environmentApi;
+    private boolean isTooFat = false;
 
 
     @Value("${egg.caloriesbonus}")
@@ -59,6 +60,7 @@ public class Chicken {
     public Egg eatSnack(FoodItems item, int posX, int posY){
         this.currentCalorie += item.getNutriScore().getCalorieBonus();
         if(this.currentCalorie>= this.CALORIESBONUS_EGG){
+            isTooFat = true;
             this.currentCalorie = this.currentCalorie - this.CALORIESBONUS_EGG;
             Egg newEgg = new Egg(posX,posY);
             this.eggList.add(newEgg);
@@ -155,6 +157,13 @@ public class Chicken {
     public void setCurrentCalorie(int currentCalorie) {
         this.currentCalorie = currentCalorie;
     }
-    
-    
+
+
+    public boolean isTooFat() {
+        return isTooFat;
+    }
+
+    public void setTooFat(boolean tooFat) {
+        isTooFat = tooFat;
+    }
 }
