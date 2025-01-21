@@ -13,10 +13,10 @@ defineProps<{
 </script>
 
 <template>
-    <td class="px-6 py-3 text-gray-600">
+    <td class="px-6 py-3 text-white">
         <span class="font-medium px-6 py-3"></span> {{ game.id }}
     </td>
-    <td class="px-6 py-3 text-gray-600">
+    <td class="px-6 py-3 text-white">
         <span class="font-medium px-6 py-3"></span> {{ game.gamemaster?.name || 'Unknown' }}
     </td>
     <td class="px-6 py-3">

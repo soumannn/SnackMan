@@ -69,9 +69,9 @@ onMounted(() => {
 
 
       <div class="flex space-x-4">
-        <button class="font-semibold text-zinc-800 p-3 rounded-md bg-gray-200"
+        <button class="font-semibold text-black p-3 rounded-md bg-gray-200"
           @click="modal.joinGame(newPlayer)">Weiter</button>
-        <button class="font-semibold text-zinc-800 p-3 rounded-md bg-gray-200"
+        <button class="font-semibold text-black p-3 rounded-md bg-gray-200"
           @click="modal.closeModal()">Schließen</button>
       </div>
 
@@ -84,13 +84,14 @@ onMounted(() => {
       <source src="@/assets/BackgroundVideo.mp4" type="video/webm">
       <source src="@/assets/BackgroundVideo.mp4" type="video/mp4">
     </video>
-    <div class="card-adventure max-w-4xl">
-      <table class="table-auto w-full border-rounded-lg border-collapse border border-gray-300">
+    <div class="flex items-center justify-center min-h-screen">
+      <div class="bg-black/70 border-2 border-yellow-400 backdrop-blur rounded-xl p-6 w-full max-w-md">
+      <table class="table-auto w-full border-rounded-lg border-collapse border border-yellow-400">
         <thead>
           <tr class="bg-gray-100 opacity-60">
-            <th class="px-6 py-3 text-gray-700">Lobby</th>
-            <th class="px-6 py-3 text-gray-700">Host</th>
-            <th class="px-6 py-3 text-gray-700">Action</th>
+            <th class="px-6 py-3 text-gray-900">Lobby</th>
+            <th class="px-6 py-3 text-gray-900">Host</th>
+            <th class="px-6 py-3 text-gray-900">Action</th>
           </tr>
         </thead>
         <tbody>
@@ -99,9 +100,10 @@ onMounted(() => {
           </tr>
         </tbody>
       </table>
-      <button class="mt-4 w-full p-3 font-semibold text-zinc-800 rounded-md bg-gray-200 hover:bg-gray-100 backdrop-blur-lg shadow-sm" @click="router.push('/index')">
+      <button class="mt-4 w-full p-3 font-semibold text-zinc-800 rounded-md bg-red-600 hover:bg-red-900 backdrop-blur-lg shadow-sm" @click="router.push('/index')">
         Back
       </button>
     </div>
+  </div>
   </div>
 </template>
