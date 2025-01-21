@@ -1,25 +1,29 @@
 <template>
-  <div class="p-6 max-w-lg mx-auto bg-white rounded-lg shadow-lg">
-    <h1 class="text-2xl font-semibold mb-4 text-center">Map Creator</h1>
+  <video autoplay loop muted class="fixed blur-sm top-0 left-0 w-full h-full object-cover -z-10">
+   <source src="@/assets/BackgroundVideo.mp4" type="video/webm">
+  </video>
+  <div class="flex items-center justify-center min-h-screen">
+    <div class="bg-black/70 border-2 border-yellow-400 backdrop-blur rounded-xl p-6 w-full max-w-md">
+    <h1 class="text-2xl text-white font-semibold mb-4 text-center ">Map Creator</h1>
 
     <div class="space-y-4">
       <div>
-        <label for="mapName" class="block text-sm font-medium text-gray-700">Gib einen Namen für die Map ein:</label>
+        <label for="mapName" class="block text-sm font-medium text-white">Gib einen Namen für die Map ein:</label>
         <input id="mapName" type="text" v-model="mapStore.mapName" placeholder="Map Name"
           class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
       </div>
 
       <div>
-        <label for="rows" class="block text-sm font-medium text-gray-700">Definiere die Größe des Spielfelds:</label>
+        <label for="rows" class="block text-sm font-medium text-white">Definiere die Größe des Spielfelds:</label>
         <div>
-          <label for="rows" class="block text-sm font-medium text-gray-700">Zeilen:</label>
+          <label for="rows" class="block text-sm font-medium text-white">Zeilen:</label>
           <input id="rows" type="number" v-model="mapStore.rows" placeholder="Anzahl der Reihen"
             :min="mapStore.minGridSize" :max="mapStore.maxGridSize"
             class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
         </div>
 
         <div class="mt-4">
-          <label for="cols" class="block text-sm font-medium text-gray-700">Spalten:</label>
+          <label for="cols" class="block text-sm font-medium text-white">Spalten:</label>
           <input id="cols" type="number" v-model="mapStore.cols" placeholder="Anzahl der Spalten"
             :min="mapStore.minGridSize" :max="mapStore.maxGridSize"
             class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
@@ -27,11 +31,12 @@
       </div>
 
       <button
-        class="w-full py-2 mt-4 bg-blue-500 text-white font-semibold rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        class="w-full py-2 mt-4 bg-yellow-500 text-black font-semibold rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
         @click="mapStore.createGrid">
         Spielfeld erstellen
       </button>
     </div>
+  </div>
   </div>
 
   <div class="mx-auto w-max">
@@ -58,7 +63,7 @@
   </div>
   <div  class="p-6 max-w-lg mx-auto ">
     <button
-      class="w-full p-3 font-semibold text-zinc-800 rounded-md bg-red-600 hover:bg-red-400 backdrop-blur-lg shadow-sm"
+      class="w-full p-3 font-semibold text-zinc-800 rounded-md bg-red-600 hover:bg-red-900 backdrop-blur-lg shadow-sm"
       @click="router.push('/index')">
       Back
     </button>
