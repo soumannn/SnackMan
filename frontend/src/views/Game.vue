@@ -279,7 +279,6 @@ function registerListeners(window: Window, renderer: WebGLRenderer) {
   })
 
 
-
   window.addEventListener('resize', handleResize)
 
   document.addEventListener('pointerlockchange', (e) => {
@@ -401,27 +400,12 @@ watch(effectVolume, (newVolume) => {
 const threeContainer = ref<null | HTMLElement>(null)
 
 
-//Ball
-const sphereGeometry = new THREE.SphereGeometry(0.5, 30, 30)
-const sphereMaterial = new THREE.MeshStandardMaterial({
-  color: 0xffff00,
-  metalness: 0,
-  roughness: 0,
-})
-const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial)
-sphere.position.y = 2
-sphere.position.x = 3
-sphere.position.z = -4
-
-scene.add(sphere)
-
 //lightning
 const ambientLight = new THREE.AmbientLight(0x404040, 10)
 scene.add(ambientLight)
 
 const pointLight = new THREE.PointLight(0xffffff, 500, 10000)
 pointLight.position.set(25, 20, 5) //extra Lightning for the ball
-pointLight.lookAt(sphere.position)
 pointLight.castShadow = true;
 pointLight.shadow.mapSize.width = 2048;
 pointLight.shadow.mapSize.height = 2048;
@@ -932,6 +916,7 @@ function surpriseChicken(posX: number, posY: number) {
       model.position.set(posX, 1, posY + 0.5);
       model.scale.set(1, 1, 1)
       scene.add(model);
+      model.name = "surpriseEgg";
       rotatingItems.push(model);
       model.traverse((child) => {
         if (child instanceof THREE.Mesh) {
@@ -1045,10 +1030,7 @@ function loadMap(map: string[], selectedTheme: { ground: string; wall: string })
             ],
             '4': [
               new URL("@/assets/game/items/4/hearts.glb", import.meta.url)
-            ],
-            'kinderSupriseEgg':[
-              new URL("@assets/game/items/kinder_surprise_egg/kinder_surprise_egg.glb", import.meta.url)
-            ],
+            ]
 
           };
 
@@ -1068,7 +1050,7 @@ function loadMap(map: string[], selectedTheme: { ground: string; wall: string })
             } else if (randomModelPath.includes('cottoncandy')) {
               item.position.set(x, 0.75, z);
               item.scale.set(0.2, 0.2, 0.2);
-            } else if (randomModelPath.includes('candy_cane')) {
+            } else if (randomModelPath.includes('candycane')) {
               item.position.set(x, 0.8, z);
               item.scale.set(0.07, 0.07, 0.07);
             } else if (randomModelPath.includes('chips')) {
@@ -1090,6 +1072,10 @@ function loadMap(map: string[], selectedTheme: { ground: string; wall: string })
             } else if (randomModelPath.includes('supriseEgg')) {
               item.scale.set(0.03, 0.03, 0.03)
               item.position.set(x, 0.6, z);
+            }
+            else{
+              item.position.set(x, 0.75, z);
+              item.scale.set(0.1, 0.1, 0.1);
             }
             scene.add(item);
 
@@ -1227,18 +1213,18 @@ function renderChicken(chickenData: IChickenDTD[]) {
       const existingChickenModel = chickens.get(chicken.id)
       if (existingChickenModel) {
         console.log("TOOOOO FAAAAAAAAAAAAAAT: " + chicken.tooFat);
-        if(chicken.currentCalorie !== undefined && chicken.currentCalorie >= 0 && chicken.currentCalorie < 100 && !chicken.tooFat) {
+        if (chicken.currentCalorie !== undefined && chicken.currentCalorie >= 0 && chicken.currentCalorie < 100 && !chicken.tooFat) {
           existingChickenModel.scale.set(0.5, 0.5, 0.5);
         } else if (chicken.currentCalorie !== undefined && chicken.currentCalorie >= 100 && chicken.currentCalorie < 200) {
           existingChickenModel.scale.set(0.7, 0.6, 0.6);
-        } else if (chicken.currentCalorie !== undefined && chicken.currentCalorie >= 200  && chicken.currentCalorie < 300) {
-          existingChickenModel.scale.set(1.0, 0.8 , 0.8);
-        } else if (chicken.currentCalorie !== undefined && chicken.currentCalorie >= 300  && chicken.currentCalorie < 400) {
-          existingChickenModel.scale.set(1.2, 1.0 , 1.0);
-        } else if (chicken.currentCalorie !== undefined && chicken.currentCalorie >= 400  && chicken.currentCalorie < 500) {
-          existingChickenModel.scale.set(1.5, 1.2 , 1.2);
-        } else if (chicken.currentCalorie !== undefined && chicken.currentCalorie >= 500  && chicken.currentCalorie < 600) {
-          existingChickenModel.scale.set(1.8, 1.4 , 1.4);
+        } else if (chicken.currentCalorie !== undefined && chicken.currentCalorie >= 200 && chicken.currentCalorie < 300) {
+          existingChickenModel.scale.set(1.0, 0.8, 0.8);
+        } else if (chicken.currentCalorie !== undefined && chicken.currentCalorie >= 300 && chicken.currentCalorie < 400) {
+          existingChickenModel.scale.set(1.2, 1.0, 1.0);
+        } else if (chicken.currentCalorie !== undefined && chicken.currentCalorie >= 400 && chicken.currentCalorie < 500) {
+          existingChickenModel.scale.set(1.5, 1.2, 1.2);
+        } else if (chicken.currentCalorie !== undefined && chicken.currentCalorie >= 500 && chicken.currentCalorie < 600) {
+          existingChickenModel.scale.set(1.8, 1.4, 1.4);
         } else if (chicken.currentCalorie !== undefined && chicken.currentCalorie >= 600) {
           existingChickenModel.scale.set(2.0, 1.5, 1.5);
         }
@@ -1282,10 +1268,10 @@ function moveChicken(modellChicken: THREE.Object3D, chickenData: IChickenDTD) {
   // console.log("Aktuelle Rotation (in Grad):", THREE.MathUtils.radToDeg(modellChicken.rotation.y));
 }
 
-function updateChickenRotation( angleInDegree: number, chickenModel: THREE.Object3D){
+function updateChickenRotation(angleInDegree: number, chickenModel: THREE.Object3D) {
   const angleInRadians = THREE.MathUtils.degToRad(angleInDegree);
 
-  const rotationOffset = - Math.PI / 2;
+  const rotationOffset = -Math.PI / 2;
   chickenModel.rotation.y = angleInRadians + rotationOffset;
 
   // console.log(`Chicken dreht sich auf Y-Achse: ${angleInDegree}° (${angleInRadians} rad)`);
@@ -1322,6 +1308,14 @@ function removeItemFromSceneByPosition(posX: number, posY: number, itemName?: st
     (item) =>
       Math.abs(item.position.x - posX) <= 0.5 && Math.abs(item.position.z - posY) <= 0.5
   );
+
+  if(itemName == "chicken"){
+    if(itemToRemove){
+      if(itemToRemove.name == "surpriseEgg"){
+        return
+      }
+    }
+  }
 
   if (itemToRemove) {
     // console.log("Item to remove: ", itemName);
@@ -1378,6 +1372,7 @@ async function handleChickenPositions(data: IChickenDTD[]) {
       tooFat: chicken.tooFat
     });
     // console.log(`Position X=${chicken.posX}, Y=${chicken.posY}`);
+    removeItemFromSceneByPosition(chicken.posY, chicken.posX, "chicken");
   });
   console.log("Chicken Positions:", chickenPositions);
   renderChicken(chickenPositions)
@@ -1386,7 +1381,7 @@ async function handleChickenPositions(data: IChickenDTD[]) {
 onUnmounted(async () => {
   // console.log("UNMOUNTED UNMOUNTED")
   window.removeEventListener('keyup', handleKeyUpEvent);
-  window.removeEventListener('keydown',handleKeyDownEvent);
+  window.removeEventListener('keydown', handleKeyDownEvent);
   window.removeEventListener('resize', handleResize);
   renderer.dispose();
   jumpSound.disconnect();
@@ -1469,12 +1464,12 @@ onMounted(async () => {
           }
         }
         // überprüft, ob es ein gewinner gibt und zeigt die ensprechende ansicht
-          if (winnerRole.value !== null) {
-            setTimeout(() => {
-              router.push({ name: 'GameEnd' });
-              stompClient.deactivate()
-            }, 500);
-          }
+        if (winnerRole.value !== null) {
+          setTimeout(() => {
+            router.push({name: 'GameEnd'});
+            stompClient.deactivate()
+          }, 500);
+        }
         break;
       }
 
@@ -1498,14 +1493,14 @@ onMounted(async () => {
     }
   })
 
-subscribeTo(`/ingame/${lobbyId}/chicken/eggUpdate`, async (message: any) => {
-  const posX = message.positionX;
-  const posY = message.positionY;
-  setTimeout(() => {
-    surpriseChicken(posX, posY);
-    // console.log("Egg Update: ", message);
-  }, 4000);
-})
+  subscribeTo(`/ingame/${lobbyId}/chicken/eggUpdate`, async (message: any) => {
+    const posX = message.positionX;
+    const posY = message.positionY;
+    setTimeout(() => {
+      surpriseChicken(posX, posY);
+      // console.log("Egg Update: ", message);
+    }, 4000);
+  })
 
   subscribeTo(`/ingame/chickenPosition/${lobbyId}`, async (message: any) => {
     await handleChickenPositions(message);
