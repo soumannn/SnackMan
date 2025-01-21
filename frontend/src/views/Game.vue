@@ -1360,7 +1360,6 @@ watch([spawnX, spawnZ], ([newX, newZ]) => {
   }
 });
 
-
 async function handleChickenPositions(data: IChickenDTD[]) {
   // console.log("Processing Chicken Positions:", data);
   let chickenPositions: IChickenDTD[] = [];
