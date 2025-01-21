@@ -17,7 +17,7 @@ chicken_index_environment_list = 4
 
 def right_hand_algo():
 
-    if (chickenObj.getCurrentCalorie() >= 500):
+    if (chickenObj.isTooFat()):
             time.sleep(10)
 
     actuell_environment = environmentObj.getEnvironment(chickenObj.getPosX(), chickenObj.getPosY())

@@ -583,7 +583,7 @@ public class Game {
 
         for(Chicken chicken: targetTile.getChickenList()){
             // LOGGER.info("Chicken aktuelle CAL {}", chicken.getCurrentCalorie());
-            if(chicken.getCurrentCalorie() >= CALORIESBONUS_EGG){
+            if(chicken.isTooFat()){
                 // LOGGER.info("Kollision mit einem fetten Chicken: Zielkoordinaten posX={}, posY={}", posX, posY);
                 // LOGGER.info("Chicken aktuelle Cal {} maxCal {}", chicken.getCurrentCalorie(), CALORIESBONUS_EGG);
                 return false;
